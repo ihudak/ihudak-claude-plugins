@@ -86,7 +86,7 @@ never become evidence (§8).
 
 **`inventory` is required for every `[DG#n]`, and a class-1 finding is why.** A class-1 finding
 asserts *"this frame shows a field no requirement asks for"* — a **negative over the whole
-requirement set** — and `design-grounder` writes its `claim` as the literal `none — frame-only`,
+requirement set** — and `design-grounder` writes its `claim` as `none — frame-only: <field>`, naming the field and no requirement,
 because there is no requirement id to name. Handed the frames and that claim and nothing else, this agent
 cannot re-derive the assertion at all: it can see the field on the frame and has no set to establish
 the absence against. It correctly returns `NOT-PROVABLE` and says why, which is the contract working
@@ -203,9 +203,9 @@ too; and `Read` absolute paths.
    `<method, and the case it was pointed at> — <path:line>` or `— no match` shape
    (`workflows-core:grounding-format` §2.2). An outcome that asserts an absence with no control
    behind it is the defect this agent exists to catch, and it does not stop being one because a
-   verifier wrote it. It is its own field rather than a line inside `own_evidence` because the caller
-   writes it into the record when it rewrites the finding, and `own_evidence`'s shape requires a
-   `path` a failed control has not got.
+   verifier wrote it. It is its own field rather than a line inside `own_evidence` because the
+   caller writes it into the record when it rewrites the finding or writes its successor, and
+   `own_evidence`'s shape requires a `path` a failed control has not got.
 
 4. **Decide the outcome** from the closed set in `workflows-core:grounding-format` §8:
    - **`agree`** — your re-derivation reaches the same verdict.

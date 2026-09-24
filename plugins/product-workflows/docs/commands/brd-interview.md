@@ -28,16 +28,30 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   folder no BRD carved, carrying no `brd-link.md` — stops with `BRD_INTERVIEW_NOT_A_SLICE`, naming
   [`/create-ard`](create-ard.md) and [`/specify`](specify.md) as the way that route goes on. An `EPIC-` folder stops with `BRD_INTERVIEW_EPIC_LEVEL`, naming the slice the Epic sits in where it sits in one.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
-  closed, recorded as a re-open with its cause. With no flag the run continues at the first round
+  closed, recorded as a re-open with its cause. Naming the next round opens it only where every
+  round is closed: beside an open round it stops with `BRD_INTERVIEW_ROUND_STILL_OPEN`, naming the
+  open round, since the bare command would resume that one, and the step each of its holding states
+  needs, in the order they must run — a grounding pass for a question that needs grounding, then the
+  bare resume for a deferred, untagged or newly grounded one, then the package and the
+  reconciliation for a question held for the customer, since the packaging step refuses a round
+  still holding any of the others. With no flag the run continues at the first round
   still holding a question without a terminal disposition; with every round closed it generates the
   next round's questions from what changed after the last one was generated — a finding added or
   superseded, or its verdict or verifier outcome changed, whenever that happened, read against the
   `generated against:` line the last round's record carries (a record written before that line
-  existed is compared at its last commit, which misses a change made while that round was still
-  open, and, where no commit carries the record, detects no finding change at all), a requirement defect that became this BRD's to ask, or a re-grounding that moved a decision's
-  evidence, every finding it rests on superseded and the successors either no longer `will-change`,
-  for a decision the will-change rule held, or not confirming it, for any other (Phase 3 and Phase 8,
-  below) — and opens that round only where some question source puts a question, so a
+  existed is compared at the earliest commit on any ref, any branch included, that holds it exactly
+  as it stands on disk, which misses a grounding change committed before that commit or in it — one
+  made while that round was still open, or one a squash commit or a late commit of the record
+  carries, which the report flags where that commit itself changed a grounding file — and, where no
+  commit on any ref holds the record as it stands, detects no finding change at all), a requirement defect that became this BRD's to ask, or a re-grounding that moved a decision's
+  evidence — for a decision the will-change rule held, every finding it rests on superseded and the
+  successors no longer `will-change`; for any other, any finding it rests on superseded and that
+  finding's successors not confirming it (Phase 3 and Phase 8,
+  below), a decision reopened elsewhere — by [`/brd-reconcile`](brd-reconcile.md), on a customer
+  answer that constrains it or by its propagation sweep from a BRD it depends on, or by an
+  interrupted run of this command — whose question no round still holds unanswered, which the round
+  puts again under the decision's own tag (Phase 3, below), or a re-decision an interrupted run left standing at that round, which the round records
+  as a `[V]` already disposed *decided* and puts to nobody (*What it produces*, below) — and opens that round only where some question source puts a question, so a
   `--rebaseline` pass that confirms every decision it bears on, or leaves it waiting on its
   prerequisite, is reported as re-grounded with nothing moved and opens nothing — **or, on a BRD with no round record at all, generates round 1's questions and branches on
   what it finds.** At least one question opens the round as ever; none at all writes
@@ -160,8 +174,11 @@ flowchart TD
 A run that finds every round closed and nothing a question source would ask since the last one
 opens no new round: it reports that plainly — nothing changed, or each change and why it raised
 nothing — with any requirement defect that belongs to a closed round 1, and the re-open
-that asks it — and reaches the handoff with nothing to commit where the register is already on file;
-where none is, it writes `decisions.md` as its header line alone and hands that off.
+that asks it — removes any torn write an interrupted run left and reports each one, and reaches the handoff with nothing
+to commit where the register is already on file, nothing was torn, no interrupted
+re-disposition of a code defect was completed and none was left uncommitted; otherwise it hands off what it wrote — `decisions.md`
+as its header line alone where none was on file, any file a torn-write removal or a completed
+re-disposition changed, and a code-defect log an earlier run left changed and uncommitted.
 `workflows-core:impl-maintenance` runs in the terminal phase for session lessons-learned; no other
 subagent is dispatched — every finding this command reads was already independently re-derived by
 `/prd-ground`'s own verifier pass.
@@ -182,8 +199,8 @@ subagent is dispatched — every finding this command reads was already independ
   then `/brd-interview <SLICE-KEY>` on it; where the root already carries decisions or interview
   records written under the earlier two-level model, the stop names those files and leaves them in
   place, unread.
-- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at `specifications/` and the one
-  level below it — stops the run with `BRD_INTERVIEW_NOT_FOUND`, which names both ways a folder comes
+- **An existing BRD folder.** No folder for `<BRD-KEY>` — searched at every level
+  `resolve-address` bounds (three below `specifications/`) — stops the run with `BRD_INTERVIEW_NOT_FOUND`, which names both ways a folder comes
   to exist rather than asserting one.
 - **`/prd-ground`'s findings already merged to the specs repo's default branch.** `require-on-main`
   runs against `grounding/code-grounding.md` before anything else is read; an unmerged grounding pull
@@ -255,19 +272,28 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   assumption carries every one of them §7 admits and none it marks *not applicable*, which §1.1 has
   omitted rather than written empty — §7 accounts for all thirteen, and says of each whether it is
   as-is, means something different, or does not apply. Ids are contiguous within their
-  own prefix, assigned once, never renumbered, and never reused after a terminal status. A record
+  own prefix, assigned once, never renumbered, and never reused after a terminal status, a removed
+  torn write (below) aside. A record
   already on file moves only three ways here: reopened, with a closing `Reopened` paragraph naming
-  its cause; re-decided after a reopen, keeping its id; or, for a `[VD#n]` the will-change rule held
-  whose question a later round put again and which still reads `open` or `decided`, superseded by
-  the new record, with a closing
+  its cause; re-decided after a reopen, keeping its id; or, for a `[VD#n]` whose question a later
+  round put again and which reads `open` or `decided` when the answer is written — one the
+  will-change rule held, or a reopened one a propagation sweep reverted while its question waited —
+  superseded by the new record, with a closing
   `Superseded <YYYYMMDD>: by [VD#m]` paragraph. **Written
   on every run that records a round**, even one that produced no record — a round of `[C]` questions
   alone, or one with nothing to ask — **and on a run that finds every round closed and nothing a
   question source would ask, where none is on file**: as the single header line `# Decision register: <BRD-KEY>`
   wherever no round recorded a decision, so `/brd-package` finds the register it gates on.
 - `interview/round-<N>.md` — the round's append-only record: every question in the order it was
-  written, its tag, every re-tag with the finding that caused it, every split with the parts it
-  became, and each question's state — either a **terminal disposition** (*answered from findings*,
+  written, its tag, on a question that puts a decision on file again that decision on its own
+  line labelled `- **Re-puts:**`, whatever the tag, and on every other `[V]` the same line reading
+  `none`, written by the write that first records the question as `[V]` — its first write, or the
+  one recording a re-tag from `[G]` or a rewrite out of *untagged* — so a deferred `[V]` whose
+  `[V]` tag is on file without the line is one an earlier version wrote, and it is tied
+  when its round is resumed: the run asks the operator which reopened or held decision it puts
+  again, from those that could be, or none, and writes the answer as the line, so it is asked once;
+  an ordinary `[V]` written since carries `none` and is never asked about — every re-tag with the finding that caused it,
+  every split with the parts it became, and each question's state — either a **terminal disposition** (*answered from findings*,
   *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
   customer*, *deferred*, *needs grounding*, *untagged*). A re-tagged question keeps its number, so
   two states sit at that one address — *re-tagged*, and whatever the question reached under its new
@@ -300,12 +326,14 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   is asked; and, where that defect sits on a row drawn from an image, the image's path relative to
   `brd/` on the next line, labelled `- **Defect image:**`, which
   [`/brd-package`](brd-package.md) renders so the customer can find the picture; and, for a question
-  putting a `[CD#n]` again — one the will-change rule held, or one this command reopened because a
-  re-grounding moved its evidence — that record on its own line labelled `- **Re-puts:**`, from which
+  putting a `[CD#n]` again — one the will-change rule held, one this command reopened because a
+  re-grounding moved its evidence, or one reopened elsewhere — that record on its own line labelled
+  `- **Re-puts:**`, the same line the question carries in the round record, from which
   `/brd-reconcile`, once the customer answers, supersedes a held record that reads `open` or
   `decided` and re-decides a reopened one in place — reading each status as the register stood
-  before its run wrote anything — and leaves a `withdrawn` or `superseded` one as it is, naming it
-  beside the new record under what still needs a human.
+  before its run wrote anything — follows a `superseded` one to its live successor and acts on that
+  one instead, and, where the record or its successor reads `withdrawn`, freezes nothing, and closes the question, naming the withdrawal, whether
+  the operator records the answer for a human or rejects it.
 - `code-defect-log.md` — the code-defect log: one `[CDF#n]` per defect in the code that a decision
   turns on, each citing the verified `[CG#n]` that established the behaviour and naming separately
   what the code is supposed to do and what says so. Written where a round raised one **or
@@ -316,6 +344,36 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   because a defect disposed `in-scope` is part of the delivery boundary rather than delivery-side
   bookkeeping. Format:
   [`code-defect-log-format.md`](../../references/code-defect-log-format.md).
+
+**One phase writes all of it, in one order, and the round record goes last.** Phase 9 writes
+`code-defect-log.md`, then `decisions.md` — the log first, so no decision cites a defect entry that
+is on no file — then `interview/customer-questions.md`, then the round record. A round record
+written before its `code defects:` and `requirement defects:` lines existed first gets a baseline
+line naming what was already on file, so nothing this run adds is mistaken for an old item. A
+re-disposition of a code defect is applied to the log only after the round record names it, and a
+run that stopped in between is completed by the next one's Phase 0. Every phase before it — the `[V]` answers, the held `[C]` entries, a defect line added to a
+held entry, a `--round N` re-open, a question the round-1 test adds — builds its part and holds it
+there, so a `Cancel`, an abort or an interruption before Phase 9 writes nothing the run decided into
+the BRD folder — the one earlier write being Phase 0's completion of a code-defect re-disposition a
+round record already names, which decides nothing.
+The round record is the commit point
+([`decision-register-format.md`](../../references/decision-register-format.md) §8): an item stamped
+with a round whose record does not exist or does not name it — what a run that stopped between those
+writes leaves behind, or what an earlier version of this command left when a run was cancelled
+after holding its `[C]` questions — is a **torn write**. No reader counts one: not this command's
+*asked* test or generation, not [`/brd-package`](brd-package.md), which refuses a folder holding one,
+not [`/brd-reconcile`](brd-reconcile.md), and not the PRD, ARD and specification commands. Phase 0
+reports each one it finds, and Phase 9 removes them before it appends its own — the one deletion
+this command makes, of items nothing ever counted. A re-decision a stopped run wrote onto a record
+already on file is the exception: what it replaced cannot be restored, so it stands. Where its
+round is one no record yet holds, the next round opened at that number records it as a question
+of its own, tagged `[V]` and generated already disposed *decided* naming the record: it is never
+queued and put to nobody, and it makes that round askable by itself, so the round's record exists
+for `/brd-package` to find. Where its round is one on file — the interrupted run was resuming it —
+the question whose `- **Re-puts:**` line names the record is recorded *decided* as the round is
+resumed, and put to nobody either. A reopen an interrupted run wrote stands as well, and the
+question it held for that decision, lost with the run, is put again by the next round opened
+(Phase 3, below).
 
 **No `[CD#n]` is ever minted by this command.** A customer decision enters the register only once
 the customer has actually answered and an operator has confirmed the answer; the customer answering
@@ -342,22 +400,40 @@ but the push and the pull request cannot run.
   the BRD it names — a child here, a sibling or the parent on a slice — so a fully-allocated parent
   routinely reports a non-zero term for work that belongs to another BRD's walk
   ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §6.1).
-- **Phase 3 — a decision a re-grounding moved is put again.** Where a `--rebaseline` pass has
-  superseded every finding a `decided` decision the will-change rule did not hold rests on, the
-  successor findings — the same requirement's, grounded against the same repository or frame set
-  and minted later — either confirm its premise — each superseded finding with a successor, and
-  each successor carrying the verdict its superseded finding carried, which that finding keeps as
-  `prior_verdict`, and the horizon that finding carried — or the decision is reopened, naming the successors as
-  the cause, and its question put again in the round this run opens. The test is the same for a
-  `[VD#n]` and a `[CD#n]`, and a decision that confirms raises nothing. A finding superseded before
+- **Phase 3 — a decision a re-grounding moved is put again.** Where a re-grounding — a
+  [`/prd-ground --rebaseline`](prd-ground.md) pass, or any `/prd-ground` run whose verifier
+  contradicts an on-file finding, or whose horizon pass moves one's horizon — has superseded any
+  finding a `decided` decision the will-change rule did not hold rests on, the successor findings —
+  the same requirement's — or, for a design finding tied to no requirement, one citing the same
+  frames — grounded against the same repository or frame set and minted later —
+  either confirm its premise — each superseded finding with a successor, and each successor carrying
+  the verdict its superseded finding carried, which that finding keeps as `prior_verdict`, and the
+  horizon that finding carried — or the decision is reopened, naming the successors as the cause,
+  and its question put again in the round this run opens. The test is the same for a
+  `[VD#n]` and a `[CD#n]`, a finding the re-grounding did not supersede stands as cited, and a
+  decision that confirms raises nothing. A finding superseded before
   `prior_verdict` existed carries none, so a decision resting on one is reopened. A `[V]` is
   re-decided in place here, and a `[C]` by `/brd-reconcile` from the customer's answer in the next
   package, each keeping its id — unless another run has meanwhile left the record `withdrawn` or
-  `superseded`, when it does not move and the answer is a new record named beside it under what
-  still needs a human. The tag
+  `superseded`, when it does not move: a `[V]` answer is then a new record named beside it under
+  what still needs a human, while `/brd-reconcile` acts on a superseded `[CD#n]`'s live successor
+  and freezes nothing beside a withdrawn one, closing the
+  question whichever way the operator takes the answer. The tag
   never moves, and no other question source raises a question on those successors, so one decision
   is never asked about twice. A decision resting on no finding, and a customer answer still waiting
-  for its reason, are never taken.
+  for its reason, are never taken, and nor is a decision whose question is already put and still
+  unanswered.
+- **Phase 3 — a decision reopened elsewhere is put again.** A decision can read `reopened` with no
+  question putting it: [`/brd-reconcile`](brd-reconcile.md) reopens one when a customer answer
+  contradicts or constrains it without replacing it, its propagation sweep reopens one in a BRD
+  that depends on the BRD it reconciled, and an interrupted run of this command can leave a reopen
+  whose question it never recorded. Every such decision whose question no round still holds
+  unanswered — no question naming it on a `- **Re-puts:**` line still *deferred* or *held for the
+  customer* — has its question put again in the round this run opens, under its own tag, against
+  the current findings, quoting each `Reopened` paragraph as context. The answer re-decides it in
+  place: here for a `[V]`, by `/brd-reconcile` from the customer's answer for a `[C]`. One reopened
+  while a round is still open waits for the next round, and the run says so. A decision moved to
+  `superseded` or `withdrawn` raises nothing.
 - **Phase 4 — the tagging gate.** Nothing is asked of anybody until every question in the round
   carries exactly one tag. A question that cannot be resolved into one of the three is left
   in the *untagged* holding state, with what is wrong with it recorded; it is never asked in that
@@ -389,13 +465,20 @@ but the push and the pull request cannot run.
   `conditional_on` its prerequisite, a `[VD#n]` or a `[CD#n]` that `/brd-reconcile` froze the same
   way — is superseded, each has a successor, and no successor is `will-change`, that is a change which makes a new round
   askable, and the round opened puts the question again against the current findings, under the tag
-  it had; until then the record waits on its prerequisite, and the run says so. Its answer is a new
+  it had; until then the record waits on its prerequisite, and the run says so — unless a superseded
+  finding it rests on is one no successor will come to, when the record is put again at once, naming
+  that finding: it cannot be matched to a successor — its source cannot be read, or it is a
+  frame-only finding written before such findings named their field — or the `/prd-ground` run that retired it re-ground
+  its frame set and found nothing to succeed it. Its answer is a new
   record, and the held one — where it reads `open` or `decided` — is superseded by it: here for a
   `[V]`, by `/brd-reconcile` for a `[C]`. One a propagation sweep reopened meanwhile is re-decided
-  in place instead, and one another run has left `withdrawn` or `superseded` does not move, and is
-  named beside the new record under what still needs a human.
-  **Cancel on this picker writes nothing**: it stops the run before the register phase, so no
-  decision this run took is written, and the next run puts the question again — or, for a round
+  in place instead, and one another run has left `withdrawn` or `superseded` does not move: for a
+  `[V]` the answer is a new record named beside it under what still needs a human, and for a `[C]`
+  `/brd-reconcile` acts on a superseded record's live successor, and on a withdrawn one freezes
+  nothing, closing the
+  question whichever way the operator takes the answer.
+  **Cancel on this picker writes nothing the run decided**: it stops the run before the register phase, so no
+  decision this run took is written, and no `[C]` question it held either, and the next run puts the question again — or, for a round
   this run opened, regenerates it and asks only what is still askable.
 - **Round closure.** A round closes only when every question in it carries a **terminal**
   disposition. A holding state — *held for the customer*, *deferred*, *needs grounding*, *untagged* — is not one
@@ -449,8 +532,10 @@ pass as the one thing this command can offer that could make a new round askable
 defect can also become this BRD's to ask, through events outside this command — for instance a
 revised source document, an allocation or a re-cut elsewhere under the parent, a sibling's
 reconciliation moving its row to `rejected` or `superseded-by`, or a sibling file that could not be
-read becoming readable); neither the packaging step nor another round of this command is offered,
-because both would stop or report a no-op.
+read becoming readable; and a reconciliation can reopen one of its decisions); neither the packaging
+step nor another round of this command is offered, because both would stop or report a no-op —
+save where the run names a reopened decision that waited on the round it worked, when it says the
+BRD is not decided and offers, in a list of its own, the round that puts that decision's question.
 Re-opening a closed round later, with its cause recorded:
 
 ```

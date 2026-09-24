@@ -41,10 +41,20 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
      which on a BRD-route slice is `brd`** — and that is what replaces the two-key grammar: the
      second key was always derivable from the first.
 
+   **Then settle the specs checkout, before the placement below reads anything.** Fix the run key
+   set (`workflows-core:specs-repo-git` §3.2), reading only carrier frontmatter (`key:`, `kind:`) as
+   §4 does, whatever file that is, and testing no file's presence: the resolved `key` and, where
+   `workflows-core:addressing` §4.1 places the resolved folder at Epic level — an `EPIC-` prefix, or
+   with no prefix a resolved `kind: epic` — also the key its parent's carrier asserts (§4), the
+   would-be `<PRD>`. Then run the specs-repo preflight below, and only then place the folder and
+   take its stops. A stale plugin branch the preflight switches away from would otherwise hide a
+   slice's `brd-link.md` from `DESIGN_BRD_NOT_SLICED`'s listing, or hide the file that places the
+   folder, and the run would list the wrong slices or stop where it would have proceeded.
+
    Place the folder as `workflows-core:addressing` §4.1 does, its container test first. **A BRD
    container** — a `BRD-` folder, or a folder with no prefix holding `coverage-ledger.md` or
    `brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — holds no specification to
-   design against, because a BRD's specifications are authored in its slices; stop, before anything
+   design against, because a BRD's specifications are authored in its slices; stop, before any artifact
    is read:
    `DESIGN_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path> — a BRD's specifications, and so its designs, belong to its PRD- slices. <the remedy>`
    `<the remedy>` lists the slices under it, found by the positive test §4.1 names — `Design within a slice instead: '/dev-workflows:design <SLICE-KEY>' — <each slice's key>.` — and, where it finds none:
@@ -64,15 +74,18 @@ Flags: `--design-twice` forces the Phase 5 interface fan-out on the run's load-b
 
 2. **Resolve `$SPECS_PATH`.** `/design` reads `specification.md` and writes `design.md` under
    `$SPECS_PATH/specifications/`. If `$SPECS_PATH` is unset, stop with a clear error naming `SPECS_PATH`
-   (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`).
+   (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`). **Take this test before step 1
+   resolves anything**: a key is found only by searching the specs tree, and the preflight step 1
+   ends with needs the variable.
 
-**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier
+**Specs-repo preflight** — run at the end of step 1's address resolution, with the run key set step 1
+fixes, before step 1 places the folder or takes any of its stops. Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier
 run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent
 when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
 `commit-artifacts` step skips on it.
 
-*(The preflight runs here, before the gate below, because `require-on-main` performs **no** `fetch` of its own — §3.2 — and relies on this step's best-effort one. Gating first would test never-fetched refs: a just-merged artifact would be missed on `origin/<default>` while the stale remote-tracking ref for its deleted branch still carries it, producing a false row D/E stop. `specs-preflight` self-gates on `$SPECS_PATH`, so it is safe this early.)*
+*(The preflight runs before the gate below — at the end of step 1, earlier still — because `require-on-main` performs **no** `fetch` of its own — §3.2 — and relies on this step's best-effort one. Gating first would test never-fetched refs: a just-merged artifact would be missed on `origin/<default>` while the stale remote-tracking ref for its deleted branch still carries it, producing a false row D/E stop. `specs-preflight` self-gates on `$SPECS_PATH`, so it is safe this early.)*
 
 3. **Map onto the specs repo + require the spec on main.** Derive provisional kebab-case slugs from the relevant title(s): `<vslug>` for `<PRD>`, and `<eslug>` for `<EPIC>` when `<EPIC>` is set.
    - **Resolve the PRD dir:** call `resolve-address <PRD>` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3) and use its `path`; on `ambiguous`, stop naming every match and `@<path>` as the way through. No matching rule is written here — §5 owns it, and it carries the legacy fallback. Use a freshly derived `PRD-<PRD>-<vslug>` only on `status: absent`. Every later `specifications/<PRD>-<vslug>/` in this command — the Epic-enumeration ref test included — names the dir resolved here.

@@ -343,8 +343,10 @@ write would re-ask a question already answered.
    never a gate; `interview/customer-questions.md` and every `interview/round-<N>.md`, where on
    file — a slice never interviewed holds neither (step 2) — so each `[C]` is addressed by the
    round and position that identify it
-   (`interview-tagging.md` §5 — a question mints no identifier of its own); the most recent
-   `self-review-<YYYYMMDD>.md`, for the `[SR#n]` ids an `escalated-to-customer` disposition put in
+   (`interview-tagging.md` §5 — a question mints no identifier of its own); every
+   `self-review-<YYYYMMDD>.md` on file — the one of the package this review answers is resolved in
+   the *Ingest the review* phase, before the reader is dispatched — for the `[SR#n]` ids an
+   `escalated-to-customer` disposition put in
    front of the customer; `customer-review-prompt-<YYYYMMDD>.md` and the manifest of
    `bundle-<YYYYMMDD>/`, so a review's document reference resolves to what was actually sent —
    **or, on a `--sent` run, the files under `customer-sent-<YYYYMMDD>/` in their place**, read here by
@@ -359,7 +361,16 @@ write would re-ask a question already answered.
    `[CG#n]`/`[DG#n]` with its `horizon`; and, when this is not the first reconciliation, every
    earlier `reconciliation-<YYYYMMDD>.md` and every earlier canonicalised review. Every one of those
    is an input, never scratch: nothing below deletes, renames or rewrites a dated artifact another
-   run wrote.
+   run wrote. **The register, the log and the question set are read through
+   `decision-register-format.md` §8, in this BRD's folder and in every folder the propagation sweep
+   reaches**: a **torn write** — an item a `/brd-interview` run left when it stopped before writing
+   the round record that would name it — counts for nothing. A torn entry or a torn `[AS#n]` matches
+   no answer, so an answer the customer gave against it — whatever `customer-review-reader`, which
+   reads the files it is handed as they stand, matched it to — is carried `unmatched`, as an answer
+   to no question is, and never frozen; a torn record is read as absent, so it is neither superseded,
+   nor reopened, nor swept; and a torn `[CDF#n]` resolves no `defects` id. This command removes none
+   of them: removing a torn write is `/product-workflows:brd-interview`'s alone (§8), and the final
+   report names each one found, with that command as the step that removes it.
 9. **Fix the run's date.** One `<YYYYMMDD>` stamp, taken once, used for the reconciliation record
    this run writes and for the `Status:` line of any round it closes. It is **not** the stamp on the
    canonicalised review, which carries the customer's date — the *Canonicalise the returned review*
@@ -484,7 +495,7 @@ path nobody else can reproduce; the copy is the record.
    corrected resend from one frozen from the file it replaced. What distinguishes them is the
    *Write the reconciliation record* phase: each pass sits under its own heading naming the review
    file that caused it, and lists the `[CD#n]` ids that pass froze. Say that plainly rather than
-   claiming the register carries it — the *Confirm every candidate* phase's skip rule keys on
+   claiming the register carries it — the *Confirm every candidate* phase's same-review skip keys on
    "an earlier pass over **this same review**", and the only place that mapping exists is the
    record this phase's canonical name feeds into.
 4. **Copy the `--sent` material, where the flag was given** — **before** the handoff below, under the
@@ -573,8 +584,44 @@ Dispatch `customer-review-reader` **once**, at `detection_model`:
   > package:
   >   questions:   [path to interview/customer-questions.md, when one is on file]
   >   assumptions: [path to decisions.md, when one is on file]
-  >   self_review: [path to the most recent self-review-<YYYYMMDD>.md, when one is on file]
+  >   self_review: [path to the self-review of the package this review answers, resolved below — omitted where it cannot be determined]
   > mode: auto"
+
+**Resolve the self-review of the package this review answers, before the dispatch.** An `[SR#n]` is
+scoped to one dated self-review, and every package numbers its findings from `[SR#1]` again
+(`/product-workflows:brd-package`), so the same id names a different finding in each: the reader
+may be handed only the file of the package the review answers, and never another. The known set
+is the dated `customer-review-prompt-<YYYYMMDD>.md` files in the folder, one per package built, and
+the package is resolved against it, reading section 1 as this command reads it for the review's date
+(the *Canonicalise the returned review* phase, step 1), in this order:
+
+1. **The `Package reviewed: <BRD-KEY> <YYYYMMDD>` line** `/product-workflows:brd-package` prints
+   into the prompt and the review's section 1 repeats (`customer-review-schema.md` §4), where
+   section 1 carries it, its key is this BRD's, and its date names exactly one prompt on file.
+2. **Otherwise a date section 1 names among the documents it lists as available** — the prompt's or
+   the bundle's — where exactly one such date names exactly one prompt on file.
+3. **Otherwise the only package on file**, where there is one.
+4. **Otherwise ask the operator** — section 1 names no package, names a date that matches no prompt
+   on file, or names dates that match two — with the dated prompts printed above the prompt, most
+   recent first, and the date or dates section 1 named, if any, beside them. Two or three prompts
+   on file: every one, then the decline —
+   `choices: ["<BRD-KEY> package <YYYYMMDD-1>", "<BRD-KEY> package <YYYYMMDD-2>", "Cannot tell — leave it undetermined"]`,
+   with a third package before the decline where there is one. Four or more: the three most recent
+   and the overflow option, the full list staying in the prose above it as
+   `workflows-core:epic-picker`'s *The cap* sets out —
+   `choices: ["<BRD-KEY> package <YYYYMMDD-1>", "<BRD-KEY> package <YYYYMMDD-2>", "<BRD-KEY> package <YYYYMMDD-3>", "Another package from the list above — name its date"]`,
+   where declining is a free-text answer. No option is marked `(Recommended)`: which package the
+   customer answered is theirs to know, and the run has nothing to rank by. A free-text answer is
+   resolved only against the dated prompts on file, never parsed into a date that names none; one
+   that names no package on file, or declines, leaves the package undetermined.
+
+**Where nothing determines it** — the operator could not tell — `self_review` is omitted, so every
+`[SR#n]` answer in the review comes back `unmatched`, and each is listed under *what still needs a
+human* as an answer to a finding of an undetermined package, never matched against another
+package's file; the *Confirm every candidate* phase's re-point refuses an `[SR#n]` on this run for
+the same reason. The reconciliation record names the file
+resolved, or that none could be (*Write the reconciliation record*). A `--sent` run has no
+self-review at all and supplies none (*Resolve inputs and gate the sent package*, step 8).
 
 Supply the inputs **exactly as that agent's own Inputs contract declares them**. It refuses to run
 without `review_path`, returning `status: INPUT_MISSING`, and returns `status: REVIEW_MISSING` when
@@ -591,7 +638,9 @@ operator has said outright that the file is prose — a narrowing, never a widen
 second dispatch.** Re-dispatching a review that came back free-text, hoping for a parse, is the same
 override taken slowly.
 
-**Record what the digest says, before working it.** The mode and its `mode_evidence`; the twelve
+**Record what the digest says, before working it.** The mode and its `mode_evidence`; the
+`package_reviewed` line the reader found, and, where it names a package other than the one resolved
+above, that disagreement as an anomaly; the twelve
 sections with each marked `present`, `stated-none` or `absent` — two facts that are never merged;
 `evidence_limitations`, including a `stated: false` that says the review's evidentiary basis is
 unknown; the decisions with their provenance; `unanswered_questions`; `challenges`;
@@ -627,8 +676,8 @@ it, and `/brd-package` fills that part from three sources:
 
 | What the review's section 7 may cite | Where it came from | What it matches against |
 |---|---|---|
-| a `[C]` question, by its round and position | `interview/customer-questions.md` | the round record's entry for that question, whose holding state is *held for the customer* |
-| an `[AS#n]` | every open assumption in the register (`decision-register-format.md` §7) | the `[AS#n]` record itself |
+| a `[C]` question, by its round and position | `interview/customer-questions.md` | the round record's entry for that question, whatever state it holds now — the package put it while it was *held for the customer*, and a corrected resend answers it again after an earlier review closed it *answered by the customer*, which *Confirm every candidate* disposes of |
+| an `[AS#n]` | every open assumption in the register (`decision-register-format.md` §7) | the `[AS#n]` record itself, whatever its status — one an earlier review already settled resolves to its live record (*Confirm every candidate*) |
 | an `[SR#n]` | a self-review finding disposed `escalated-to-customer` | that finding's record in `self-review-<YYYYMMDD>.md` |
 
 **The third is not an oversight to be narrowed away.** `/brd-package` puts an escalated self-review
@@ -652,13 +701,16 @@ the operator, **one at a time, never batched**, with:
 - the **verbatim quotation** from the review it rests on — always, in both modes;
 - what it appears to answer, in one of the three id shapes above, or `unmatched`;
 - whether the answer is one of the options that question, assumption or finding put, or outside
-  them;
+  them, and the `chosen` it would be frozen with — the option it maps to, or the marked
+  outside-the-options form — so that confirming the row confirms that mapping;
+- where its target has a live record (below), that record — its id, status, `chosen` and quoted
+  reason — and whether the row as shown would re-affirm it;
 - the reason the customer gave, or `not stated` as the plain fact it is;
 - in free-text mode, the agent's own `confidence`, and every `conflict` flag naming the other
   candidate this one pulls against.
 
 ```
-choices: ["Confirm — this is what the customer decided; freeze it", "Correct it — the row does not match the quotation; supply the row that does, and freeze that", "Reject — not a customer decision at all, a declared refusal to answer included; record why", "Ask the customer — the answer is not clear enough to freeze; the question stays open"]
+choices: ["Confirm — this is what the customer decided; freeze it", "Correct it — the row does not match the quotation; supply the row that does, and freeze that", "Reject — not a customer decision at all, a declared refusal to answer included; record why", "Ask the customer — the answer is not clear enough to freeze; the question is left as it stands"]
 ```
 
 **A customer who explicitly declines to answer takes *Reject*, and the schema guarantees that case
@@ -669,15 +721,21 @@ arriving through the one door left open. It is not *Ask the customer* either: th
 answer too unclear to freeze, and a decline is perfectly clear. **What *Reject* records here is the
 decline itself** — the customer's words, and their reason or `not stated` as the plain fact it is —
 in this run's own reconciliation record and in the rejection's recorded reason. **The question's own
-state does not move**: it keeps the *held for the customer* holding state `/brd-interview` gave it,
-and a later round can put it again, drop it, or take it as a `[V]` the delivery team settles.
+state does not move**: a held one keeps the *held for the customer* holding state `/brd-interview`
+gave it, and the next package puts it to the customer again, an answer frozen from a later review
+being its only exit; one an earlier review already answered stays *answered by the customer*, its record
+untouched. **One held question is the exception**: an entry whose `- **Re-puts:**` line put again a
+record since withdrawn is closed on *Reject* as on *Record it for a human* (*A live record reading
+`withdrawn`*, below).
 **Nothing writes "declined" anywhere**, and that is the point rather than an omission — it is in
 neither vocabulary `/brd-interview` fixes (five terminal dispositions, four holding states, and
 everything else a holding state and never a disposition), so a run that recorded it as a terminal
 disposition would let the round's closure test see every question settled and **close a round on a
 question the customer expressly refused to answer**, which is the D14 failure this disposition
-exists to prevent, arriving quietly. *Reject* mints no `[C]`, writes nothing into the question
-set, and closes no round.
+exists to prevent, arriving quietly. *Reject* mints no `[C]` and writes nothing into the question
+set, save to close the one exception above, whose question asks for no decision the register could
+take any more: the record it put again is withdrawn, so no customer decision is left for its round
+to wait on.
 
 **This is not an escalation choice list** — its four options are the four fates a candidate
 answering a question the package put can take in this command (one answering none takes the two
@@ -754,8 +812,9 @@ with the customer directly — has what the customer actually wrote.
 verdict, not the customer's, and a candidate that does answer a question the package put — the
 reader missed the question's round and position, or the customer cited it loosely — would otherwise
 have only these two options, neither of which freezes what the customer decided. So a typed answer
-**naming the question the candidate answers** — a held `[C]` question by its round and position, an
-`[AS#n]` or an escalated `[SR#n]`, resolved against the three sets the package put and never parsed
+**naming the question the candidate answers** — a `[C]` question by its round and position, an
+`[AS#n]` or an escalated `[SR#n]` of the self-review the *Ingest the review* phase resolved, and no
+`[SR#n]` where it resolved none, resolved against the three sets the package put and never parsed
 out of the customer's prose — **re-points the candidate onto that question**: it is shown again
 with that target, on the four-option array above, and takes whichever of the four the operator then
 chooses, exactly as a candidate the reader matched would. The re-point is recorded in the
@@ -775,11 +834,12 @@ answer that is unclear; an answer outside the options is neither.
 
 **A candidate whose reason is `not stated` cannot be frozen as `decided`, by anyone in this run.**
 `argumentation` is mandatory (`decision-register-format.md` §2) and on a `[CD#n]` it is the
-customer's own reason for their own decision. Where *Confirm* is chosen on such a candidate, exactly
-two resolutions follow:
+customer's own reason for their own decision. Where *Confirm* is chosen on such a candidate — and it
+does not re-affirm its question's live record, which takes it out of this picker's reach (below) —
+exactly two resolutions follow:
 
 ```
-choices: ["Ask the customer for the reason — nothing is frozen; the [C] stays held for the customer and the round stays open", "Freeze the answer as [CD#n] with status: open, naming the absent reason — nothing downstream may consume it until the reason arrives", "Cancel"]
+choices: ["Ask the customer for the reason — nothing is frozen; a held [C] stays held for the customer and its round stays open", "Freeze the answer as [CD#n] with status: open, naming the absent reason — nothing downstream may consume it until the reason arrives", "Cancel"]
 ```
 
 The second is not a workaround: `open` means raised and not yet settled, and a decision may not be
@@ -789,48 +849,186 @@ offer is the operator writing the reason themselves. A supplied reason is the de
 argument recorded as the customer's, and it will be defended later as theirs — the exact failure the
 mandatory field exists to prevent, arriving through the one door the field cannot close.
 
-**A re-run never re-asks what an earlier pass already froze.** Every earlier
-`reconciliation-<YYYYMMDD>.md` was read in the *Resolve inputs and gate the sent package* phase.
-A candidate whose target already carries, from an earlier pass over **this same review**, a
-**`decided`** `[CD#n]` — or an **`open`** one the *Freeze the customer decisions* phase's
-will-change rule held open — is skipped and reported as already reconciled, never re-offered: both
-are the customer's answer on the record, and the question behind either was closed as *answered by
-the customer* (that phase's step 1). Without that rule a run cancelled halfway and restarted would
-mint a second `[CD#n]` for one question, and **two customer answers to one question is a
-contradiction one record has no way to hold** (`interview-tagging.md` §5,
-`decision-register-format.md` §1). A target carrying an **`open`** `[CD#n]` **open for want of its
-reason** is the exception and **is** re-offered: that record is waiting for the reason that would
-close it. Which of the two an `open` record is, is read off the record itself: one frozen for want
-of its reason carries an `argumentation` naming the reason as absent (the picker above), and one the
-will-change rule held open carries the customer's own reason.
+**A re-run never re-asks what an earlier pass over the same review already settled.** Every earlier
+`reconciliation-<YYYYMMDD>.md` was read in the *Resolve inputs and gate the sent package* phase, and
+each pass in one sits under a heading naming the review file it reconciled and lists the `[CD#n]`
+ids it froze, completed or re-decided in place (*Canonicalise the returned review*, step 3). A
+candidate whose target's chain — below — holds a record an earlier pass over **this same review**,
+the same canonicalised file with its suffix, froze, completed or re-decided in place is skipped and
+reported as *already reconciled*, never re-offered, **whatever that record's status is now**. The
+review's answer is on the record already, and where something has since moved the question — a later
+review's answer superseding that record, or a propagation sweep withdrawing it — offering the
+earlier review's answer again would revert that move: re-running an earlier review, which a
+recorded-not-written dependent makes an ordinary step (*Write the reconciliation record*), never
+supersedes a later review's answer. Where the live record is no longer that pass's record, the
+report says which it is instead: *already reconciled, superseded since by* `[CD#m]`, or *already
+reconciled, withdrawn since*. Without this rule a run cancelled halfway and restarted would mint a
+second `[CD#n]` for one question, and **two customer answers to one question is a contradiction one
+record has no way to hold** (`interview-tagging.md` §5, `decision-register-format.md` §1). **For an
+`[SR#n]` target the rule needs no self-review file**: a pass
+over the same review answered the same package, so an earlier pass over this same review that lists
+a `[CD#n]` answering this `[SR#n]` is enough, and the chain is followed from that record — which
+keeps the rule working on a reconciliation record written before passes named their self-review
+file. The rule compares nothing — it keys on the review's name and the record's id — so it is taken
+before the candidate is shown. A candidate whose target no pass over this review froze anything for
+— every
+candidate onto it was rejected or sent back to the customer — is offered again.
+
+**Every target resolves to its question's live record before any candidate is shown.** Start from
+the earliest record frozen against the target:
+
+- **a `[C]` entry**: the `[CD#n]` its first *answered by the customer* names; or, where an answer to
+  it was frozen `open` for want of its reason before any answer closed it — step 1 of the *Freeze
+  the customer decisions* phase leaves such an entry held and writes nothing on it — that record,
+  found where an earlier reconciliation record lists it, as *What changed* does every `[CD#n]`
+  frozen, against the entry's round and position; or, on an entry holding neither, the record its `-
+  **Re-puts:**` line names. An entry whose last recorded state is another terminal disposition,
+  *split* or *re-tagged* (`/product-workflows:brd-interview`), is no longer a question anybody
+  answers as it was put: its candidate is carried `unmatched`, and a typed answer can re-point it
+  onto a question that stands (above);
+- **an `[AS#n]`**: the assumption itself. It holds no `chosen` (`decision-register-format.md` §7),
+  so while it is still `open` none of the re-affirmation tests below applies to it — an answer to an
+  open assumption is always a new answer (step 2) — and neither kind of `open` those tests name is
+  an assumption's;
+- **an `[SR#n]`**: **never by its id alone**, because every package numbers its self-review findings
+  from `[SR#1]` again (`/product-workflows:brd-package`), so the same id names a different finding
+  in each. It resolves through the self-review file of the package this review answers, as the
+  *Ingest the
+  review* phase resolved it — an `[SR#n]` answer reaches this phase only where that file was
+  determined, and is `unmatched` otherwise — to the `[CD#n]` an earlier pass's reconciliation
+  record lists as answering that `[SR#n]` of that same file (*Write the reconciliation record* names
+  the file each pass resolved against). **Where no earlier pass answered it and its entry in that
+  file carries a `- **Re-escalates:** <earlier self-review file> [SR#k]` line**
+  (`/product-workflows:brd-package`, *The disposition gate*) — a line written only where the operator
+  confirmed, beside both findings' words, that the two are the same finding — the finding was put
+  to the customer before under that other id: resolve `[SR#k]` of the named file the same way — its
+  own line
+  followed in turn — and the chain starts at what that resolves to, so the new answer is judged
+  against the earlier answer's live record. **Where nothing resolves** — no pass answered the id or
+  one it re-escalates, or the pass that did names no file it resolved against — the `[SR#n]` has no
+  live record: nothing is skipped, and its answer is frozen as a new `[CD#n]` that supersedes
+  nothing. An entry written before the line existed carries none, and is frozen fresh the same
+  way. A `--sent` run resolves no
+  `[SR#n]` at all (*Resolve inputs and gate the sent package*, step 8).
+
+While that record reads `superseded`, follow its closing `Superseded <YYYYMMDD>: by [CD#m]`
+paragraph to its successor, however it came to be superseded — by a later review's answer, or by the
+answer to a question a `- **Re-puts:**` line put again. Those records are the target's **chain**,
+and the one it stops at is the **live record**: the one this phase compares a confirmed candidate
+against, and the one the *Freeze the customer decisions* phase acts on (its steps 2 and 3); nothing
+on an earlier record of the chain is read for a status or written. **A successor is never a torn
+write**: an `[AS#n]` and a `[CD#n]` are superseded only by a `[CD#m]` (`decision-register-format.md`
+§4), and a `[CD#n]` is never torn (§8). A torn link can only be where the chain starts — a torn
+entry or a torn `[AS#n]` — and a candidate answering one was already carried `unmatched` (*Resolve
+inputs and gate the sent package*, step 8), so it resolves nothing here. A target with no record at
+all — a held entry no answer was frozen against and no `- **Re-puts:**` line names a record for, or
+an `[SR#n]` with no live record — has no live record. **Two targets whose chains end at one live
+record are one question from here on**, for the conflicting-answer picker below and for the tests
+that follow it: one review can cite both an original entry and the later entry that put its record
+again, and both answers reach the same record.
+
+**A different review re-affirming a live answer freezes nothing, and the test runs on the row the
+operator confirmed.** A corrected resend re-answers every question it did not change, and the rule
+above does not reach it, since it is not the same review. Which option an answer chooses is the
+*Freeze the customer decisions* phase's mapping — `chosen` is one member of what was put, or the
+marked outside-the-options form (`decision-register-format.md` §1) — and mapping a customer's words
+onto an option is inference, so **no re-affirmation test runs on the reader's row**. The candidate
+is shown on the four-option array like any other, its live record beside it; the test runs once the
+operator takes *Confirm* or *Correct it*, after the conflicting-answer picker below where that
+picker is put, on the row that choice confirmed: its `chosen` as the *Freeze* phase would write it,
+and its reason — in free-text mode a `reason: not stated` included, which the operator confirms with
+the row, since the reader may have missed a reason the quotation holds and *Correct it* is where one
+is supplied. An unconfirmed row never skips. The confirmed candidate **re-affirms** its live record,
+and is recorded rather than frozen, where:
+
+- the live record is **`decided`**, with or without `conditional_on`, and the candidate's `chosen`
+  equals the record's `chosen` and its reason, as the *Freeze* phase would quote it, is byte-equal
+  to the record's quoted reason once every run of whitespace on either side is collapsed to one
+  space; or
+- the live record is a `[CD#n]` that is `decided` or `open` — frozen `open` for want of its reason,
+  or held `open` by the will-change rule — and the candidate's `chosen` equals the record's `chosen`
+  and it states no reason at all. A missing reason is not a different reason: what the record holds
+  stands — the customer's reason, or the want of one that keeps it `open` — so such a candidate
+  never reaches the missing-reason picker above, which would otherwise offer to replace a whole
+  answer with half of one.
+
+The record's quoted reason is the customer's words its `argumentation` closes on — everything after
+the last paragraph this plugin wrote there, a `Reopened`, `Superseded`, `Reverted` or `Withdrawn`
+paragraph (`decision-register-format.md` §4) or the note naming the reason absent that a record
+frozen through the missing-reason picker above carries, or the whole field where it holds none. A
+record whose `argumentation` closes on a plugin paragraph has no quoted reason to compare, and nor
+does the first test hold where it cannot be told which words are the customer's: every doubt falls
+to the new answer. A re-affirmation is reported as *already reconciled, re-affirmed by* `<review
+file>`, naming the canonicalised review, suffix included, and is listed so in the reconciliation
+record; it mints no `[CD#n]`, appends no *answered by the customer*, and adds nothing to the
+propagation sweep's changed-id set, because nothing changed.
+
+**Anything short of a re-affirmation is a new answer to the live record's question**, and the
+*Freeze the customer decisions* phase acts on the live record with it by that record's status: a
+`decided` one is superseded (step 3); one frozen `open` for want of its reason is **completed**
+where the confirmed `chosen` equals its own and a reason is now stated, and **superseded** by a new
+`[CD#n]` where the `chosen` differs, with a reason or without one — the customer chose again, which
+D1 settles as a new answer (*Completing an `open` record*, below); one the will-change rule held
+`open` is superseded; a `reopened` one is replaced by the new answer, or, where the answered entry
+names it on a `- **Re-puts:**` line, re-decided in place (step 3); an `[AS#n]` still open is
+superseded as step 2 sets out. A different `chosen` given with no reason takes the missing-reason
+picker above first. **Never tested at all**: a target with no live record, and an entry not yet
+answered that puts a record again on a `- **Re-puts:**` line, whatever its live record — that
+question was put again because the record could not stand on the ground it was decided on, so its
+first answer replaces the record, either kind of `open` included, even where the customer chose the
+same option again (step 3).
+
+**A live record reading `withdrawn` takes no answer at all.** Its question stopped applying, so the
+candidate is not put on the four-option array and nothing is frozen from it: it is shown with the
+same facts, the withdrawn record beside it, on the two-option array an answer matching no question
+takes (above). *Record it for a human* names it under *what still needs a human* with the customer's
+words and the withdrawn record — whether an answer to a question that had stopped applying still
+stands is a judgement this run does not take — and, where the answered entry is a held one whose `-
+**Re-puts:**` line put again a record since withdrawn, the *Freeze the customer decisions* phase's
+step 1 closes that entry *answered by the customer*, naming the withdrawn record and that nothing
+was frozen from the answer, so its round can close. ***Reject* closes such an entry the same way**,
+naming the withdrawn record, that nothing was frozen from the reply and why the reply was rejected —
+the one place *Reject* moves a question's state (the *Reject* paragraph above). Left held, it would
+hold its round open for a customer answer that can settle nothing, and every later package would
+put it again for a record nothing can revive. So such an entry closes on the first review that
+answers it, whichever option the operator takes, and no later package carries it:
+`/product-workflows:brd-package` renders held entries alone.
 
 **Completing an `open` record is not minting a new one — and only a record open for want of its
-reason is completed.** Where a later review supplies the reason a `[CD#n]` was frozen `open` for,
-the missing `argumentation` is written onto **that record**, which moves to `decided` — unless the
-*Freeze the customer decisions* phase's will-change rule, tested on it before it is written
-`decided`, holds it open. Ids are assigned once and never reused (§1), and one record holds one
-`chosen` — a second id for the same question would leave two answers on the page with nothing to
-adjudicate between them. **A record the will-change rule held open is never completed**: it already
-carries the customer's `chosen` and `argumentation`, so a later review's answer against it is a new
-answer — possibly a different `chosen` — and not a missing half. Writing its reason onto the old
-record would append a reason to a choice it may not argue for. It takes the *Freeze the customer
-decisions* phase's step 3 instead: a new `[CD#n]`, the earlier record `superseded` by it — and only
-that: a record held `open` was never `decided`, so `reopened`, which follows `decided`
-(`decision-register-format.md` §3), is not a status it can take — and the will-change rule tested
-on the **new** record.
+reason, answered with its own `chosen`, is completed.** Where a later review supplies the reason a
+`[CD#n]` was frozen `open` for, and chooses what that record chose — never on an entry that puts a
+record again on a `- **Re-puts:**` line, where it is superseded (step 3) — the missing
+`argumentation` is written onto **that record**, which moves to `decided` — unless the *Freeze the
+customer decisions*
+phase's will-change rule, tested on it before it is written `decided`, holds it open. Ids are
+assigned once and never reused (§1), and one record holds one `chosen` — a second id for the same
+answer would leave two on the page with nothing to adjudicate between them. **A different `chosen`
+is not a missing half**: writing its reason onto the old record would append a reason to a choice it
+does not argue for, so it mints a new `[CD#n]` and the *Freeze the customer decisions* phase's step
+3 supersedes the open record with it. **A record the will-change rule held open is never
+completed**: it already carries the customer's `chosen` and `argumentation`, so a later review's
+answer against it is a new answer — possibly a different `chosen` — and not a missing half. It takes
+the *Freeze the customer decisions* phase's step 3 instead: a new `[CD#n]`, the earlier record
+`superseded` by it — and only that: a record held `open` was never `decided`, so `reopened`, which
+follows `decided` (`decision-register-format.md` §3), is not a status it can take — and the
+will-change rule tested on the **new** record.
 
 **Two candidates answering one question are never both frozen.** Where the operator takes *Confirm*
-or *Correct it* on a candidate whose target — a held `[C]` question by its round and position, an
+or *Correct it* on a candidate whose target — a `[C]` question by its round and position, an
 `[AS#n]` or an escalated `[SR#n]`, as the reader returned it or as the operator re-pointed it —
 another candidate of this walk already left on one of those two, neither is frozen as that
 question's answer until the operator picks one: two customer answers to one question is a
 contradiction one record has no way to hold (above), and the *Freeze the customer decisions* phase
 would otherwise meet two answers replacing one record with nothing to choose between them. It is the
-shared target that triggers this, in both modes; a `conflict` flag the reader raised on the pair is
-shown beside them and is not required. **This picker is put before the missing-reason picker**, and that one only to the candidate this one leaves to be frozen; a candidate the missing-reason picker has already sent back to the customer is not *left on* *Confirm* or *Correct it*, and so triggers nothing here. Show the two together, each with its quotation, and put:
+shared target that triggers this — or two targets resolving to the same live record (above) — in
+both modes; a `conflict` flag the reader raised on the pair is
+shown beside them and is not required. **This picker is put before the re-affirmation test and the
+missing-reason picker**, and they only to the candidate this one leaves to be frozen; a candidate
+the missing-reason picker has already sent back to the customer is not *left on* *Confirm* or
+*Correct it*, and so triggers nothing here. Show the two together, each with its quotation, and put:
 
 ```
-choices: ["Freeze this one — the earlier candidate is set aside as a conflicting answer, for a human", "Keep the earlier one — this one is set aside as a conflicting answer, for a human", "Ask the customer — freeze neither; both take Ask the customer and the question stays open"]
+choices: ["Freeze this one — the earlier candidate is set aside as a conflicting answer, for a human", "Keep the earlier one — this one is set aside as a conflicting answer, for a human", "Ask the customer — freeze neither; both take Ask the customer and the question is left as it stands"]
 ```
 
 The one set aside is not frozen and moves nothing: it is named in the reconciliation record's *what
@@ -844,7 +1042,10 @@ kept. Where none was — the pair took *Ask the customer*, or the one kept went 
 its reason — a later candidate onto that target takes *Ask the customer* too, with no picker: the
 operator has already sent that question back, and a candidate walked later does not close it.
 
-**The gate.** Any decision in the digest still unconfirmed when this phase would end → stop:
+**The gate.** Any decision in the digest still unconfirmed when this phase would end → stop. A
+candidate skipped as already reconciled by the same-review rule is disposed and does not count; one
+the operator confirmed and the re-affirmation test then recorded is confirmed, and one whose live
+record reads `withdrawn` takes record-for-a-human | reject like an answer matching no question:
 `BRD_RECONCILE_UNCONFIRMED: N decisions from the returned review are still unconfirmed — every one takes confirm | correct | reject | ask-the-customer, or, answering no question the package put, record-for-a-human | reject, before a [CD#n] is written.`
 
 ---
@@ -852,20 +1053,27 @@ operator has already sent that question back, and a candidate walked later does 
 ## Phase 5 — Freeze the customer decisions as `[CD#n]`
 
 Write one `[CD#n]` per confirmed candidate **that is not completing a record that already exists**,
-and none for one the *Confirm every candidate* phase set aside as a conflicting answer.
+none for one that re-affirms its question's live record, and none for one the *Confirm every
+candidate* phase set aside as a conflicting answer.
 The *Confirm every candidate* phase's rule is the carve-out and it is repeated here because the mint
 and the exception live in two different phases, which is precisely where this would regress: a
-candidate confirmed against a target already carrying an **`open`** `[CD#n]` **open for want of its
-reason** **mints nothing** — its reason is written as the `argumentation` of that record, which
-moves to `decided` unless the will-change rule below holds it open. **A target carrying an `open`
-record the will-change rule held open is not that case** (*Confirm every candidate*, *Completing an
-`open` record*): that record already holds a `chosen` and its argument, so the candidate is a new
-answer and mints a new `[CD#n]`, which step 3 below sets against the earlier one. Where the held
-entry it answers gained a `- **Requirement defect:**` line after that record was frozen
-(`/product-workflows:brd-interview`, *One question per row*), the record's `settles` is written from
-that line in the same step — copied, as the `settles` row below copies it, never inferred. **A
-candidate answering an entry whose `- **Re-puts:**` line names a record reading `status: reopened` —
-read as the register stood before this phase wrote anything (step 3) — mints nothing either** (`/product-workflows:brd-interview`, *A decision the re-grounding moved*): it
+candidate confirmed against a target whose live record is an **`open`** `[CD#n]` **open for want of
+its reason**, choosing what that record chose and now stating a reason — never on an entry that
+puts a record
+again on a `- **Re-puts:**` line (step 3), where an open record of either kind is superseded —
+**mints nothing** — its
+reason is written as the `argumentation` of that record, which moves to `decided` unless the
+will-change rule below holds it open. **One choosing differently is not that case**: it is a new
+answer (D1) and mints a new `[CD#n]`, which step 3 below sets against the open record. **Nor is a
+target whose live record is an `open` record the will-change rule held open** (*Confirm every
+candidate*, *Completing an `open` record*): that record already holds a `chosen` and its argument,
+so the candidate is a new answer and mints a new `[CD#n]`, which step 3 below sets against the
+earlier one. Where the held entry it answers gained a `- **Requirement defect:**` line after that
+record was frozen (`/product-workflows:brd-interview`, *One question per row*), the record's
+`settles` is written from that line in the same step — copied, as the `settles` row below copies
+it, never inferred. **A candidate answering an entry whose `- **Re-puts:**` line names a record
+whose live record (*Confirm every candidate*) reads `status: reopened` —
+read as the register stood before this phase wrote anything (step 3) — mints nothing either** (`/product-workflows:brd-interview`, *A decision the re-grounding moved* and *A decision reopened elsewhere*): it
 re-decides that record in place, under `decision-register-format.md` §4's per-field rules, as step
 3's `- **Re-puts:**` paragraph sets out. Ids are
 assigned once and never reused (§1), and one record holds one `chosen`. **Where the package was
@@ -978,9 +1186,10 @@ marker, stay exactly as the customer wrote them — a quotation changed is a fal
 
 **What "frozen" means, exactly.** A `[CD#n]` written `decided` leaves that status only through
 §4's two admitted causes — a new grounding finding, or a later incoming customer decision that
-contradicts or constrains it — each recorded with its cause. This command is one of those causes for
-*other* decisions and is never a cause for the record it has just written: a run does not reopen its
-own freeze.
+contradicts or constrains it — or through supersession by a later answer to its own question (§4;
+step 3 below), each recorded with its cause. This command is one of those causes for *other*
+decisions and is never a cause for the record it has just written: a run does not reopen its own
+freeze.
 
 Then, in the same phase and from the same confirmed set:
 
@@ -991,7 +1200,20 @@ Then, in the same phase and from the same confirmed set:
    a round**, and it is why the round stays open from the moment `/brd-interview` holds a `[C]`
    until this command runs: holding a question is not the customer answering it, and the customer
    answering it is not the register recording an answer (`interview-tagging.md` §5, `decision-register-format.md` §1). Mark the same question answered in
-   `interview/customer-questions.md`, naming the `[CD#n]`.
+   `interview/customer-questions.md`, naming the `[CD#n]`. **A question an earlier review already
+   answered has no holding state to leave**: where this run's answer to it replaces that record
+   (step 3) and is frozen `decided` or held `open` by the will-change rule, a further *answered by
+   the customer*, naming the new `[CD#n]`, is appended beneath the one already there, in the round
+   record and in `interview/customer-questions.md` alike — a later resend's chain to the live
+   record runs through each in turn (*Confirm every candidate*) — and its round takes no
+   `Status:` line on its account, since the answer closed no held question. **A held entry whose
+   `- **Re-puts:**` line put again a record since withdrawn is closed too, with nothing frozen**:
+   where *Confirm every candidate* put its answer on the two-option array because the entry's live
+   record reads `withdrawn` — recorded for a human or rejected alike — it moves to *answered by the
+   customer*, naming the withdrawn record, that nothing was frozen from the answer and, where it was
+   rejected, why — the customer replied, and the question had stopped applying — and counts toward
+   closing its round as below. Held, it would be put to the
+   customer again in every package for a record nothing can revive.
 
    **Where that leaves every question in the round with a terminal disposition** — its last held
    question closed, and no question in another holding state — append
@@ -1010,25 +1232,34 @@ Then, in the same phase and from the same confirmed set:
    **A question whose `[CD#n]` is `open` for want of its reason is not answered, and its holding
    state does not move.** The customer's answer came back without the reason that makes it
    defensible, and nobody may supply it (*Confirm every candidate*), so the answer is not yet
-   whole. It stays *held for the customer*, the round stays open, and the next package puts it to
-   the customer again — which is precisely how the missing reason gets chased. Closing the round
-   here would retire the only mechanism that would ever ask for it. **A question whose `[CD#n]` the
-   will-change rule above held open is the opposite case, and is closed like a `decided` one**: the
-   customer answered it whole, `chosen` and reason, and what keeps the record `open` is ground that
-   is about to move, which nothing the customer can add would change. So it moves to *answered by
-   the customer*, naming that `[CD#n]`, and counts toward closing its round as above. Holding it
-   would chase nothing, and would keep the round open around a question no package can settle —
-   and `/product-workflows:brd-interview` works the lowest open round and proposes a new one only
-   once every round is closed, so the later round the will-change rule names as this record's exit
-   could never be proposed. The record itself stays `open`, and the reconciliation record lists it
-   under *what still needs a human* with that exit.
+   whole. A held one stays *held for the customer*, the round stays open, and the next package puts
+   it to the customer again — which is precisely how the missing reason gets chased. Closing the
+   round here would retire the only mechanism that would ever ask for it. **A question an earlier
+   review already answered is not held again**: where this run's answer to it — a different
+   `chosen`, given with no reason — replaces its live record with one frozen `open` for want of its
+   reason (step 3), it keeps the *answered by the customer* it holds and its round is not reopened.
+   No package puts an answered question, so nothing chases that reason on its own: the record goes
+   under *what still needs a human* as open for want of a reason, and a later review that supplies
+   it reaches it, since it is that question's live record (*Confirm every candidate*). **A question
+   whose `[CD#n]` the will-change rule above held open is the opposite case, and is closed like a
+   `decided` one**: the customer answered it whole, `chosen` and reason, and what keeps the record
+   `open` is ground that is about to move, which nothing the customer can add would change. So it
+   moves to *answered by the customer*, naming that `[CD#n]`, and counts toward closing its round
+   as above. Holding it would chase nothing, and would keep the round open around a question no
+   package can settle — and `/product-workflows:brd-interview` works the lowest open round and
+   proposes a new one only once every round is closed, so the later round the will-change rule
+   names as this record's exit could never be proposed. The record itself stays `open`, and the
+   reconciliation record lists it under *what still needs a human* with that exit.
 2. **Supersede the assumptions the customer settled.** An `[AS#n]` the customer confirms does not
    silently become a fact and an `[AS#n]` they contradict does not silently disappear: both are
    `superseded` by the `[CD#n]` that answers them, which the record names in a closing
    `Superseded <YYYYMMDD>: by [CD#m]` paragraph appended to its `argumentation`; nothing else on it
    moves (`decision-register-format.md` §4, §7). An assumption whose row said `cannot-say` is **not**
    superseded — cannot-say is a real answer and not a settlement — and it stays open and travels
-   into the next package.
+   into the next package. **An `[AS#n]` an earlier review already settled is not superseded
+   again**, and nothing on it moves: an answer to it resolves to its live record — the `[CD#m]` its
+   `Superseded` paragraph names, followed to that record's own successor (*Confirm every
+   candidate*) — and step 3 acts on that `[CD#n]` as on any other.
 3. **Reopen what the answer overturned, here — and `[CD#n]` is in scope, not only `[VD#n]`.** Every
    `decided` record in **this** BRD's register that the frozen answer contradicts or constrains
    without replacing it takes `status: reopened`, naming that `[CD#n]` as its cause (where more than
@@ -1044,28 +1275,41 @@ Then, in the same phase and from the same confirmed set:
 
    **The case this exists for is the corrected resend, which the *Canonicalise the returned review*
    phase calls an ordinary state.** Two reviews of one date, or a corrected file weeks later, both
-   answer the same `[C]` — and the *Confirm every candidate* phase's skip rule covers only an earlier
-   pass over **this same review**, so a different review's candidates are offered and frozen. Without
+   answer the same `[C]` — and the *Confirm every candidate* phase freezes nothing from a different
+   review's candidate that re-affirms its question's live record, or whose live record is
+   `withdrawn`, by the tests that phase sets out; every other confirmed one is frozen. Without
    this step that mints a second `decided` `[CD#n]` for one question, and **two customer answers to
    one question is a contradiction one record has no way to hold**
    (`decision-register-format.md` §1, `interview-tagging.md` §5) — the failure the whole register is
-   shaped to prevent, arriving through the affordance built to accept a correction.
+   shaped to prevent, arriving through the affordance built to accept a correction. **The record an
+   answer acts on here is its target's live record** (*Confirm every candidate*): where the record
+   the entry's answer, the `[AS#n]` or the `- **Re-puts:**` line first reaches was superseded, the
+   chain is followed to its successor, and nothing on an earlier record of the chain moves.
 
    **What the earlier record takes depends on what the new answer does to it and on the status it
    holds**, and every outcome is a §3 status or no move at all, never anything invented here:
-   - the new answer **replaces** it — the customer decided the same question differently →
-     `superseded`, naming the `[CD#n]` that replaces it in the closing
+   - the new answer **replaces** it — it answers the record's own question again, whatever it
+     chooses → `superseded`, naming the `[CD#n]` that replaces it in the closing
      `Superseded <YYYYMMDD>: by [CD#m]` paragraph `decision-register-format.md` §4 fixes; nothing
-     else on it moves. Terminal; the id is retained, never reused.
-   - the new answer **contradicts or constrains without replacing** it — it bears on the question
-     without answering it again → `reopened`, naming its cause, and it is re-decided like any other
-     reopened record. **Only a record that is `decided` can take this**: `reopened` follows
-     `decided` (`decision-register-format.md` §3), so a record the will-change rule held `open`,
-     one frozen `open` for want of its reason, and one already `reopened` cannot. Which of them an
-     answer to the record's own question replaces is not the same for all three. **A record the
-     will-change rule held `open` is replaced by it** and takes the first bullet (*Completing an
-     `open` record*). **One frozen `open` for want of its reason never reaches this step that way**:
-     an answer to its question completes it and mints nothing (the mint rule above). **A `reopened`
+     else on it moves. Terminal; the id is retained, never reused. On a `decided` record the same
+     option chosen again replaces it as surely as another does: the same `chosen` with a different
+     reason is a new answer. An exact repeat of a `decided` record — the same `chosen` and the same
+     quoted reason — reaches this step where *Confirm every candidate*'s re-affirmation test does
+     not hold it back: where the record's `argumentation` closes on a plugin paragraph, or where the
+     entry answered puts the record again on a `- **Re-puts:**` line. It then replaces the record
+     like any other answer.
+   - the new answer **contradicts or constrains without replacing** it — it bears on the record's
+     question without answering that question again → `reopened`, naming its cause, and it is
+     re-decided like any other reopened record. **Only a record that is `decided` can take this**:
+     `reopened` follows `decided` (`decision-register-format.md` §3), so a record the will-change
+     rule held `open`, one frozen `open` for want of its reason, and one already `reopened` cannot.
+     Which of them an answer to the record's own question replaces is not the same for all three.
+     **A record the will-change rule held `open` is replaced by it** and takes the first bullet
+     (*Completing an `open` record*). **One frozen `open` for want of its reason** is completed,
+     minting nothing, by an answer choosing what it chose and now stating a reason (the mint rule
+     above) — never on an entry that puts a record again on a `- **Re-puts:**` line, where it is
+     superseded (below) —
+     and replaced by one choosing differently, which takes the first bullet. **A `reopened`
      one named on the answered entry's `- **Re-puts:**` line is re-decided in place** (below); one
      the answered entry does not name that way — a corrected resend of the review that first
      answered it — is replaced by the new answer and takes the first bullet. Where the answer
@@ -1091,8 +1335,12 @@ Then, in the same phase and from the same confirmed set:
      the ground that moved, so the new answer is its replacement even where the customer chose the
      same option again.
    - **`reopened`** — a `decided` record `/product-workflows:brd-interview` reopened because a
-     re-grounding superseded its whole `evidence` and the successors did not confirm it, or one a
-     propagation sweep reopened since the question was put → **re-decided in place**, minting no id:
+     re-grounding superseded a finding of its `evidence` and the successors did not confirm it; one
+     reopened before any question put it — by step 3 of an earlier run of this command, by another
+     BRD's propagation sweep, or by a `/product-workflows:brd-interview` run that stopped before
+     writing its question — whose question that command's *A decision reopened elsewhere* put; or
+     one a propagation sweep reopened since the question was put → **re-decided in place**, minting
+     no id:
      `statement`, `options_considered`, `chosen`, `evidence` (the answered entry's
      `- **Findings:**` line, as the table above takes it), `defects`, `conditional_on` and `status`
      are written afresh as the table above takes each, the will-change rule tested on it like any
@@ -1103,39 +1351,50 @@ Then, in the same phase and from the same confirmed set:
      wrote when the record was first written `decided` — frozen so, or completed from `open` — and
      *Resolve the defects the review settled* writes none for it. Step 1 closes the question naming
      this `[CD#n]`.
-   - **`withdrawn` or `superseded`** — terminal (`decision-register-format.md` §3), reachable where
-     something else moved the record while the question putting it again travelled: the
-     prerequisite's own propagation sweep withdrawing a record held `conditional_on` it, or another
-     answer superseding it → **its `status` does not move**, and nothing on it is written. The
-     answer is frozen as a new `[CD#n]` like any answer to a question the package put, the will-change
-     rule tested on it, and the earlier record is named, with that `[CD#n]`, under *what still needs
-     a human*: whether an answer to a question that had stopped applying, or had already been
-     answered, still stands is a judgement this run does not take.
+   - **`superseded`** — another answer replaced the record while the question putting it again
+     travelled, a corrected resend's among them → nothing on it is written, and the answer acts on
+     its **live record** (*Confirm every candidate*) by that record's status, under these bullets,
+     as though the line named it: a successor `decided` or `open` — either kind, one frozen `open`
+     for want of its reason included, which is superseded here and never completed — is superseded
+     even where the customer chose the same option again, for the first bullet's reason — it
+     answers the question as it stood before it was put again — and a `reopened` one is re-decided
+     in place.
+   - **`withdrawn`**, the named record or its live successor — terminal
+     (`decision-register-format.md` §3), reachable where the prerequisite's own propagation sweep
+     withdrew a record held `conditional_on` it while the question travelled → **its `status` does
+     not move**, nothing on it is written, and **nothing is frozen**: *Confirm every candidate* put
+     the answer on the two-option array, not the four, and on *Record it for a human* named it, with
+     the customer's words and the withdrawn record, under *what still needs a human* — whether an
+     answer to a question that had stopped applying still stands is a judgement this run does not
+     take — or on *Reject* recorded why — and step 1 closes the entry either way, naming the
+     withdrawal, so its round can close.
 
    **Every status this step and the mint rule above read is the register's as it stood before this
    phase wrote anything**, never one an earlier candidate's write in this same phase left — so the
    outcome does not depend on the order the confirmed candidates are taken in. That matters where
    one run's answers reach one record more than once. **Where one candidate's entry names the record
-   on a `- **Re-puts:**` line** and any other answer also bears on it — replacing it, contradicting
-   it or constraining it — **the `- **Re-puts:**` line decides that record**, by the status it held
-   before this phase, as the bullets above set out — it names the record the question was put again
-   to settle, and the others only bear on it — and every other candidate takes nothing further on
-   it: once the line has acted, the record is terminal, or this run's own freeze, which a run does
-   not reopen (*What "frozen" means, exactly*). Each other `[CD#n]` is frozen as it would be anyway.
-   **Where no answer's entry names the record on such a line** — one answer replacing it, others
-   contradicting or constraining it without replacing it — **the one that replaces it decides it**,
-   as the bullets above set out for the status it held before this phase: `superseded` by that
-   `[CD#n]`, or, where it was frozen `open` for want of its reason, completed by it (the mint rule
-   above); a terminal record takes nothing. The constraining answers take nothing further on it.
-   **Where two or more answers contradict or constrain one `decided` record and none replaces it or
-   names it on such a line**, it is `reopened` once, its `Reopened` paragraph naming every such
-   `[CD#n]` as the cause: one record takes one reopening, and a second `Reopened` paragraph would
-   record two reopenings where there was one. A record that is not `decided` stays
-   at its status, as the bullets above set out, however many answers constrain it. **In every one of
-   these cases the record is named under *what still needs a human* with every `[CD#n]` that reached
-   it.** **Two answers each replacing one record, neither naming it on such a line, do not reach
-   this step as two**: such an answer answers the record's own question, and *Confirm every candidate* lets only one candidate per
-   question leave it to be frozen — the other is set aside there as a conflicting answer.
+   on a `- **Re-puts:**` line** — or a record the chain from it reaches — and any other answer also
+   bears on it — replacing it, contradicting it or constraining it — **the `- **Re-puts:**` line
+   decides that record**, by the status it held before this phase, as the bullets above set out —
+   it names the record the question was put again to settle, and the others only bear on it — and
+   every other candidate takes nothing further on it: once the line has acted, the record is
+   terminal, or this run's own freeze, which a run does not reopen (*What "frozen" means,
+   exactly*). Each other `[CD#n]` is frozen as it would be anyway. **Where no answer's entry names
+   the record on such a line** — one answer replacing it, others contradicting or constraining it
+   without replacing it — **the one that replaces it decides it**, as the bullets above set out for
+   the status it held before this phase: `superseded` by that `[CD#n]`, or,
+   where it was frozen `open` for want of its reason and that answer chooses what it chose,
+   completed by it (the mint rule above); a terminal record takes nothing. The constraining answers
+   take nothing further on it. **Where two or more answers contradict or constrain one `decided`
+   record and none replaces it or names it on such a line**, it is `reopened` once, its `Reopened`
+   paragraph naming every such `[CD#n]` as the cause: one record takes one reopening, and a second
+   `Reopened` paragraph would record two reopenings where there was one. A record that is not
+   `decided` stays at its status, as the bullets above set out, however many answers constrain it.
+   **In every one of these cases the record is named under *what still needs a human* with every
+   `[CD#n]` that reached it.** **Two answers each replacing one record, neither naming it on such a
+   line, do not reach this step as two**: such an answer answers the record's own question, and
+   *Confirm every candidate* lets only one candidate per question leave it to be frozen — the other
+   is set aside there as a conflicting answer.
 
    A `[VD#n]` put again is not this command's: its question is a `[V]`, and
    `/product-workflows:brd-interview` supersedes or re-decides it.
@@ -1847,15 +2106,26 @@ changed, why, which ids, and what still needs a human:
   gate the sent package* phase. On the second, name every admitted path as it was supplied and as it
   was committed under `customer-sent-<YYYYMMDD>/`, and say plainly that this material was not
   assembled under `${CLAUDE_PLUGIN_ROOT}/references/bundle-packaging.md`'s rules — a later reader
-  weighing what a quotation was checkable against needs to know which of the two they are holding.
+    weighing what a quotation was checkable against needs to know which of the two they are holding.
+  Name the package the review answers by its date, how it was determined — the `Package reviewed`
+  line, a date section 1 named, the only package on file, or the operator's pick — and the
+  `self-review-<YYYYMMDD>.md` its `[SR#n]` ids were resolved against, or say that it could not be
+  determined and why — a later pass resolves
+  an `[SR#n]` through this line and no other (*Confirm every candidate*).
 - **The review** — the canonicalised copy by path, the original path it arrived on, the mode the
   reader worked in and what decided it, the verdict, the readiness statement **quoted verbatim** (it
   is one sentence long precisely so it can be quoted without being softened), the twelve sections'
   states, the evidence limitations as stated — or the plain fact that they were not stated — and
   every anomaly, unrepaired.
-- **What changed** — every `[CD#n]` frozen, with its quotation, what it answers, and how it was
-  confirmed, and, where its `altitude` had nothing to copy, that this run decided it; every
-  candidate rejected or sent back to the customer, with its reason; every candidate the operator
+- **What changed** — every `[CD#n]` frozen, with its quotation, its status, what it answers — a
+  `[C]` by round and position, an `[AS#n]`, or an `[SR#n]` with the self-review file named above —
+  and how it was confirmed, and, where its `altitude` had nothing to copy, that this run decided
+  it; every candidate rejected or sent back to the customer, with its reason; every candidate
+  skipped as
+  *already reconciled* by the same-review rule, with the record in its chain that pass wrote and,
+  where it is no longer the live record, the successor or withdrawal since; every candidate recorded
+  as *already reconciled, re-affirmed by* `<review file>`, with the live `[CD#n]` it re-affirms
+  (*Confirm every candidate*); every candidate the operator
   re-pointed onto a question the package put, with the target the reader returned and the question
   named (*Confirm every candidate*); every `[AS#n]` superseded; every
   `[VD#n]` or `[CD#n]` reopened or superseded here; every `[CD#n]` re-decided in place, with the
@@ -1867,8 +2137,10 @@ changed, why, which ids, and what still needs a human:
   and every citing item with its disposition and reason, each id in the qualified prose form the
   propagation sweep fixes, and every dependent recorded-not-written
   with its state; per stale-reference hit, the file, what was found, and its outcome.
-- **What still needs a human** — every question the review did not answer, in **all three** of the
-  id shapes the package put to it, so an escalated `[SR#n]` the customer passed over is not lost
+- **What still needs a human** — every `[SR#n]` answer carried `unmatched` because the package the
+  review answers could not be determined (*Ingest the review*), with the customer's words; every
+  question the review did not answer, in **all three** of the id shapes the package put to it, so
+  an escalated `[SR#n]` the customer passed over is not lost
   behind the `[C]` questions that were; every candidate not frozen; every correction deferred or
   refused, a refused correction to an effort proposal with the proposal re-run the *Apply the
   required corrections* phase names as its fix; every code and design challenge, with `/prd-ground`
@@ -1879,33 +2151,35 @@ changed, why, which ids, and what still needs a human:
   `prerequisite` does not carry its BRD key, that unqualified value quoted as it stands, with the
   finding carrying it; every record *Freeze the customer decisions* step 3 left at its status
   because it was not `decided`, with the `[CD#n]` that contradicts or constrains it; every
-  `superseded` or `withdrawn` record an answered entry's `- **Re-puts:**` line named, with the new
-  `[CD#n]` frozen beside it; every record this run's answers reached more than once, with every `[CD#n]` that reached it; every
-  candidate *Confirm every candidate* set aside as a conflicting answer, with the customer's words and
-  the candidate frozen in its place, or that the one kept went back to the customer for its reason;
-  every propagation-sweep item whose disposition the array dropped, with the dependent's record, the
-  changed id or prerequisite that reached it, and what the register cannot carry — for a *Reverted*
-  withheld, the field not recoverable or the findings the will-change rule fired on; every sweep
-  item whose record is `superseded` or `withdrawn` where this run's change would have moved the
-  position had it still stood, with the same three; every dependent
-  recorded-not-written, with a re-run of `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>`
-  on this same review as the fix, once that dependent's register is on the default branch; every
-  `needs-a-human` hit, in prose, in a structured record or in an effort proposal, the last with the
-  proposal re-run the stale cross-reference sweep names as its fix; every requirement the customer
-  asked for that no `[BR#n]` covers; and every row the customer dropped that another BRD holds
-  (*Resolve the defects the review settled*), with that BRD named; and every `duplicate` settled by
-  keeping the part, with the obligations the kept row does not cover named; and every inventory row
-  drawn from an image whose quoted element an `applied` transcription correction changed, with the
-  row and the corrected element named — any defect the row carries stays open for its own question;
-  every answer matching no question the package put that the operator recorded for a human, a
-  withdrawal among them, with the identifier its row names, where it names one, and the customer's
-  words quoted (*Confirm every candidate*, *Update the coverage ledger*); every requirement the
-  review marks `withdrawn` in its section 4 alone, with the customer's words (*Update the coverage
+  candidate whose target's live record reads `withdrawn`, with the customer's words and that record,
+  nothing frozen from it, and the held entry closed for it where there was one (*Confirm every
+  candidate*); every record this run's answers reached more
+  than once, with every `[CD#n]` that reached it; every candidate *Confirm every candidate* set
+  aside as a conflicting answer, with the customer's words and the candidate frozen in its place,
+  or that the one kept went back to the customer for its reason; every propagation-sweep item whose
+  disposition the array dropped, with the dependent's record, the changed id or prerequisite that
+  reached it, and what the register cannot carry — for a *Reverted* withheld, the field not
+  recoverable or the findings the will-change rule fired on; every sweep item whose record is
+  `superseded` or `withdrawn` where this run's change would have moved the position had it still
+  stood, with the same three; every dependent recorded-not-written, with a re-run of
+  `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` on this same review as the fix, once
+  that dependent's register is on the default branch; every `needs-a-human` hit, in prose, in a
+  structured record or in an effort proposal, the last with the proposal re-run the stale
+  cross-reference sweep names as its fix; every requirement the customer asked for that no `[BR#n]`
+  covers; and every row the customer dropped that another BRD holds (*Resolve the defects the
+  review settled*), with that BRD named; and every `duplicate` settled by keeping the part, with
+  the obligations the kept row does not cover named; and every inventory row drawn from an image
+  whose quoted element an `applied` transcription correction changed, with the row and the
+  corrected element named — any defect the row carries stays open for its own question; every
+  answer matching no question the package put that the operator recorded for a human, a withdrawal
+  among them, with the identifier its row names, where it names one, and the customer's words
+  quoted (*Confirm every candidate*, *Update the coverage ledger*); every requirement the review
+  marks `withdrawn` in its section 4 alone, with the customer's words (*Update the coverage
   ledger*); every row the customer asked to be built that is still `unallocated`, with
   `/product-workflows:brd-split <BRD-KEY>` as the run that allocates it (*Update the coverage
   ledger*); and every row the customer asked to be built that already carries a fate, a `rejected`
-  one after all among them, with the row and the customer's words, naming no command, because no run
-  the record could name allocates it (*Update the coverage ledger*).
+  one after all among them, with the row and the customer's words, naming no command, because no
+  run the record could name allocates it (*Update the coverage ledger*).
 
 **A second reconciliation on the same day appends, and never overwrites.** Where
 `reconciliation-<YYYYMMDD>.md` already exists, this run adds a new pass beneath what is there, under
@@ -1973,8 +2247,8 @@ this phase offers.
   **The rows are this slice's ledger rows, narrowed by its `brd-link.md` `claims:`.** This
   is the same gate set `/product-workflows:create-prd`'s Phase 0 step 7 defines, read the same way — and
   the narrowing drops something real, without changing either verdict: a slice's
-  ledger may hold **orphan rows** — ledger rows for `[BR#n]`s it no longer claims, whose claim `/brd-split`'s walk on the parent withdrew and wrote to a terminal disposition, whether that claim was still provisional or was one this slice had committed to and then recorded it would not build, which a re-cut then moved to a sibling (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2, §3, §3.2). `claims:` names none of them, and an orphan row is never `covered-here` and never
-  `unallocated`, so it can neither add the option nor withhold it however it is read.
+  ledger may hold **orphan rows** — ledger rows for `[BR#n]`s it no longer claims, whose claim `/brd-split`'s walk on the parent withdrew and wrote to a terminal disposition, or left at the one this slice's own walk had written, whether that claim was still provisional or was one this slice had committed to and then recorded it would not build, which a re-cut then moved to a sibling (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2, §3, §3.2). `claims:` names none of them, so the gate set never reaches one — which matters, because an orphan row left standing as the slice's own earlier decision can read `covered-here` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §2), and read outside the gate set it would add
+  the option.
   These two tests are exactly the two *data* refusals that command's own Phase 0 raises
   (`CREATE_PRD_BRD_UNALLOCATED` and `CREATE_PRD_BRD_NOT_ELIGIBLE`) — so naming the option where
   either fails would hand the operator a run that stops on its first phase. **Read the dispositions off the
@@ -2116,8 +2390,34 @@ Where this run can go next:
 ```
 
 ```
-choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /product-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the question it left askable", "Package again — /product-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /product-workflows:prd-ground <BRD-KEY> --rebaseline <merge-clause>"]
+choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /product-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the open round it waits behind", "Package again — /product-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /product-workflows:prd-ground <BRD-KEY> --rebaseline <merge-clause>"]
 ```
+
+***Work another round* fires on a reopened decision only where the bare
+`/product-workflows:brd-interview` run would move something** — read off the round records by the
+dispositions, as that command reads them once this run's writes land. That command puts a reopened
+record's question only in a round it opens, and opens one only once every round is closed (its *A
+decision reopened elsewhere*); with a round still open, the bare run resumes that round instead.
+So, by what holds a round open:
+
+- **No round open** → it fires, and that run puts the reopened decision's question.
+- **A *deferred* or *untagged* question** → it fires as the resume that works that question, and
+  the reopened decision's question follows in the round opened once every round is closed.
+- **A *needs grounding* question** → it fires as that resume too, and
+  `/product-workflows:prd-ground <BRD-KEY>` is named beside the list as the step before it, so the
+  resume finds a finding that answers that question or names why it cannot.
+- **Only questions *held for the customer*** → it does not fire: the bare run would resume that
+  round and report the record waiting, the no-op offer this phase refuses to make (below). Name the
+  reopened record beside the list as waiting behind *Package again*: the package carries the held
+  questions, this command records their answers and closes the round, and the next
+  `/brd-interview` run puts the reopened decision's question.
+
+Where the open round holds more than one of those, name the steps in the order
+`/product-workflows:brd-interview`'s `BRD_INTERVIEW_ROUND_STILL_OPEN` remedy fixes — the grounding
+pass, then the resume, then the package — since `/product-workflows:brd-package` refuses a round
+still holding a *deferred*, *needs grounding* or *untagged* question (`BRD_PACKAGE_ROUND_UNSETTLED`).
+That state is reachable here: a `--sent` run, for one, reconciles a review no package gate of this
+route checked.
 
 **The trigger filter runs first and the four-option cap applies to what survives it**
 (`workflows-core:next-phase-offer`'s overflow rule). Typically two or three
@@ -2174,10 +2474,23 @@ waits on is the *dependent's* register reaching the default branch, while the pl
 `Phase handoff:` outcome line — a different merge, which is why the condition is written in the
 option's own text like every other one in the list.
 
+**Beside either list, name `/product-workflows:brd-interview <DEPENDENT-KEY>` for every record
+this run's propagation sweep wrote `reopened` in a dependent BRD**, one line per dependent, with
+each record by id qualified as that sweep names it. That dependent's own next `/brd-interview` run
+puts the record's question again (its *A decision reopened elsewhere*). On the dependent's side
+that run is named only by a `/brd-interview` run already made there, whose *Next steps* names it
+where the record waited on the round that run worked; until one is made, nothing on the dependent's
+side names it, so this is the first place it is named. It is prose and never an
+array option — it names work on a different key — and it carries no `<merge-clause>`: that command
+gates on the dependent's `grounding/code-grounding.md`, which this run never writes. A dependent
+recorded-not-written has no such line, since nothing was reopened there yet.
+
 Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
 never behaviour a command of its own owns: a `[C]` the review did not answer keeps its round open and
-travels in the next package; a decision this run reopened is settled by another interview round; a
-challenged code claim is settled by a grounding pass and by nothing here, and a decision every
+travels in the next package; a decision this run reopened is settled by another interview round,
+once every round is closed; a record the sweep reopened in a dependent, by that dependent's own
+interview round; a
+challenged code claim is settled by a grounding pass and by nothing here, and a decision any
 finding of which that pass supersedes is reopened or put again by the next
 `/product-workflows:brd-interview` round where that command's *A decision the re-grounding moved*
 says so; a `[CD#n]` the
@@ -2257,7 +2570,9 @@ Report: the BRD folder and which level it sits at; the classification and model 
 (+ any Opus degradation); **the review** — the canonicalised path, the original path, the mode and
 what decided it, the verdict, the readiness statement quoted verbatim, and the evidence limitations
 as stated or the fact that they were not; **every anomaly**, unrepaired, because each one changes how
-the rest of the review should be read; **every `[CD#n]` frozen**, with what it answers and its
+the rest of the review should be read; every torn write found (`decision-register-format.md` §8), by
+id or heading, with `/product-workflows:brd-interview` as the run that removes it, and every answer
+carried `unmatched` because it cited one; **every `[CD#n]` frozen**, with what it answers and its
 status — naming, for each the will-change rule bound, the `conditional_on` it wrote or that it held
 the record open — every candidate rejected or sent back to the customer with its reason, and every candidate
 the operator re-pointed onto a question, with the target the reader returned; the `[C]`
@@ -2291,7 +2606,11 @@ read there contributes `unresolved`, never `covered` (§6.2). Every term is a **
 the `unallocated` term does not track the allocation gate — a non-zero one here is a row this BRD
 delegated to a BRD that has not walked it yet, which is the resolution working and never this run
 having left something undone. A slice does **not** always reach this with
-nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
-names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of §2's two routes: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
-delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
-claims.
+nothing to resolve: it can hold **orphan rows** (`coverage-ledger-format.md` §2) — ledger rows for a
+`[BR#n]` this slice no longer claims, reached by any of §2's three routes. §6.1 counts every one of
+them through the parent's current disposition for its `[BR#n]`, never as it reads, and resolves a
+`covered-by` that disposition maps to one hop — into a sibling or the parent (§3) — exactly as it
+resolves a parent's delegated rows, so on a slice this line also reads the parent's own
+`coverage-ledger.md`. So a slice's line reports zero delegated only when its parent withdrew none of
+its claims — provisional, committed, or settled here before the parent re-allocated it, the three
+routes to an orphan row (§2) — never as a property of being a slice.

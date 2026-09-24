@@ -44,14 +44,32 @@ record to go.
 
 The classification table above still applies to every other `@path` token: a spec folder contributes
 to `specs`, a code repo is an `/implement`-only scan target. Carry `mode` (`keyed | direct`), the
-resolved `path`, `kind` and `key`, and `specs` forward.
+resolved `path`, `kind` and `key`, and `specs` forward. On a keyed run `specs` is
+read out of the resolved folder only once the specs-repo preflight below has run.
+
+**Specs-repo preflight** — run here, once address resolution is done and before the Epic-unit
+resolution below reads anything, with the run key set fixed from carrier frontmatter alone
+(`key:`, `kind:`, read as `workflows-core:addressing` §4 does, whatever file that is, and testing no
+file's presence; `workflows-core:specs-repo-git` §3.2): on a keyed run the resolved `key` and, where
+§4.1 places the resolved folder at Epic level — an `EPIC-` prefix, or with no prefix a resolved
+`kind: epic` — also the key its parent's carrier asserts (§4); on a direct run none, a keyless run.
+A stale plugin branch the preflight switches away from would otherwise hide a slice's `brd-link.md`
+from `IMPLEMENT_BRD_NOT_SLICED`'s listing, or an Epic folder, `specification.md` or
+`implementation.md` from the picker below, and the run would list the wrong slices or units. Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
+artifacts from an earlier run, retry an artifact commit that failed to push,
+and settle the branch. This runs against `$SPECS_PATH` only — `git -C
+"$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
+in is untouched (§1 rule 1). Prompt-free and silent when the specs repo
+is clean and on its default branch. If a guard fires, emit its §5 notice;
+if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
+run — the terminal `commit-artifacts` step skips on it.
 
 **Epic-unit resolution (keyed runs).** `/implement` implements one Epic at a time. When
 `mode: keyed`, place the resolved folder as `workflows-core:addressing` §4.1 does — by its prefix,
 never by the kind it asserts, which on a BRD-route slice is `brd` — taking its container test first.
 **A BRD container** — a `BRD-` folder, or a folder with no prefix holding `coverage-ledger.md` or
 `brd/brd-inventory.md` and no `brd-link.md` naming a `parent:` — holds no Epic to implement, because
-a BRD's work is authored in its slices; stop, before anything is read:
+a BRD's work is authored in its slices; stop, before any artifact is read:
 `IMPLEMENT_BRD_NOT_SLICED: <KEY> resolves to a BRD container at <path> — a BRD's Epics belong to its PRD- slices. <the remedy>`
 `<the remedy>` lists the slices under it, found by the positive test §4.1 names — `Implement within a slice instead: '/dev-workflows:implement <SLICE-KEY>' — <each slice's key>.` — and, where it finds none:
 `It has no slice yet: '/product-workflows:brd-split <KEY> "<how to cut it>"' carves one — the instruction is required there, and that run carves nothing where this BRD's ledger leaves no row unallocated. Where it leaves none, coverage-ledger-format.md §5 names two repairs, the narrow one first: hand-edit the one row to be built back to unallocated in coverage-ledger.md, leaving every other row as it stands; or, to re-take the whole inventory, re-run '/product-workflows:brd-intake <KEY> @<brd-file>', which reopens every row wherever its read finds a requirement and discards every deferred-to, rejected and superseded-by the ledger records.`
@@ -158,15 +176,6 @@ Rules:
   `specs`. "Proceed without specs" is logged in the Phase 5 report's
   `### Assumptions & limitations`. Direct-mode runs (no address) are exempt —
   the prompt/spec file is the instruction.
-
-**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
-artifacts from an earlier run, retry an artifact commit that failed to push,
-and settle the branch. This runs against `$SPECS_PATH` only — `git -C
-"$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
-in is untouched (§1 rule 1). Prompt-free and silent when the specs repo
-is clean and on its default branch. If a guard fires, emit its §5 notice;
-if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
-run — the terminal `commit-artifacts` step skips on it.
 
 **Gate the in-scope specs on `$SPECS_PATH`'s main.** This runs after the cheap `focus_key`-null folder classification above — a deliberate, bounded exception to `workflows-core:phase-handoff` §5 rule 2's "before its first subagent dispatch", and structurally forced: this gate's `specs` set is derived from `focus_key`, which that dispatch resolves. The exception is bounded to that one read-only Epic-unit classification; every expensive step — the Phase 1.7 fan-out, `risk-planner`, and all writes — still follows the gate. (`/epics` records its own §5 rule 2 deviation the same way.) For each resolved `specs` path whose basename is `specification.md` or `design.md` — `/implement`'s **in-scope** spec/design files, the same set Phase 2B and the invariants section reference for the conformance dimension — execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against it, mapping its §3.7 return value by `stopped` first, never by `on_main` alone. Any stopping state → stop per §4.4, naming `$SPECS_PATH` explicitly — `/implement` stands in a **code** repo, so an unqualified stop message would point at the wrong repository. Otherwise (`stopped: false`): `pass`/`pass_amending` → proceed (on `pass_amending`, print §3.3's row-B message — reachable only when an **earlier** `/implement` run's Phase 4.5 handoff created the branch and `workflows-core:specs-repo-git` §3.5 B3 kept this run's preflight checkout on it — never this run's own Phase 4.5, which has not executed when this Phase 0 gate runs; `/implement` does not itself author `specification.md`/`design.md`, so a leftover `spec/`/`design/` branch left by an earlier `/specify`/`/design` run is never row B for this gate — it is row C/C′, and the stop/repair path above already covers it). `absent` → **only an in-scope spec is gated at all** — a direct-prompt run resolves none of these `specs` entries and is entirely unaffected, so do not stop; behave exactly as before this feature. `unmanaged` → behave exactly as before this feature. A spec/design supplied directly as a lone `@path` primary description — the Design-doc open-question guard's own input above, a separate mechanism from the `specs` list this gate reads — is **out-of-contract**: read where it sits, deliberately not gated here, the same rule this plan set for `/create-prd <KEY> @<path>`.
 

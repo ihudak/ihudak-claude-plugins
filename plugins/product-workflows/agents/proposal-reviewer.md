@@ -77,7 +77,10 @@ that is a §2 field the grounder writes on every finding, so a check reading it 
 finding as class-1 evidence, which is exactly what `workflows-core:grounding-format` §8 forbids;
 open `decisions.md`
 and confirm the `[VD#n]`/`[CD#n]` is there with `status: decided`; open `code-defect-log.md` and
-confirm the `[CDF#n]` is on file. A
+confirm the `[CDF#n]` is on file. **Neither is on file where it is a torn write**
+(`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §8) — an item a `/brd-interview` run
+left when it stopped before writing the round record that would name it, which you test against the
+folder's `interview/round-<N>.md` files. A
 citation that does not resolve is a **BLOCKER** against §8's own rule that an unresolved driver does
 not render at all — the row is on the page, so the rule was not applied.
 

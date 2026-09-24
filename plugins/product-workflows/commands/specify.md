@@ -40,7 +40,8 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    sits in (step 3's *Look one level up*), and nothing else.
 
    **A `BRD-` container is refused, on either route.** Take this on the folder **step 1 resolves**,
-   the moment that resolution returns `status: found` and ahead of every read this command makes —
+   the moment that resolution returns `status: found` and the specs-repo preflight it is followed by
+   has run, and ahead of every other read this command makes —
    and **not** as part of the BRD-route branch. The BRD route is detected from a `brd-link.md`, and a
    root BRD folder need not carry one: `/brd-intake` writes none, and no command writes one into a
    root — `/brd-split` places one in each slice it carves, and every command that merges
@@ -74,7 +75,7 @@ second positional token is refused (Phase 0 step 1, `SPECIFY_ONE_ADDRESS`).
    - **One or more slices** — the ordinary shape, since a split always confirms at least one. Name
      every slice and offer `/product-workflows:specify <SLICE-KEY>` once per slice. Do **not** name
      `/product-workflows:brd-split <BRD-KEY>`: the slices exist, and on a parent whose ledger is fully
-     allocated that run is a no-op (`commands/brd-split.md` Phase 0 step 10).
+     allocated that run carves nothing (`commands/brd-split.md` Phase 0 step 10).
    - **No slice at all** — `/product-workflows:brd-split <BRD-KEY> "<how to cut it>"` is the run that
      carves one, walking every row still `unallocated` and always confirming at least one slice (its
      Phase 2). **Two conditions travel with that offer**, in its own text, because this command holds
@@ -185,6 +186,19 @@ resolution taken first returns `absent` whenever the variable is unset — and t
 stops with `SPECIFY_BRD_NOT_FOUND` naming a folder that exists. `/create-ard` and `/create-prd` state
 the same ordering for the same reason.
 
+**Then, where the resolution returns `status: found`, settle the specs checkout before step 0's
+refusal or step 1's placement reads the folder.** Fix the run key set
+(`workflows-core:specs-repo-git` §3.2), reading only carrier frontmatter (`key:`, `kind:`) as
+`workflows-core:addressing` §4 does, whatever file that is, and testing no file's presence: the
+resolved `key` and, where §4.1 places the resolved folder at Epic level — an `EPIC-` prefix, or with
+no prefix a resolved `kind: epic` — also the key its parent's carrier asserts (§4), the would-be
+`<PRD>`. Then run the specs-repo preflight below, and only then take step 0's refusal, step 1's
+placement and every later read. A stale plugin branch the preflight switches away from would
+otherwise hide a slice's `brd-link.md` from step 0's listing, or the file that places the folder or
+detects the route, and the run would list the wrong slices or stop where it would have proceeded.
+`absent` runs no preflight at all: step 3 stops it with `SPECIFY_BRD_NOT_FOUND`, which reads
+nothing.
+
 2. **Resolve `$SPECS_PATH`.** `/specify` writes specifications under `$SPECS_PATH/specifications/`
    (exact layout resolved in step 3) — the specs repo. If `$SPECS_PATH` is unset, stop
    with a clear error naming `SPECS_PATH` (`choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`) —
@@ -275,7 +289,9 @@ the same ordering for the same reason.
 `/specify` is **cwd-agnostic**, like `/epics` — it reads the specs tree and writes specs to
 an absolute `$SPECS_PATH`-rooted directory, so it does not require cwd to be inside either.
 
-**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier
+**Specs-repo preflight** — run once step 1's resolution returns `status: found`, with the run key
+set fixed in the paragraph after step 1, before step 0's refusal, step 1's placement or any later step reads the
+folder. Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session artifacts from an earlier
 run, retry an artifact commit that failed to push, and settle the branch. Prompt-free and silent
 when the specs repo is clean and on its default branch. If a guard fires, emit its §5 notice; if
 it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the terminal
@@ -598,7 +614,9 @@ folder does hold. Then:
   exists precisely to keep it from doing.
 - **`decisions.md`** — the register, per
   `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §1. Phase 0's register gate has already gated it on the default
-  branch, so what is read here is the merged register or, where the folder holds none, nothing.
+  branch, so what is read here is the merged register or, where the folder holds none, nothing. It is read through §8 there: a **torn write** — a record a `/brd-interview` run left when it
+  stopped before writing the round record that would name it — is read as absent, frozen against
+  nothing and stamped `consumed_by` by nothing.
 - **`brd-link.md`** — for `parent:` and `depends-on:` only. This run reads no `claims:` list and no
   coverage ledger **as an authoring input**: PRD eligibility and the allocation gate are
   `${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5's rule about authoring a **PRD**,
@@ -1126,7 +1144,7 @@ resolve the recommendation from it:
 | A row still `unallocated` | `/product-workflows:brd-split <SLICE-KEY>` instead: `/create-prd` would raise `CREATE_PRD_BRD_UNALLOCATED`, and that walk is what moves those rows (allocate-only on a slice). Its own Phase 0 gates on this slice's grounding findings carrying a verifier verdict, so say so beside the offer |
 | No row `covered-here`, gate set **empty** — `brd-link.md` claims nothing | `/product-workflows:brd-split <PARENT-KEY>` instead — the keep-or-remove run for a standing empty child, and not a no-op there — in the form the parent's own ledger decides, exactly as `/product-workflows:create-prd` Phase 0 step 7's empty-gate-set row decides it: where that ledger still holds an `unallocated` row, `/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"`, since that run walks the row too and stops with `BRD_SPLIT_NEEDS_INSTRUCTION` without an instruction; where it holds none, the bare form; where it cannot be read, report it by path and name neither form |
 | No row `covered-here` and none `unallocated`, gate set **non-empty** | **Name neither `/create-prd` nor `/epics`.** `/create-prd` would raise `CREATE_PRD_BRD_NOT_ELIGIBLE`, whose non-empty branch names no command at all by design; say instead what the gate-set rows resolved to and that nothing in the plugin moves a terminal row back to `unallocated`. `/dev-workflows:design <ADDRESS>` is unaffected and is still recommended — it takes over the specification this run just wrote and needs no PRD |
-| No `coverage-ledger.md` beside the `brd-link.md`, while that file claims rows | **Name neither `/create-prd` nor `/epics`**, and report the missing `<slice-dir>/coverage-ledger.md` by path: this is not an empty gate set, and `coverage-ledger-format.md` §5.2 forbids resolving it to the empty row's `/brd-split <PARENT-KEY>`. `/dev-workflows:design <ADDRESS>` is unaffected and is still recommended |
+| No readable `coverage-ledger.md` beside the `brd-link.md` — absent, or present and unreadable — while that file claims rows | **Name neither `/create-prd` nor `/epics`**, and report `<slice-dir>/coverage-ledger.md` by path, as missing or as unreadable with the read error: this is not an empty gate set, and `coverage-ledger-format.md` §5.2 forbids resolving it to the empty row's `/brd-split <PARENT-KEY>`. `/dev-workflows:design <ADDRESS>` is unaffected and is still recommended |
 
 **Dropping rather than annotating follows `commands/brd-reconcile.md` Phase 14**, which runs these
 same two data tests before offering `/product-workflows:create-prd <SLICE-KEY>` and drops the option on

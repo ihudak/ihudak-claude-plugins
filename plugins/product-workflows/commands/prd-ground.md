@@ -161,10 +161,40 @@ behaviour, not the behaviour.
       alone already resolves a legacy **slice** too: §5.1's own table only ever puts `brd-link.md`
       carrying `parent:` beside a ledger file on a legacy folder that is a slice, so a legacy slice
       reaches `route: brd` here without a separate test of its own.
-    - **A `PRD-` directory with no `brd-link.md` → `route: idea`.** `/brd-split` is the only writer
-      of a `brd-link.md` naming a `parent:` inside a `PRD-` folder; this command's own Phase 4 writes
-      `depends-on:` into one but never introduces a `parent:`. A `PRD-` folder carrying no
-      `brd-link.md` at all was therefore never carved from a BRD — it is `/product-workflows:create-prd`'s own output, unprompted by any slice, and its claims come from its own `prd.md` (step 6i, step 8i, below).
+    - **A `PRD-` directory with no `brd-link.md`, nested directly inside a BRD folder → stop, on
+      one of two stops.** Test the resolved directory's **parent** directory by the root question
+      above, applied to it: a `BRD-` prefix, or — where the parent is unprefixed, a legacy folder —
+      `coverage-ledger-format.md` §5.1's positive evidence, the same test the root question takes
+      for an unprefixed folder. `workflows-core:addressing` §2 places an idea-route PRD folder
+      directly under `specifications/` and a slice inside its BRD, so a `PRD-` folder inside a BRD
+      is a slice by where it sits — positive evidence, never the absence of a file — and one with no
+      `brd-link.md` is not a slice this run can read: taking `route: idea` would name `/create-prd`
+      and author a PRD inside a BRD, and no `/brd-split` run enumerates it, since that command's
+      Phase 0 step 9 finds a child by its `brd-link.md`. `<PARENT-KEY>` is the `key:` the parent
+      folder's `coverage-ledger.md` records; where that cannot be read, name the parent folder by path
+      and no `/brd-split` form. **Which stop turns on what the folder holds, never on the missing
+      file alone**:
+      - **The folder holds nothing at all** — the one state that is positive evidence of a carve
+        interrupted between `/product-workflows:brd-split` Phase 3 step 2, which creates the folder,
+        and step 3, which writes `brd-link.md` as the first file in it. That command writes no file
+        into a slice before `brd-link.md`, so there is no third state of "only the files it writes
+        before that one". Git records no empty directory, so the folder was never
+        committed. Stop:
+        `PRD_GROUND_CARVE_INTERRUPTED: <KEY> resolves to <path>, an empty PRD- folder inside the BRD folder <parent path> — the /product-workflows:brd-split run that created it stopped before writing its brd-link.md, so it is neither a slice nor an idea-route PRD folder, and nothing was written. Delete the empty folder, then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Do not run /product-workflows:create-prd on it.`
+      - **The folder holds anything** — a ledger, an inventory, `grounding/`, `decisions.md`, or any
+        other file. That is most often a slice whose `brd-link.md` was lost after it was written, and
+        whatever it holds may be grounding, decisions and rounds nothing else records, so **never
+        name its removal**. Look for `brd-link.md` on a ref:
+        `git -C "$SPECS_PATH" log --all --diff-filter=AM --format=%H -1 -- <path>/brd-link.md` names
+        the newest commit on any ref that wrote it, whose tree therefore holds it. Name what the file must say, off records rather than prose:
+        `kind: brd`, `key: <KEY>`, `parent: <PARENT-KEY>`, and as `claims:` the `[BR#n]` of every row
+        of `<PARENT-KEY>`'s ledger whose `disposition` reads exactly `covered-by: <KEY>`. Stop:
+        `PRD_GROUND_LINK_MISSING: <KEY> resolves to <path>, a slice folder inside the BRD folder <parent path> that holds <what it holds> and has no brd-link.md, so it cannot be read as a slice, and nothing was written here. <where a ref holds it:> Restore brd-link.md from commit <commit>, then re-run '/product-workflows:prd-ground <KEY>'. <where none does:> No ref holds it: report it, or re-create it by hand as kind: brd, key: <KEY>, parent: <PARENT-KEY>, claims: [<ids>] — the rows <PARENT-KEY>'s ledger delegates to this slice — then re-run. Do not delete this folder, and do not run /product-workflows:create-prd on it.`
+    - **Any other `PRD-` directory with no `brd-link.md` → `route: idea`.** `/brd-split` is the only
+      writer of a `brd-link.md` naming a `parent:` inside a `PRD-` folder; this command's own Phase 4
+      writes `depends-on:` into one but never introduces a `parent:`. A `PRD-` folder that sits
+      outside every BRD folder and carries no `brd-link.md` at all was therefore never carved from
+      a BRD — it is `/product-workflows:create-prd`'s own output, unprompted by any slice, and its claims come from its own `prd.md` (step 6i, step 8i, below).
     - **Resolved through §5's legacy unprefixed fallback, and past the root question above** — there
       is still no prefix to test, and the `brd-link.md` test just above has already resolved a
       legacy slice to `route: brd`. What is left unresolved is exactly the shape §5.1 calls "a legacy
@@ -185,6 +215,19 @@ behaviour, not the behaviour.
       which is what `PRD_GROUND_NEEDS_PRD` names for a `PRD-` folder in the same state.
 6. **On `route: brd`, gate this BRD's own inventory and ledger on main.** (The idea route's own
    gate is step 6i, immediately below — this whole step is the `route: brd` branch, unchanged.)
+   **The two gates below resolve in a fixed order: the ledger's first, the inventory's second.**
+   `coverage-ledger.md`'s `require-on-main` return is resolved in full first — on its row F that
+   includes whether the file is in the folder at all — and only then is `brd/brd-inventory.md`'s
+   gate evaluated and its stop printed. Where both returns stop, the ledger's stop is the one
+   printed, **with one exception**: where the ledger is in the folder and on no ref — its row-F
+   branch (b) below — and `brd/brd-inventory.md` is not in the folder, the inventory's own
+   `PRD_GROUND_NO_INVENTORY` stop is printed instead. Branch (b) reconciles a slice against its
+   parent, and a slice missing a file cannot be reconciled — `/brd-split`'s reconcile step writes
+   nothing into one (`commands/brd-split.md` Phase 4 Step 3) — so every branch (b) stop would name a
+   remedy that cannot work there, while the inventory's stop names the one that can. Otherwise the
+   order is not arbitrary: the ledger's row-F branch (a) below disposes of an inventory an
+   interrupted carve left behind, so an inventory stop printed first would name the wrong remedy for
+   that folder.
    Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3) against the resolved BRD folder's `coverage-ledger.md`. Whichever
    command wrote that ledger wrote the inventory beside it in the same handoff commit
    (`coverage-ledger-format.md` §3's creator table). **That is a fact about the run that wrote them
@@ -198,14 +241,21 @@ behaviour, not the behaviour.
    `PRD_GROUND_EMPTY_INVENTORY` reports a *content* fact — the inventory holds no `[BR#n]` row — and
    its remedy re-runs `/brd-split` on `<PARENT-KEY>` to resolve the standing empty child. Row F reports a
    *merge* fact, and sending that operator to `/brd-split` on the parent risks the same no-op the
-   next split below refuses to name unconditionally — a fully-allocated parent stages nothing on a **bare** re-run.
+   next split below refuses to name unconditionally — a fully-allocated parent whose children all agree with its ledger stages nothing on a **bare** re-run.
    Split it on the same test the
    ledger's own row F uses — is the file in the folder at all:
-   - **No `brd/brd-inventory.md` in the folder** — never produced, or lost after it was written; the table below tells them apart. Read the resolved folder's
+   - **No `brd/brd-inventory.md` in the folder** — and, under the gate order above, a
+     `coverage-ledger.md` in it, save in one state: this stop prints only where the ledger's gate
+     passed or under the gate order's one exception, where the ledger is in the folder and on no ref,
+     and the only pass that leaves no ledger in the folder is `require-on-main`'s row B — the ledger
+     on the default branch, missing from a working tree on a branch this run reuses
+     (`workflows-core:phase-handoff` §3.3). Every other state with no ledger in the folder reaches
+     the ledger's own row F first. Either way the ledger was written, so on a slice the inventory
+     was written and lost —
+     `/brd-split` writes a slice's inventory before its ledger (`commands/brd-split.md` Phase 3). Read the resolved folder's
      `brd-link.md` and branch on its `parent:` field: 5a's own legacy-fallback test lets a folder
-     carrying **neither** `coverage-ledger.md` **nor** `brd/brd-inventory.md` through unrefused
-     (`coverage-ledger-format.md` §5.1), so a folder reaching this branch is not always the slice
-     step 5a would otherwise guarantee. Since product-workflows 3.7.0 `/brd-intake` writes the
+     that is not a slice through unrefused (`coverage-ledger-format.md` §5.1), so a folder reaching
+     this branch is not always the slice step 5a would otherwise guarantee. Since product-workflows 3.7.0 `/brd-intake` writes the
      inventory's header before it copies anything (`brd-format.md` §2); a folder an earlier intake
      left with `brd/source/` alone carries neither BRD file, and `/brd-intake` refuses it too, so the
      remedy is the same.
@@ -221,21 +271,19 @@ behaviour, not the behaviour.
        `PRD_GROUND_NO_INVENTORY: <BRD-KEY> is a slice of <PARENT-KEY> and has no brd/brd-inventory.md, so there is no claim list to ground. <remedy>`
 
        **`<remedy>` is conditional, exactly as `PRD_GROUND_NEEDS_SPLIT`'s below is, because a
-       parent re-run touches a slice's inventory only where its walk moves a row onto or off that
-       slice, and then only the rows that move**
-       (`commands/brd-split.md` Phase 4's reconcile step re-derives a child's three files only for
-       a child that walk gave a row or took one from). Read this slice's `brd-link.md` `claims:`
+       parent re-run never re-creates a slice's missing file** (`commands/brd-split.md` Phase 4's
+       reconcile step reconciles every standing child against the parent's ledger, but writes
+       nothing into one with its inventory or ledger missing). Read this slice's `brd-link.md` `claims:`
        and `<PARENT-KEY>`'s own `coverage-ledger.md`, and take the first row that matches:
 
        | State | `<remedy>` |
        |---|---|
        | This slice's `claims:` names no `[BR#n]` | It claims nothing — the standing-empty-child state step 8's `PRD_GROUND_EMPTY_INVENTORY` reports — so give that stop's remedy unchanged, which already names the `/brd-split` form by the parent's ledger |
-       | It claims rows, its folder holds no `coverage-ledger.md` (`/brd-split` writes a slice's ledger after its inventory, so one in the folder means this file was written and lost), none of them reads `covered-by: <this slice's key>` on `<PARENT-KEY>`'s ledger, and at least one still reads `unallocated` there | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md and before writing its inventory, so this file was never written — and that run reached neither its handoff nor its terminal commit, and brd-link.md is no path the specs repo's bookkeeping commit stages, so no command has committed this slice's folder either. A parent re-run will not finish it: its walk writes a slice's inventory and ledger rows only for the rows it adds to that slice, never the rows the slice already claims. Remove this slice's folder — delete it where git reports it untracked, and where it was committed by hand, remove it in a commit on every branch that carries it, the default branch included — then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which places every row still unallocated on <PARENT-KEY>'s ledger, the ones this slice claimed included, as though this slice had never been carved.` |
-       | It claims rows, its folder holds no `coverage-ledger.md`, and none of them reads `covered-by: <this slice's key>` or `unallocated` on `<PARENT-KEY>`'s ledger | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md, so this file was never written, and every row it claims has since been settled elsewhere on <PARENT-KEY>'s ledger, so none is owed here. Its claims: list is left over from that run: empty it by hand in brd-link.md, then re-run /product-workflows:brd-split on <PARENT-KEY>, which offers to remove this slice or keep it against a recorded reason. Which form to type depends on that parent's own ledger: where it still holds an unallocated row, a run with rows still to place needs a slicing instruction, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'; where none is left, type the bare '/product-workflows:brd-split <PARENT-KEY>'.` |
-       | It claims rows, and `<PARENT-KEY>`'s ledger still holds an `unallocated` row | `A parent re-run will not repair this file. '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' still has rows to walk, but it reconciles rather than rebuilds: it touches this slice's inventory only for the rows its walk moves onto or off this slice, never the rows the slice already claims. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
-       | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here: the bare '/product-workflows:brd-split <PARENT-KEY>' is a no-op, and an instructed one touches this slice's inventory only where it re-cuts a row onto or off this slice, and only the rows that move — never the rows the slice already claims. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
+       | It claims rows, and its folder holds no `coverage-ledger.md` — reached only through `require-on-main`'s row B above — the ledger on the default branch and missing from this working tree — since the gate order sends every other no-ledger state to the ledger's own row F | `This slice's coverage-ledger.md is on the specs repo's default branch but missing from this working tree, and its brd/brd-inventory.md is missing too. Restore coverage-ledger.md from the default branch. No command re-creates the inventory — /product-workflows:brd-split's reconcile step writes nothing into a slice with a file missing — so restore it from the ref that carried it, or report it; then re-run '/product-workflows:prd-ground <BRD-KEY>'.` |
+       | It claims rows, and `<PARENT-KEY>`'s ledger still holds an `unallocated` row | `A parent re-run will not repair this file. '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' still has rows to walk, but its reconcile step writes nothing into a slice with a file missing, and never re-creates one. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
+       | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here: the bare '/product-workflows:brd-split <PARENT-KEY>' writes nothing into this slice — its reconcile step leaves a slice with a file missing untouched — and an instructed one's reconcile step leaves it untouched too, whatever that run re-cuts. The file was lost after it was written, and no command re-creates the rows it held — restore it from the ref that carried it, or report it.` |
        | `<PARENT-KEY>`'s ledger cannot be read | Report it by path and name no `/brd-split` form: which one runs is that ledger's to say |
-   - **The inventory is in the folder and on no ref, and so is a `coverage-ledger.md`** — produced, handoff declined. (Where the folder holds no `coverage-ledger.md`, do not print this stop: map the ledger's own `require-on-main` return instead — its row F takes branch (a) below, whose never-written row disposes of this inventory.) Land what is
+   - **The inventory is in the folder and on no ref, and so is a `coverage-ledger.md`** — produced, handoff declined. (Where the folder holds no `coverage-ledger.md`, do not print this stop: the gate order this step opens with has already resolved the ledger's own `require-on-main` return — its row F takes branch (a) below, whose never-written row disposes of this inventory.) Land what is
      already on disk, and **name no `/brd-intake` run**: that command refuses a slice
      (`BRD_INTAKE_SLICE`) and any folder that is not a container (`BRD_INTAKE_NOT_A_BRD`), and
      every container was refused as a root at step 5a:
@@ -250,8 +298,8 @@ behaviour, not the behaviour.
    **`absent` (row F) — nothing for this BRD is on any ref — is split twice before it is reported.**
    Row F conflates three states: *never produced*, *lost after it was written* and *produced, handoff declined*. Reported as one,
    the message tells an operator whose files are already written to go and produce them — and on a
-   slice it names `/brd-split`, which **re-run bare** in that state is a no-op that stages nothing and
-   does not land those files. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
+   slice it names `/brd-split`, which **re-run bare** in that state does not land those files as they
+   stand. Split row F **first on whether `coverage-ledger.md` exists in the worktree**,
    then by level — reading the resolved folder's `brd-link.md` from the worktree (it is there whether
    or not anything reached main) and branching on its `parent:` field, because a slice must never be
    told to run a command that would refuse it.
@@ -283,48 +331,143 @@ behaviour, not the behaviour.
      | State | `<remedy>` |
      |---|---|
      | This slice's `claims:` names no `[BR#n]` | It claims nothing — a standing empty child, which a parent re-run resolves in either form — so give step 8's `PRD_GROUND_EMPTY_INVENTORY` remedy unchanged, which names the `/brd-split` form by the parent's ledger |
-     | It claims rows, none of them reads `covered-by: <this slice's key>` on `<PARENT-KEY>`'s ledger, and at least one still reads `unallocated` there | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md and before writing its ledger, so the files it had not reached were never written — and that run reached neither its handoff nor its terminal commit, and neither brd-link.md nor brd/brd-inventory.md is a path the specs repo's bookkeeping commit stages, so no command has committed this slice's folder either. A parent re-run will not finish it: its walk writes a slice's inventory and ledger rows only for the rows it adds to that slice, never the rows the slice already claims. Remove this slice's folder — delete it where git reports it untracked, and where it was committed by hand, remove it in a commit on every branch that carries it, the default branch included — then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which places every row still unallocated on <PARENT-KEY>'s ledger, the ones this slice claimed included, as though this slice had never been carved. Removing the folder discards any brd/brd-inventory.md that run had already written into it as well, which loses nothing: it holds only rows copied from <PARENT-KEY>'s own inventory, which still carries every one of them.` |
+     | It claims rows, none of them reads `covered-by: <this slice's key>` on `<PARENT-KEY>`'s ledger, and at least one still reads `unallocated` there | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md and before writing its ledger, so the files it had not reached were never written — and that run reached neither its handoff nor its terminal commit, and neither brd-link.md nor brd/brd-inventory.md is a path the specs repo's bookkeeping commit stages, so no command has committed this slice's folder either. A parent re-run will not finish it: its reconcile step writes nothing into a slice with a file missing, and its walk never offers such a slice a row, so the files that run never reached stay unwritten. Remove this slice's folder — delete it where git reports it untracked, and where it was committed by hand, remove it in a commit on every branch that carries it, the default branch included — then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', which places every row still unallocated on <PARENT-KEY>'s ledger, the ones this slice claimed included, as though this slice had never been carved. Removing the folder discards any brd/brd-inventory.md that run had already written into it as well, which loses nothing: it holds only rows copied from <PARENT-KEY>'s own inventory, which still carries every one of them.` |
      | It claims rows, and none of them reads `covered-by: <this slice's key>` or `unallocated` on `<PARENT-KEY>`'s ledger | `Nothing was lost: the /brd-split run on <PARENT-KEY> that carved this slice stopped after writing its brd-link.md, so the files it had not reached were never written, and every row it claims has since been settled elsewhere on <PARENT-KEY>'s ledger, so none is owed here. Its claims: list is left over from that run: empty it by hand in brd-link.md, then re-run /product-workflows:brd-split on <PARENT-KEY>, which offers to remove this slice or keep it against a recorded reason. Which form to type depends on that parent's own ledger: where it still holds an unallocated row, a run with rows still to place needs a slicing instruction, so type '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'; where none is left, type the bare '/product-workflows:brd-split <PARENT-KEY>'.` |
-     | It claims rows, and `<PARENT-KEY>`'s ledger still holds an `unallocated` row | `A parent re-run will not repair this slice's files. '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' still has rows to walk, but it reconciles rather than rebuilds: it touches this slice's inventory and ledger only for the rows its walk moves onto or off this slice, never the rows the slice already claims. The ledger was lost after it was written, with the inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
-     | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here — with no row left unallocated there is nothing for an instruction to group — and where that parent holds no re-cuttable row it is a no-op that stages nothing: the slice's ledger was lost after it was written, with its inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
+     | It claims rows, and `<PARENT-KEY>`'s ledger still holds an `unallocated` row | `A parent re-run will not repair this slice's files. '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' still has rows to walk, but its reconcile step writes nothing into a slice with a file missing, and never re-creates one. The ledger was lost after it was written, with the inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
+     | It claims rows, and `<PARENT-KEY>`'s ledger holds no `unallocated` row | `A parent re-run carves nothing here — with no row left unallocated there is nothing for an instruction to group — and where that parent holds no re-cuttable row it writes nothing into this slice, whose reconcile step leaves a slice with a file missing untouched: the slice's ledger was lost after it was written, with its inventory too where that is missing as well, and no command re-creates the rows they held — restore what is missing from the ref that carried it, or report it.` |
      | `<PARENT-KEY>`'s ledger cannot be read | Report it by path and name no `/brd-split` form: which one runs is that ledger's to say |
 
-     **The condition qualifies the remedy, and every row must carry it.** The table once had two branches, both on a slice claiming rows, and so said nothing to a slice claiming nothing under a fully-allocated parent — a standing empty child, the one state here in which a parent re-run is live whatever the parent's ledger holds. The sibling rule under (b) below — *`/brd-split` is not a way out here, so do not name it* — already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing and opens no pull request. Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
+     **The two rows that say the ledger was lost are reached only where some row this slice claims reads `covered-by: <this slice's key>`** — the three rows above them take every other state — and no `/brd-split` walk writes that onto a child missing its inventory or its ledger: its Phase 0 step 9 marks such a child unreconcilable, and every target list of its walk leaves it out. So this slice held its ledger when that row was written, and *lost after it was written* is what the parent's ledger shows rather than a guess.
 
-   **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced and its handoff was
-   declined.** The files exist; what is missing is a commit. **Say so, and name landing them as the
-   action** — one stop code, because the remedy does not differ. **It speaks for the ledger only**: the inventory has its own gate above, with its own two stops, and this message must not report a merge state it did not test:
+     **The condition qualifies the remedy, and every row must carry it.** The table once had two branches, both on a slice claiming rows, and so said nothing to a slice claiming nothing under a fully-allocated parent — a standing empty child, the one state here in which a parent re-run acts on this slice whatever the parent's ledger holds. The sibling rule under (b) below — *`/brd-split` is not a way out here, so do not name it* — already says not to name `/brd-split` for a fully-allocated parent, because re-running it **bare** there stages nothing for this slice: its reconcile step leaves a child with a file missing untouched (`commands/brd-split.md` Phase 4 Step 3). Naming it unconditionally here sent the operator to a command that would report success and change nothing, leaving the slice ungroundable with no other route offered — and `coverage-ledger-format.md` rules on this same shape elsewhere with *"name no option at all"* rather than a remedy that cannot work.
+
+   **(b) `coverage-ledger.md` is in the folder, and on no ref — it was produced, and either the carve
+   that wrote it has not finished or its handoff was declined.** The file alone cannot tell those
+   apart: `/brd-split` writes a slice's three files in its Phase 3, before its Phase 4 walk has placed
+   a single row, and reconciles them against the parent's ledger only in that walk's Step 3
+   (`commands/brd-split.md`), so a carve stopped anywhere between leaves the same files on disk as a
+   finished one whose handoff was declined. **The parent's ledger tells them apart**, so read
+   `<PARENT-KEY>`'s own `coverage-ledger.md` from the worktree — `<PARENT-KEY>` being the `parent:`
+   of the `brd-link.md` read above — before printing anything, and take the first case that matches. (Where `brd/brd-inventory.md` is not in the folder, the gate order's one exception applies instead, and nothing in this branch prints.)
+   - **`brd-link.md` names no `parent:`, or `<PARENT-KEY>`'s ledger cannot be read** — whether the
+     carve finished, and whether the handoff was declined, is that ledger's to say, so assert
+     neither: print step 6a's unreadable-parent `PRD_GROUND_SLICE_UNRECONCILED`, which reports the
+     ledger by path, names no `/brd-split` form, and is the same situation — this slice cannot be
+     tested against its parent. Commit nothing in this folder until that ledger is read.
+   - **`<PARENT-KEY>`'s ledger holds any `unallocated` row** — the carve is not finished, and the
+     message says so by what the ledger shows and never by why: an interrupted `/brd-split` run
+     leaves this state, and so does a `/product-workflows:brd-intake` re-run over the parent, which
+     resets every row of its ledger to `unallocated` (`coverage-ledger-format.md` §3). Landing these
+     files now would land provisional ones, and naming the bare `/brd-split` form would name a run
+     that stops with `BRD_SPLIT_NEEDS_INSTRUCTION` while a row is unallocated, so name the instructed
+     form. `<N>` is the count of those rows:
+     `PRD_GROUND_CARVE_UNFINISHED: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch, and its parent <PARENT-KEY>'s coverage-ledger.md still holds <N> unallocated row(s) — the carve of <PARENT-KEY> is not finished, so this slice's brd-link.md, brd/brd-inventory.md and coverage-ledger.md are provisional and may yet change. Commit nothing in this folder until that carve completes: run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' to completion — it walks every row still unallocated, then reconciles every child's three files against the parent's ledger — merge its handoff, then re-run '/product-workflows:prd-ground <BRD-KEY>', which names anything of this slice's still left to land.`
+   - **No `unallocated` row, but this slice fails step 6a's reconciliation test** — run over this
+     folder's worktree copies of the three files, since none is on a ref yet. The parent's ledger is
+     allocated, and this slice is still not what it records: a carve stopped after its last walk
+     write and before its Step 3 reconciled this slice leaves exactly that. Landing the files would
+     land a disagreement, so print step 6a's `PRD_GROUND_SLICE_UNRECONCILED` with the remedy step 6a
+     gives for a fully-allocated parent, and not the stop below.
+   - **No `unallocated` row, and this slice passes step 6a's test** — the carve finished and its
+     handoff was declined. The files exist; what is missing is a commit. **Say so, and name landing
+     them as the action.** **It speaks for the ledger only**: the inventory has its own gate above,
+     with its own two stops, and this message must not report a merge state it did not test:
    `PRD_GROUND_NOT_HANDED_OFF: <BRD-KEY>'s coverage-ledger.md is written at <BRD-dir> but is on no branch — their handoff was declined, so nothing is missing but the commit. Commit brd/brd-inventory.md and coverage-ledger.md to the specs repo's default branch, then re-run '/product-workflows:prd-ground <BRD-KEY>'. <the clause below>`
 
    **`/brd-split` is not a way out here, so do not name it.** Re-running it **bare** on a parent whose ledger is fully
-     allocated and whose children are non-empty is a no-op by its own Phase 0
+     allocated, whose children are non-empty and none of them out of step with it, is a no-op by its own Phase 0
      (`coverage-ledger-format.md` §4): it stages nothing, reports `nothing to commit` and opens no
-     pull request. `handoff-to-main` stages only the paths *that* run declared, so the slice's
+     pull request. Where some *other* child is out of step, the bare run is live, but it reconciles
+     that child and declares only the files it changes (its Phase 6), and this slice — in step, by
+     the case that brought the run here — is not one of them. `handoff-to-main` stages only the paths *that* run declared, so the slice's
      already-written files are OTHER to it
      (`workflows-core:phase-handoff` §2.3) and can never reach main by that
      route.
 
      **Every part of that condition matters, so the clause carries all of it.** A parent re-run is a
      no-op only where its ledger is fully allocated **and** no child is left standing while claiming
-     nothing **and** no row is re-cuttable under an instruction the run was given
+     nothing **and** no child is out of step with the parent's ledger **and** no row is re-cuttable
+     under an instruction the run was given
      (`commands/brd-split.md` Phase 0 step 10); a standing empty child keeps that run alive through its empty-child phase, which does
-     stage a `brd-link.md` it writes a `reason:` into, and a re-cuttable row keeps it alive through its
+     stage a `brd-link.md` it writes a `reason:` into, a child out of step keeps it alive through its
+     reconcile step, which stages the files it rewrites for that child, and a re-cuttable row keeps it alive through its
      walk, which stages the receiving child's three files. Read the `claims:` list of the `brd-link.md`
      step 6 already opened for its `parent:` and branch on it, because the two states take different
      clauses and asserting the first over the second would tell an operator a live run does nothing:
-     - **This slice claims at least one `[BR#n]`** — the ordinary case, and the bare parent re-run is a
-       genuine no-op: `Re-running the bare /product-workflows:brd-split <PARENT-KEY> will not land them — with this slice claiming rows and the parent's ledger fully allocated, that run is a no-op: it stages nothing and opens no pull request. An instruction typed after the key can still make it a live run, where the parent holds a row a child has recorded it will not build; that run stages what its own walk moved, never these files as they stand.`
+     - **This slice claims at least one `[BR#n]`** — the ordinary case, and the bare parent re-run
+       writes nothing into this slice: `Re-running the bare /product-workflows:brd-split <PARENT-KEY> will not land them — with this slice claiming rows, in step with the parent's ledger, and that ledger fully allocated, that run writes nothing into this slice and declares none of its files. An instruction typed after the key can still make it a live run, where the parent holds a row a child has recorded it will not build; that run stages what its own walk moved, never these files as they stand.`
      - **This slice claims nothing** — it is a standing empty child, so the parent re-run is not a
        no-op, but a bare one still will not land *these* files: it declares that child's `brd-link.md`, not
        its inventory and ledger. An **instructed** run that re-cuts a row onto this slice is the one form that
        does declare all three, and it lands them as its own walk leaves them rather than as they stand here.
        Say all of it, so the operator is neither sent to a no-op, nor told a
-       live run is one, nor left believing no form of that run reaches these files: `Re-running /product-workflows:brd-split <PARENT-KEY> is not a no-op — this slice claims nothing, so that run resolves it. Where the parent's ledger still holds an unallocated row, the bare form stops with BRD_SPLIT_NEEDS_INSTRUCTION and the run to type carries a slicing instruction, '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"', whose walk may also offer covered-by against this slice. Otherwise the bare form offers to remove it or to keep it against a recorded reason, and it will not land these files: it stages that decision, not this slice's inventory and ledger. Adding an instruction, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row a sibling has recorded it will not build — where such a row exists and this slice has never been interviewed — and that run does stage this slice's inventory and ledger, with the re-cut row added to them. Committing what is already on disk remains the direct route to landing them as they stand.`
+       live run is one, nor left believing no form of that run reaches these files: `Re-running /product-workflows:brd-split <PARENT-KEY> is not a no-op — this slice claims nothing, so that run resolves it. Every row of the parent's ledger is allocated, so the bare form is the run, and it offers to remove it or to keep it against a recorded reason, and it will not land these files: it stages that decision, not this slice's inventory and ledger. Adding an instruction, '/product-workflows:brd-split <PARENT-KEY> "<what to peel off>"', can additionally re-cut onto this slice a row a sibling has recorded it will not build — where such a row exists and this slice has never been interviewed — and that run does stage this slice's inventory and ledger, with the re-cut row added to them. Committing what is already on disk remains the direct route to landing them as they stand.`
 
    This is the same split `/product-workflows:brd-reconcile` makes on its own row F
    (`BRD_RECONCILE_NEEDS_PACKAGE` versus `BRD_RECONCILE_PACKAGE_NOT_HANDED_OFF`), for the same
    reason: *never produced* and *produced but never handed off* are different facts, and a stop that
    collapses them names a command that does nothing in the state it is reporting.
+6a. **On `route: brd`, once both of step 6's gates pass, test this slice against its parent — the
+    reconciliation test.** The gates prove the slice's ledger and inventory are on main; they cannot prove those
+    files, or the `claims:` read beside them, are the allocation that produced them. `/brd-split` writes a slice's three files
+    provisionally in its Phase 3 and reconciles them against the parent's ledger in its Phase 4
+    Step 3, so a carve stopped between the two leaves files that agree with each other and not with
+    the parent — and committing them by hand carries them past both gates.
+
+    **First, both files must be in this working tree.** A gate passes a file on the default branch
+    that is missing from the worktree where this run reuses a branch of its own —
+    `require-on-main`'s row B (`workflows-core:phase-handoff` §3.3) — and this step, like Phase 8's
+    `evidence` rebuild, reads the worktree. A missing inventory would read as set (b) empty and print
+    the stop below, whose remedy names `/brd-split`, which writes nothing into a slice with a file
+    missing (`commands/brd-split.md` Phase 4 Step 3), so that remedy would loop. Where
+    `brd/brd-inventory.md`, `coverage-ledger.md` or both are not in the folder, stop instead, naming
+    each missing one (a file in the folder that cannot be read is the stop after this one):
+    `PRD_GROUND_RESTORE_FROM_DEFAULT: <BRD-KEY>'s <missing file(s)> <is|are> on the specs repo's default branch but missing from this working tree, on the branch this run reuses — nothing here can be tested against its parent or ground from a file that is not on disk, and nothing was written. Restore <it|them> from the default branch, then re-run '/product-workflows:prd-ground <BRD-KEY>'. No /product-workflows:brd-split run re-creates either file.`
+
+    **Then both must be readable.** A gate tests a file's presence and its bytes against a ref,
+    never whether this run can read it, so a `coverage-ledger.md` or `brd/brd-inventory.md` that is
+    in the folder and cannot be read — a permission fault, a file that is not text — passes both.
+    Read unread, the inventory would empty set (b) and send the operator to `/brd-split`, which marks
+    this slice unreconcilable and writes nothing into it; the ledger no set here reads would fail
+    only at Phase 8's `evidence` rebuild, after the whole run's spend. Stop here instead, naming each
+    such file and the read error:
+    `PRD_GROUND_SLICE_FILE_UNREADABLE: <BRD-KEY>'s <file(s)> at <path(s)> <is|are> in the folder but cannot be read (<error>), so nothing here can be tested against its parent or ground, and nothing was written. Repair the file — its permissions, or restore it from the ref that carried it — then re-run '/product-workflows:prd-ground <BRD-KEY>'. No /product-workflows:brd-split run repairs it: that command writes nothing into a slice whose inventory or ledger cannot be read.`
+
+    Read three sets of
+    `[BR#n]` ids, each off a structured field and never out of prose:
+    - **(a)** the entries of this slice's `brd-link.md` `claims:`, read id by id as
+      `brd-format.md` §2.1 fixes — a legacy bare or unquoted entry names the same id;
+    - **(b)** the `id` of every row of `brd/brd-inventory.md`;
+    - **(c)** the `id` of every row of `<PARENT-KEY>`'s own `coverage-ledger.md` (the `parent:` of
+      that `brd-link.md`, read from the worktree) whose `disposition` reads exactly
+      `covered-by: <BRD-KEY>` — the whole value equal to that string, never a prefix of it, so a
+      sibling whose key merely begins with this one's is not counted.
+
+    Every `/brd-split` run that completes leaves the three equal for every child it leaves standing
+    with both its inventory and its ledger, because its Phase 4 Step 3 reconciles each against the
+    parent's ledger on every path that does not end as a no-op, and the no-op is taken only where no
+    child is out of step. A child missing one of those files is never reconciled — and this test
+    cannot see every such child, since a missing inventory empties set (b) while a missing ledger
+    empties none of the three — which is why step 6's inventory gate and ledger gate report it
+    wherever the file is not on the default branch, and this step's worktree check above reports it
+    wherever the file is, before any set is read. So where they
+    are equal, proceed. **This step never runs on `route: idea`**: that route has no `brd-link.md`,
+    no inventory and no parent, and step 6i is its whole gate.
+
+    Where `brd-link.md` names no `parent:`, or `<PARENT-KEY>`'s ledger cannot be read, stop
+    reporting it by path and naming no `/brd-split` form, since which form reconciles this slice is
+    that ledger's to say. `<path>` is that ledger's path, and reads `no parent: named in brd-link.md`
+    where there is no `parent:` to resolve one from:
+    `PRD_GROUND_SLICE_UNRECONCILED: <BRD-KEY> cannot be tested against its parent: the parent's ledger at <path> cannot be read, and which /product-workflows:brd-split form reconciles this slice is that ledger's to say — report it; no form is named here.`
+
+    Otherwise, where the three sets are not all equal, stop, naming each id by the set that lacks
+    it — print only the clauses whose list is non-empty:
+    `PRD_GROUND_SLICE_UNRECONCILED: <BRD-KEY> is out of step with its parent <PARENT-KEY>'s coverage-ledger.md, so its files are not the allocation that ledger records and nothing here is ground. <Its brd-link.md claims: lacks [ids].> <Its brd/brd-inventory.md lacks [ids].> <<PARENT-KEY>'s ledger does not read covered-by: <BRD-KEY> on [ids].> <remedy>`
+
+    `<remedy>` turns on the parent's ledger, because the bare form stops with
+    `BRD_SPLIT_NEEDS_INSTRUCTION` while any row there is `unallocated`:
+    - **Any row reads `unallocated`** — `The parent's ledger still holds <N> unallocated row(s), so its carve is not finished: run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"' to completion — it walks those rows, then reconciles every child's brd-link.md, brd/brd-inventory.md and coverage-ledger.md against the parent's ledger — merge its handoff, then re-run '/product-workflows:prd-ground <BRD-KEY>', which names anything of this slice's still left to land.`
+    - **None does** — `Every row of the parent's ledger is allocated, so run the bare '/product-workflows:brd-split <PARENT-KEY>': it reconciles every child's brd-link.md, brd/brd-inventory.md and coverage-ledger.md against that ledger and writes nothing for a child already in step. Merge its handoff, then re-run '/product-workflows:prd-ground <BRD-KEY>', which names anything of this slice's still left to land.`
 6i. **On `route: idea`, gate `prd.md` on main instead — there is neither a ledger nor an inventory
     on this route.** Execute `require-on-main` (`Skill(skill: "workflows-core:reference", args: "phase-handoff require-on-main")`, §3)
     against `<PRD-dir>/prd.md`. Map its §3.7 return by `stopped` first, exactly as step 6 does for
@@ -563,7 +706,8 @@ git -C "<repo>" diff --ignore-cr-at-eol --stat
 git -C "<repo>" status --porcelain
 ```
 
-1. Record `rev-parse HEAD` as the repo's pinned commit.
+1. Record `rev-parse HEAD` as the repo's pinned commit — held by this run, and written to
+   `grounding/baselines.md` only in Phase 8 (below).
 2. `diff --ignore-cr-at-eol --stat` must be empty. Any output → **non-empty content diff, stop**:
    `PRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot. Settle that repository's working tree and re-run '/product-workflows:prd-ground <KEY>': commit the changes, stash them, or check out a clean copy — the plugin will not do it for you, because these are your files in a code repository this route never writes to. If the changes are what you want grounded, commit them first and re-run with --rebaseline so the new commit becomes the recorded pin.`
 
@@ -592,8 +736,14 @@ run before Phase 5's first dispatch, not inside it.
 **`--rebaseline`, and a plain re-run against moved code.** If `<BRD-dir>/grounding/baselines.md`
 already records a pin for a repository:
 - **Its `HEAD` still matches the recorded pin** → nothing moved; this is a harmless re-run. Skip
-  re-grounding claims this repository already answered (Phase 5) unless a new `--depends-on` was
-  added this run (Phase 6 still reassesses horizons against it).
+  re-grounding every claim this repository already answered — one a `[CG#n]` on file answers at
+  this pin, by the test Phase 5 states — and ground against the pin, exactly as a first run would,
+  every claim it has not — a row a later re-cut gave this slice, say, which is the re-run this
+  command's opening names. So a plain re-run re-grounds this repository **for those claims and for no
+  other**, and for none at all where it has none. A newly declared `--depends-on` changes none of
+  this: Phase 6 reassesses the on-file findings' horizons against it by superseding them, so no
+  claim is re-ground for it — a re-derived finding would stand beside the on-file one as a second
+  live finding for one claim.
 - **Its `HEAD` has moved, and `--rebaseline` was NOT given** → stop:
   `PRD_GROUND_NEEDS_REBASELINE: <repo> moved since the last grounding pin (<old-sha> -> <new-sha>) — re-run with --rebaseline to supersede the affected findings by ID.`
 - **Its `HEAD` has moved, and `--rebaseline` WAS given** → proceed; Phase 5 re-grounds every claim
@@ -630,9 +780,17 @@ remedy the message names changes: `--rebaseline` is unavailable under this mode,
 **without** `--no-code`. Adding design grounding on top of a code grounding that no longer describes
 the tree would pin new findings to a commit the repository has left.
 
-Append (never overwrite) one dated entry per repository to `<BRD-dir>/grounding/baselines.md` — **except under `--no-code`, which writes no baseline entry at all** (stated in full above; repeated here because this is the instruction it excepts, and a reader who arrives at an unconditional imperative does not go looking for its exception):
+**Hold one dated `grounding/baselines.md` entry per repository for Phase 8 to append** — **except under `--no-code`, which writes no baseline entry at all** (stated in full above; repeated here because this is the instruction it excepts, and a reader who arrives at an unconditional imperative does not go looking for its exception):
 the repo, the pinned commit, the verification result, and the `[CG#n]` id assigned above — the same
 three commands are what the customer's own reviewer re-runs later against their own checkout.
+**This phase writes nothing to that file.** A pin is recorded together with the findings it pins,
+in Phase 8, and never before them: every stop between here and Phase 8 — Phase 5's and Phase 7's —
+then leaves the recorded pin exactly as the previous run left it. Appended here instead, a
+`--rebaseline` run stopped in Phase 5 or 7 would leave the new pin recorded beside the old pin's
+findings, unsuperseded; the re-run would find `HEAD` matching that new pin, take this phase's
+first bullet, and never supersede them. Until Phase 8, "the recorded pin" everywhere in this run —
+this phase's bullets and Phase 5's *answers* test — means the one the file held when the run
+began.
 
 ---
 
@@ -656,7 +814,10 @@ For every declared prerequisite (this run's plus any already on file):
    each exclusion is that section's own rule rather than this command's caution: `open` and
    `reopened` "may not be consumed downstream" while they stand; `superseded` and `withdrawn` are
    terminal and describe a position that is no longer held; and an `[AS#n]` never reaches `decided`
-   at all (§7), so an assumption is never a frozen decision however confidently it is written.
+   at all (§7), so an assumption is never a frozen decision however confidently it is written. **Nor
+   does a torn write** (§8) — a record a `/brd-interview` run left when it stopped before writing the
+   round record that would name it, read here from the prerequisite's own `interview/` records — which
+   counts for nothing whatever its `status` reads.
    **Read the status, do not infer it from how settled a record sounds** — the register carries the
    answer in a field precisely so that this reader does not have to weigh prose, and
    `/product-workflows:brd-reconcile` uses the same equivalence when it says what freezing a `[CD#n]`
@@ -744,16 +905,28 @@ formality.
 ## Phase 5 — Fan out grounding
 
 **Under `--no-code`, skip this phase's `code-grounder` fan-out and its renumbering entirely**, and
-read the `[CG#n]` set from `<BRD-dir>/grounding/code-grounding.md` instead — every finding on file,
-with the `id`, `claim`, `verdict`, `evidence` and `commit` Phase 8 wrote there. Those findings are
-this run's **input, never its output**: not renumbered here, not re-verified in Phase 7, not
+read the `[CG#n]` set from `<BRD-dir>/grounding/code-grounding.md` instead — every finding on file
+that does not read `SUPERSEDED`, with the `id`, `claim`, `verdict`, `evidence` and `commit` Phase 8
+wrote there. A superseded one no longer stands (`workflows-core:grounding-format` §3), and a class-4
+finding citing it would stand on a retired finding from the moment it was written. Those findings
+are this run's **input, never its output**: not renumbered here, not re-verified in Phase 7, not
 rewritten in Phase 8. The `[DG#n]` sequence still continues from the highest already on file, the
 same as on any other re-run.
 
 **`code-grounder`, one per repository, ≤4 concurrent per Agent message** (wait for a batch before
-starting the next). Each dispatch gets the *whole* claim list (Phase 0 step 8) and its own pinned
-commit (Phase 3) — a BRD carries no per-repo claim tagging, and a claim that genuinely belongs to a
-different system is exactly what `NOT-PROVABLE` exists to say, not a reason to pre-filter:
+starting the next). Each dispatch gets its own pinned commit (Phase 3) and every claim that
+repository has still to answer. **Against a repository with no pin recorded before this run, or one
+a `--rebaseline` pass re-pins, that is the whole claim list** (Phase 0 step 8). **Against one whose
+`HEAD` still matches its recorded pin, it is every claim of that list no `[CG#n]` on file answers
+there** — a `[CG#n]` answers a claim at a repository where its `verdict` is not `SUPERSEDED`, its
+`claim` names that claim's requirement id (read for the id it names, as Phase 8 reads it), and its
+`commit` equals that repository's recorded pin (Phase 3's first bullet). A repository left with no
+claim to answer is not dispatched. Within that set nothing is pre-filtered: a BRD carries no
+per-repo claim tagging, and a claim that genuinely belongs to a different system is exactly what
+`NOT-PROVABLE` exists to say. **The repositories this run dispatches here are the ones it
+re-grounds, and the claims each dispatch carries are the claims it re-grounds there** — the known
+set Phase 8's frame-set rule reads; Phase 3's baseline finding, minted for every repository it pins,
+puts none in it:
 
 → Agent (subagent_type: "product-workflows:code-grounder", model: `<review_model>`):
   > "repo_path: [resolved absolute path from Phase 1]
@@ -762,15 +935,15 @@ different system is exactly what `NOT-PROVABLE` exists to say, not a reason to p
   >   - id:   [the requirement id exactly as Phase 0 step 8 (or 8i) recorded it — BR#n on route:
   >            brd, AC#n/FR#n/US#n on route: idea]
   >     text: [requirement text]
-  >   [… every claim from Phase 0 step 8]
+  >   [… every claim this repository has still to answer (above)]
   > refresh:
   >   pull: false"
 
 Handle `status`: `OK` → collect `findings`, **and collect `notes`** — a claim that touched a false-friend name, a claim whose search budget was exhausted. Report them with the findings: without them a `NOT-PROVABLE` `[CG#n]` whose search ran out is indistinguishable from one the code genuinely refutes, and only the first is worth another pass. `INPUT_MISSING` / `REPO_MISSING` → should not occur
 (Phases 0/1/3 already checked); if it does, stop and name the gap. `COMMIT_MISMATCH` → the tree
 moved between Phase 3 and this dispatch — stop and re-run from Phase 3 **with `--rebaseline`**, for
-the reason Phase 7's `PRD_GROUND_VERIFY_COMMIT_MISMATCH` row states: this run already recorded a
-pin, so a plain re-run stops with `PRD_GROUND_NEEDS_REBASELINE`.
+the reason Phase 7's `PRD_GROUND_VERIFY_COMMIT_MISMATCH` row states: a pin recorded before this
+run still stands, `HEAD` has left it, and a plain re-run stops with `PRD_GROUND_NEEDS_REBASELINE`.
 
 **Renumber into one BRD-wide sequence.** Each `code-grounder` instance numbers its own output from
 `CG#1` (its own contract, per dispatch) — this is per-instance, not global. Merge every batch's
@@ -830,7 +1003,8 @@ across the whole finding set:
 For each finding, and for each declared prerequisite whose decisions Phase 4 found **frozen**:
 read the frozen decision text and judge whether it directly determines this finding's claim once
 built — not merely mentions the same area. Where it does, set `horizon: will-change` and record
-`prerequisite: <the specific decision, by id and a one-line summary>` — naming the decision itself,
+`prerequisite: <the specific decision, by id and a one-line summary>` — on an on-file finding by
+superseding it (below), never in place — naming the decision itself,
 never merely the prerequisite BRD (`workflows-core:grounding-format` §5). Where no declared prerequisite has any
 `status: decided` record at all, every finding stays `current`, and this is reported plainly rather
 than left to look like nothing was checked.
@@ -849,14 +1023,61 @@ A finding already carrying `horizon: will-change` from a previous `--rebaseline`
 unless the naming decision itself has since shipped (superseded by a later finding, per §3) —
 `will-change` findings are never silently reverted to `current`.
 
+**This phase never moves an on-file finding's `horizon` or `prerequisite` in place**
+(`workflows-core:grounding-format` §5). A finding this invocation produced takes the horizon this
+phase settles directly, since nothing outside this run cites it. An on-file finding — one already
+written under `<BRD-dir>/grounding/` before this invocation, as Phase 7 defines it — may already be
+cited by a decision taken on the horizon it carries, so where this phase would move either field —
+and never on a block already reading `SUPERSEDED`, which no longer stands and is not reassessed, nor
+on one a `--rebaseline` pass replaces this run, which Phase 8 supersedes and whose re-derived
+successor takes this phase's horizon directly, nor on one Phase 8's frame-set rule supersedes this
+run (*A set this run re-ground supersedes its own prior findings* — a prior finding of a set this
+run's design pass reconciled, whether or not it returned a finding there, and a class-4 one only on
+the terms that rule gives), whose re-derived successor
+in that set, where that set has one on its claim, takes this phase's horizon directly — a copy
+appended here would stand beside that successor as a second live finding for one claim, and would
+put a second rule's write on a block that rule retires:
+
+- the on-file block takes `verdict: SUPERSEDED`, its verdict written as `prior_verdict`, every
+  other field as it stood on file, and a one-line note naming its successor;
+- a successor is appended with the next free id in its prefix — after every id Phase 3 and Phase 5
+  assigned, in the order of the ids superseded — carrying the block's `claim`, `commit`,
+  `altitude`, `verdict`, `evidence` and `control`, and on a `[DG#n]` its `class` and `cites`, with
+  the new `horizon` and `prerequisite`, `consumed_by: none`, and the note `supersedes [CG#n]` (or
+  `[DG#n]`). It carries no `outcome`: this invocation produced it, so it is an **own-run** finding
+  and Phase 7 verifies it like any other, and the block it succeeds, reading `SUPERSEDED`, leaves
+  Phase 7's dispatch set.
+
+`/product-workflows:brd-interview`'s *A decision the re-grounding moved* then sees the move: a
+successor carrying the superseded finding's verdict and a different horizon does not confirm, so a
+decision taken on the old horizon is reopened, and a held decision whose successors are no longer
+`will-change` is put again. A superseded `[CG#n]` takes every class-4 `[DG#n]` citing it with it
+(Phase 8's cascade). **Two exceptions, each reported by finding id with the horizon this phase
+would have written.** Under `--no-code` an on-file `[CG#n]` is this run's input and
+`code-grounding.md` is not opened for writing (Phase 8), so its horizon stays and the next run
+without that mode moves it. And an on-file `[DG#n]` the frame-set placement (Phase 8, *A set this
+run re-ground*) cannot place in exactly one frame set **is superseded with no successor**: the
+block takes `verdict: SUPERSEDED` and its `prior_verdict` as above, and its note names the horizon
+this phase would have written and says why no successor can be placed — Phase 7 could not hand the
+verifier the `frame_set_dir` a successor needs. A stale horizon is never left standing for a
+downstream reader to consume: a plain decision resting on the finding reads a finding with no
+successor and is reopened, and a held one is put again, its finding's source being one that cannot
+be decided (`/product-workflows:brd-interview`, *A decision the re-grounding moved*).
+
 ---
 
 ## Phase 7 — Verify
 
 Dispatch `grounding-verifier` over **every** finding this run holds — Phase 3's baseline `[CG#n]`
-findings, freshly-merged Phase 5 claim findings, and any pre-existing ones a `--rebaseline` pass is
-re-checking — one instance per finding, same ≤4-concurrent batching discipline as Phase 5, pinned
-to the Opus chain (`review_model`, frontmatter-pinned, no override):
+findings, freshly-merged Phase 5 claim findings, the successors Phase 6 appended for a moved
+horizon, and **the on-file findings this run re-checks, which are exactly these**: every `[CG#n]`
+already on file that does not read `SUPERSEDED` and whose `commit` equals the recorded pin of a
+repository whose `HEAD` still matched it in Phase 3 — on a plain re-run and a `--rebaseline` pass
+alike, `provenance: inherited` (below), and none under `--no-code` (below) — **and never an on-file
+`[DG#n]`**, which no run of this command re-checks. A moved repository's on-file findings are not
+among them: a `--rebaseline` pass supersedes them in Phase 8. One instance per finding,
+same ≤4-concurrent batching discipline as Phase 5, pinned to the Opus chain (`review_model`,
+frontmatter-pinned, no override):
 
 → Agent (subagent_type: "product-workflows:grounding-verifier", model: `<review_model>`):
   > "finding:
@@ -889,8 +1110,8 @@ the verifier stops the run with `COMMIT_MISMATCH`, and the `--rebaseline` re-run
 would dispatch the same finding again and stop the same way; and any other re-derivation returns a live verdict, which the reconciliation below
 normalises to `contradict` against `SUPERSEDED` and the `contradict` branch would write — a retired
 finding brought back to life beside its successor, its `prior_verdict` left on a block whose verdict
-is no longer `SUPERSEDED`, where §2.1 forbids it. The class-4 sweep below excludes the same findings
-for the same reason.
+is no longer `SUPERSEDED`, where §2.1 forbids it. The class-4 sweep below excludes, for the same
+reason, any finding this phase has itself marked `SUPERSEDED`.
 
 Supply the finding **exactly as the agent's own Inputs contract declares it** — including
 `evidence` and, for a class-4 `[DG#n]`, `cites` — even though the agent's own hard rules forbid
@@ -908,24 +1129,28 @@ that could drift from it. Two consequences for this dispatch:
   the class on every `[DG#n]` it merged; pass it through.
 - **Always pass `frame_set_dir` for a `[DG#n]`.** Phase 5 dispatched `design-grounder` once per
   frame set, so every `[DG#n]` on file traces back to exactly one directory; carry that association
-  forward from Phase 5 rather than re-deriving it here. A class-4 `[DG#n]` gets both it and the
-  code pair — it is the one finding with a foot in each source.
+  forward from Phase 5 rather than re-deriving it here. A `[DG#n]` Phase 6 appended as a successor
+  was produced by no Phase 5 dispatch: its directory is the one frame set Phase 8's placement puts
+  its superseded block in, which Phase 6 required before it superseded anything. A class-4 `[DG#n]`
+  gets both it and the code pair — it is the one finding with a foot in each source.
 - **Always pass `inventory` for a `[DG#n]`** — the same Phase 0 step 8 claim list Phase 5 handed
   `design-grounder`, unchanged. A `[DG#n]` is a reconciliation between the frame set and the
   inventory, so handing over only the frames gives the verifier one side of the comparison. A
   **class-1** finding cannot be re-derived at all without it: it asserts that no requirement asks
-  for what the frame shows — a negative over the whole set — and its `claim` is the literal
-  `none — frame-only`, so there is no requirement id in the record to stand in for the set. The verifier
+  for what the frame shows — a negative over the whole set — and its `claim` is
+  `none — frame-only: <field>`, naming a field and no requirement, so there is no requirement id in the record to stand in for the set. The verifier
   correctly returns `NOT-PROVABLE`, and the finding is then permanently unverifiable and can never
   become evidence (`workflows-core:grounding-format` §8). This dispatch omitted the field, which is
   where that dead end came from.
 
-**Under `--no-code`, "every finding this run holds" is the new `[DG#n]` set and nothing else.**
+**Under `--no-code`, "every finding this run holds" is the new `[DG#n]` set — Phase 5's, and any
+successor Phase 6 appended — and nothing else.**
 Every `[CG#n]` on file was neither produced nor reproduced by this invocation and already carries
 the outcome from the run that did produce it. Re-dispatching them would spend one Opus verification
-per finding to re-decide a settled one, and a single `contradict` would rewrite a finding into a
-file this mode holds read-only — which is precisely the exposure the mode exists to remove. The
-`[CG#n]` a class-4 `[DG#n]` cites is still checked in passing: the verifier re-runs
+per finding to re-decide a settled one, and a single `contradict` would supersede a finding and
+append its successor in a file this mode holds read-only — which is precisely the exposure the mode
+exists to remove. The `[CG#n]` a class-4 `[DG#n]` cites is still checked in passing: the verifier
+re-runs
 `baseline-integrity` against the pin it is handed, as its own Process step 1.
 
 **`provenance` is set per finding, by origin — never by which phase produced it, and never
@@ -935,8 +1160,8 @@ findings do, because Phase 3 re-runs `baseline-integrity` and assigns a fresh id
 first run or `--rebaseline` alike — never carrying a prior run's baseline finding forward
 unreproduced. `inherited` for a finding **this invocation did not reproduce** — concretely, any re-run in which
 a given repository's `HEAD` still matched its recorded pin, so Phase 3's first bullet skipped
-re-grounding that repository's claims and the pre-existing findings from an earlier invocation
-stand as they were, now being re-checked rather than regenerated. **That bullet fires on a plain
+re-grounding every claim that repository had already answered and the pre-existing findings from an
+earlier invocation stand as they were, now being re-checked rather than regenerated. **That bullet fires on a plain
 re-run and on a `--rebaseline` pass alike** — it is keyed on the pin still matching, not on the
 flag — so a plain re-run against an unmoved repository inherits exactly as a `--rebaseline` pass
 over one does. Illustrating only the flagged case would read as though the flag were what made a
@@ -959,10 +1184,11 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   **Under `--no-code` the same message names the re-run without the mode** — `'/product-workflows:prd-ground <KEY> --rebaseline'`, no `--no-code` — since that mode refuses the flag the remedy requires, and the finding that failed here is pinned to a repository the design pass cannot re-pin on its own.
   The same repair as Phase 5's own `COMMIT_MISMATCH`: re-run from Phase 3, which re-pins and
   re-grounds. **`--rebaseline` is part of the remedy, not an optional extra**, and the message says
-  so: Phase 3 already appended this repository's pin to `grounding/baselines.md` before dispatching
-  anything, so the re-run finds a recorded pin its `HEAD` no longer matches and stops with
-  `PRD_GROUND_NEEDS_REBASELINE` unless the flag is given. "Re-run from a clean tree" on its own
-  would send the operator straight into that second stop.
+  so: where `grounding/baselines.md` recorded a pin for this repository when the run began, this
+  run never replaced it — Phase 8 records a new pin, and this stop comes before it — and `HEAD` has
+  moved off it, so the re-run stops with `PRD_GROUND_NEEDS_REBASELINE` unless the flag is given.
+  "Re-run from a clean tree" on its own would send the operator straight into that second stop.
+  Where no pin was recorded, the flag changes nothing and costs nothing.
 - **`INPUT_MISSING`** — this orchestrator's dispatch was malformed (most often a `[DG#n]` sent
   without its `inventory`, its `class` or its `frame_set_dir` — `inventory` first, because it is the
   newest requirement and the one whose omission made a class-1 finding permanently unverifiable). Stop, quoting the field and row the agent named, and
@@ -978,8 +1204,9 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   naming it would send the operator to a no-op. Name the missing frames instead: restore them to the
   directory, then re-run this command — and `/frames` only if the set changed while they were away.
 
-**Nothing reaches Phase 8 unverified.** Any stop above happens before Phase 8's first write, so a
-finding without an outcome is never written into the package; whatever was on file from a previous
+**Nothing reaches Phase 8 unverified.** Any stop above happens before Phase 8's first write, and so
+does the incomplete-return stop below (*Act on `outcome`*, own-run), so a finding without an outcome
+is never written into the package; whatever was on file from a previous
 run stands untouched until a clean run replaces it. This is the invariant `/brd-split`'s Phase 0
 gate depends on — it counts findings carrying no outcome and refuses to split while any exists, so
 a run that wrote one would deadlock the route rather than merely leave a gap.
@@ -1035,94 +1262,136 @@ Act on `outcome`:
 - **`unprovable`** — keep the finding's verdict unchanged (the verifier's own search settling
   nothing either way is not the same as it being wrong); record the outcome and flag the finding
   in the report as verification-inconclusive.
-- **`contradict`** — **the finding is rewritten, and the rewrite retains the same id.** Replace
-  the finding's `verdict` and `evidence` with the verifier's `own_verdict` and `own_evidence`, and
-  keep a one-line note of the pre-rewrite verdict for the audit trail — and where `own_verdict` is
-  `SUPERSEDED`, write the pre-rewrite verdict as `prior_verdict` too, since every write of that
-  verdict carries one (`workflows-core:grounding-format` §2). **Where the rewritten finding *owes* a control — §2.2's
-  closed-set rule, the same test the verifier applied to the original and not "does it assert an
-  absence", which gets classes 1 and 4 wrong — its `control` is the verifier's `own_control`**: a
-  rewritten finding owes one exactly as an original does, and the run holds no other search to build
-  it from. A `contradict` on a finding that owes one, returning no `own_control`, is an incomplete
-  return: report it and leave the finding unrewritten rather than write a record this format refuses. The id never changes, so
-  every existing citation into it still resolves.
+- **`contradict`** — **what it writes turns on whether the finding is already on file, never on
+  which phase produced it.** An **own-run finding** is one this invocation produced
+  (`provenance: own-run`, above) and Phase 8 has not yet written, so nothing outside this run cites
+  it yet. An **on-file finding** is one already written under `<BRD-dir>/grounding/` before this
+  invocation — every `inherited` finding is one — and a decision, a ledger row or a sent package may
+  already cite it. **No finding is both**: every finding this invocation produces takes a fresh id
+  (Phase 3, Phase 5), so a claim it re-produces is a new own-run block beside the on-file one, never
+  the on-file block itself.
+  - **Own-run: the finding is rewritten, and the rewrite retains the same id.** Replace the
+    finding's `verdict` with the verifier's `own_verdict` and its `evidence` with `own_evidence`,
+    and keep a one-line note of the pre-rewrite verdict for the audit trail — and where
+    `own_verdict` is `SUPERSEDED`, write the pre-rewrite verdict as `prior_verdict` too, since every
+    write of that verdict carries one (`workflows-core:grounding-format` §2). **On a `[DG#n]` the
+    new `evidence` also keeps every frame citation the replaced evidence carried** — a path under
+    the finding's own frame set — beside `own_evidence`: a class-4 finding is re-derived against the
+    repository, so its `own_evidence` may cite code alone, and a design finding citing no frame can
+    never be placed in its frame set again, which is how
+    `/product-workflows:brd-interview`'s successor test finds a design finding's source. **Where the
+    rewritten finding *owes* a control — §2.2's closed-set rule, the same test the verifier applied
+    to the original and not "does it assert an absence", which gets classes 1 and 4 wrong — its
+    `control` is the verifier's `own_control`**: a rewritten finding owes one exactly as an original
+    does, and the run holds no other search to build it from. The id never changes, so every
+    citation into an own-run finding — this run's own, the only kind it has — still resolves.
+
+    **A `contradict` whose rewritten finding owes a control and whose return carries no
+    `own_control` is an incomplete return, and on an own-run finding it stops the run.** The
+    verifier's own contract requires `own_control` there (`agents/grounding-verifier.md`, its
+    return), so this is that contract broken rather than a verdict, and no record this run could
+    write is honest: the rewrite would be a record §2.2 refuses, the unrewritten finding with this
+    run's `outcome: contradict` beside its verdict would be the live disagreement
+    `workflows-core:grounding-format` §2.1 forbids, and the finding with no outcome at all would
+    block `/brd-split` — on a `[DG#n]` with nothing able to clear it, since no run re-checks an
+    on-file `[DG#n]` and a later supersession leaves the missing outcome missing. Stop before Phase 8's first write, as the
+    refusals above do, and fire `emit-block` per Phase 11's capture-at-block invariant:
+    `PRD_GROUND_VERIFY_INCOMPLETE: <finding-id> could not be verified — the verifier contradicted it and returned no own_control, which the finding it would rewrite owes. No finding was written; re-run '/product-workflows:prd-ground <KEY>' with the flags this run was given.`
+    **On an on-file finding the same return stops nothing** (below).
+  - **On-file: the finding is superseded, and a successor carries the verifier's verdict.** The
+    on-file block takes `verdict: SUPERSEDED`, its on-file verdict written as `prior_verdict` — the
+    verdict any decision citing it was taken on (`workflows-core:grounding-format` §2) — and a
+    one-line note naming its successor. **Every other field of that block stays as it stood on
+    file**, `outcome` and `consumed_by` included: the `contradict` is the successor's. The successor
+    takes the next free id in the finding's prefix — after every id Phase 3, Phase 5 and Phase 6
+    assigned, in the order of the ids superseded — and carries:
+    - `claim`, `commit`, `altitude`, `horizon` and `prerequisite` as the superseded block holds
+      them — Phase 6 never moves an on-file finding's horizon in place, so the block still carries
+      the horizon it was written with;
+    - the verifier's `own_verdict` as `verdict`, and `own_evidence` as `evidence` — on a `[DG#n]`
+      beside every frame citation the superseded block's evidence carried, for the reason the
+      own-run branch gives;
+    - `control` where the successor **owes** one, by the same closed-set rule as the own-run
+      branch, and never merely because the verifier returned one;
+    - `consumed_by: none`, `outcome: contradict`, and the note `supersedes [CG#n]`.
+
+    **An owed control with no `own_control` returned is the same incomplete return, and here it
+    writes nothing at all**: nothing is superseded, no successor is appended, and the on-file block
+    keeps every field as it stands — its `verdict` and the `outcome` an earlier run wrote included,
+    since this run's `contradict` written beside the verdict it contradicts would be a live
+    disagreement `workflows-core:grounding-format` §2.1 forbids. The run does not stop: no write of
+    this run's touches that block, and the outcome it keeps is the one `/brd-split` already counted.
+    The Final report names the finding as **not verified by this run**, with the reason.
+
+    **In this command the finding superseded here is always a `[CG#n]`**: Phase 7 dispatches no
+    on-file `[DG#n]` (its opening set holds none, and the sweep below holds only this run's own), so
+    a `[DG#n]` successor — with its `class`, `cites` and frame citations — is
+    `workflows-core:grounding-format` §8's general rule and not a path this run takes. **Where
+    `own_verdict` is itself `SUPERSEDED`, no successor is appended**: one reading `SUPERSEDED` would
+    stand for nothing. The block is marked `SUPERSEDED` with its `prior_verdict` and a note saying
+    the verifier found it superseded; this run's `contradict` is recorded in the Final report and
+    on no block, and a decision resting on the finding reads a finding with no successor. **A
+    successor may repeat the superseded verdict**: a control normalisation (above) forces
+    `contradict` where `own_verdict` equals the finding's `verdict`, and where the horizon did not
+    move either, `/product-workflows:brd-interview`'s *A decision the re-grounding moved* reads the
+    successor as a confirmation — correctly, since only the search was repaired. Citations into the
+    old id still resolve, to a block reading `SUPERSEDED`, exactly as after a `--rebaseline` pass:
+    the ledger's `evidence` column lists both ids (Phase 8), and a `consumed_by` stamp stays on the
+    block it was written to. **An in-place rewrite here would be invisible downstream**: a decision
+    citing the id would stand on a verdict it was never taken on, which no supersession test ever
+    sees (`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §4, cause 1). A class-4
+    `[DG#n]` citing a `[CG#n]` superseded here is Phase 8's to supersede, not the sweep's below.
 
 **Then sweep the class-4 `[DG#n]` findings against the `[CG#n]` set this phase just settled.** A
 class-4 finding's standing is derived from the `[CG#n]` it cites
-(`workflows-core:grounding-format` §6.3), so every `contradict` rewrite above may have moved the
-ground under one without touching its record — the id still resolves and the claim ids still match,
-which is exactly why nothing else here would notice.
+(`workflows-core:grounding-format` §6.3), so every in-place `contradict` rewrite above — which
+reaches only an own-run finding — may have moved the ground under one without touching its record
+— the id still resolves and the claim ids still match, which is exactly why nothing else here would
+notice. **A `[CG#n]` this phase superseded instead — an on-file one — is not this sweep's**: Phase
+8's rule that superseding a `[CG#n]` supersedes every class-4 `[DG#n]` citing it takes every such
+finding, and two rules claiming one block is how a block ends up with two conflicting writes.
 
-**The set is every class-4 `[DG#n]` this run holds *and* every one in
-`<BRD-dir>/grounding/design-grounding.md`**, minus two sets that are already dispositioned: any finding
-that entered this phase **already** carrying `verdict: SUPERSEDED` from an earlier run, and any on-file finding **whose successor this run's own
-Phase 5 already re-derived** — Phase 8 supersedes that predecessor on that path, so sweeping it here
-would have two rules writing one block — two rules claiming one block is how a block ends up with two conflicting
-writes. Both halves of the set are needed and neither alone suffices: this phase runs before Phase 8 writes anything, so a run
-whose design pass produced findings holds them and they are not on file, while a `--no-design` run
-produces none and every class-4 finding that could go stale is only on file. **They are separate
-generations, not duplicates** — Phase 5 numbers from the highest `DG#n` already on file, so a
-re-derived finding takes a *new* id and the old one is superseded rather than replaced. Dropping the
-superseded ones is what keeps one claim from carrying two live class-4 findings; there is nothing to
-de-duplicate by id, because no id appears twice.
+**The set is every class-4 `[DG#n]` this run holds**, less any this phase has itself marked
+`SUPERSEDED`. **An on-file class-4 finding is never in it, and needs no exclusion to keep it out**:
+an earlier run wrote it, so the `[CG#n]` it cites is on file too, and this phase never rewrites an
+on-file `[CG#n]` in place — it supersedes it, which is Phase 8's. **A held one matches only where
+Phase 5 produced it**: Phase 5 hands `design-grounder` only its own merged `[CG#n]` set, and under
+`--no-code`, where it hands the on-file set instead, this phase verifies no `[CG#n]` at all; and a
+held class-4 finding Phase 6 appended as a successor cites the on-file `[CG#n]` its superseded block
+cited, which this phase never rewrites in place either. **So a `--no-design` run, which produces no
+class-4 finding in Phase 5, gives the sweep nothing to do**; every class-4 finding such a run
+leaves standing on a superseded `[CG#n]` is Phase 8's cascade's.
 
-**What the sweep does is not a re-derivation, and that is the whole of the fix.** Re-deriving needs
-`frame_set_dir`, which `grounding-verifier` requires for every `[DG#n]` and which only Phase 5's
-design pass resolves — so on a `--no-design` run, the mode where the on-file half matters most, a
-re-dispatch returns `INPUT_MISSING`, this phase stops, and the run writes nothing at all including
-the `[CG#n]` rewrites it already made. So for every class-4 `[DG#n]` in the set whose cited `[CG#n]`
-this phase rewrote:
-
-- **Where this run holds a resolved `frame_set_dir` for that finding's own frame set** — its design
-  pass ran over it — re-dispatch `grounding-verifier` once and act on the returned outcome as above.
-- **Otherwise, mark the finding `verdict: SUPERSEDED`, id retained, writing the verdict it carried
-  as `prior_verdict` (`workflows-core:grounding-format` §2), with a one-line note** naming
-  the `[CG#n]`, the verdict it used to carry, the verdict it carries now, and
-  `/product-workflows:prd-ground <KEY> --no-code` as the run that replaces it. Its verifier `outcome`
-  stays exactly as it is. Nothing is re-derived and nothing is invented.
-
-  **This is the same disposition Phase 8 already applies to the sibling trigger** — a `--rebaseline`
-  pass superseding a cited `[CG#n]` — and using one disposition for one problem is the point.
-  §6.3 admits exactly two, *re-derived or superseded*, and this is the second of them.
-
-  **What must NOT happen here is clearing the `outcome`**, and it is worth saying because it looks
-  like the safer move. A finding with no outcome is not evidence
-  (`workflows-core:grounding-format` §8), which reads as a useful brake — but `/brd-split` and
-  `/brd-interview` both count outcome-less findings **without excluding superseded ones**, and no
-  `/prd-ground` mode restores an outcome to an on-file `[DG#n]`: Phase 7's own Phase-7-opening dispatch set never holds one — only the
-  sweep's branch 1 reaches an on-file finding, and only where this run resolved its frame set — Phase 5 mints new ids rather than re-outcoming old ones, and the sweep cannot re-fire because
-  the cited `[CG#n]` now carries the verdict the verifier settled on. The route would deadlock with
-  no command able to clear it and no stop naming the hand edit that could. `SUPERSEDED` says the same
-  thing about the finding — it no longer stands — while leaving the record verified and the route
-  able to move.
+**Every finding the sweep re-dispatches carries the `frame_set_dir` its own Phase 5 dispatch named**
+(Phase 5, *Record which frame set each `[DG#n]` came from*), so every one whose cited `[CG#n]` this
+phase rewrote can be re-derived rather than retired: re-dispatch `grounding-verifier` once and act
+on the returned outcome as above — the own-run branch, since a held finding is not on file.
 
 **An inherited finding that owes a control and carries none is `contradict` like any other, and gets
 no discount for being old.** `workflows-core:grounding-format` §8 makes an inherited finding
 unverified by definition, and `product-workflows:grounding-verifier`'s own rules forbid searching one
 any less hard; an exception here would admit an uncontrolled absence claim as evidence precisely
 where the claim is *least* checked. The verifier has re-derived it and returned its own
-`own_control`, so what replaces it is a properly controlled finding rather than a hole. **Expect this
+`own_control`, so its successor is a properly controlled finding rather than a hole. **Expect this
 to fire in bulk on the first run over a corpus written before the field existed**, and report it by
-count, so a wall of rewrites reads as the one-time conversion it is rather than as a corpus falling
-apart.
+count, so a wall of supersessions reads as the one-time conversion it is rather than as a corpus
+falling apart.
 
 Where the cited `[CG#n]` was rewritten and still settles the capture question the same way, the pair
 is recorded as re-checked and nothing changes. **Report every state the sweep reached** — the findings
-re-derived; the findings marked `SUPERSEDED`, each with the re-run that
-replaces them — **`/product-workflows:prd-ground <KEY> --no-code`**, and it has to be that mode
-rather than a plain re-run: a `contradict` moves no commit, so on a plain re-run `HEAD` still matches
-the pin, Phase 3 skips re-grounding the repository's claims, Phase 5 merges no `[CG#n]`, and a
-`design-grounder` handed an empty `cg_findings` **does not emit a class-4 finding at all**. Under
-`--no-code` the `[CG#n]` set is read from file, which is the whole reason that mode can add design
-grounding, and it is the only run that regenerates what the sweep retired; the findings re-checked and left
-standing because the rewritten `[CG#n]` still settles the capture question the same way; and the three ways the sweep can
-legitimately do nothing, which are different facts and are not reported as the same one: **the set
-was empty** — no class-4 finding held or on file; **the set was non-empty but this phase rewrote no
-`[CG#n]`**, which is every `--no-code` run and any run whose verifier agreed throughout; and **the
-set was non-empty and `[CG#n]` were rewritten, but no class-4 finding in it cites one of them**,
-which is the ordinary shape of a corpus whose design findings rest on code the verifier upheld.
-Say which. None of the three is reported as "none", which would read as a sweep that ran over findings and
-found nothing wrong with them. A state this run did not reach is omitted, not reported as zero.
+re-derived; the findings re-checked and left standing because the rewritten `[CG#n]` still settles
+the capture question the same way; and the three ways the sweep can legitimately do nothing, which
+are different facts and are not reported as the same one: **the set was empty** — no class-4 finding
+held, as on a run whose Phase 5 produced none — a `--no-design` run, one with no `design/` folder,
+one whose design pass emitted none — and whose Phase 6 appended none; **the set was non-empty but
+this phase rewrote no `[CG#n]`**, which is every `--no-code` run and any run whose verifier agreed
+throughout or contradicted only on-file findings; and **the set was non-empty and `[CG#n]` were
+rewritten, but no class-4 finding in it cites one of them**, which is the ordinary shape of a corpus
+whose design findings rest on code the verifier upheld. Say which. None of the three is reported as
+"none", which
+would read as a sweep that ran over findings and found nothing wrong with them. A state this run did
+not reach is omitted, not reported as zero. The class-4 findings Phase 8's cascade supersedes are
+reported with that cascade, not here.
 
 A finding carrying no verifier outcome is not evidence (`workflows-core:grounding-format` §8) and is never
 written to the package with `consumed_by` anything but `none` — this phase is what stands between
@@ -1132,47 +1401,121 @@ a raw finding and one a downstream command may cite.
 
 ## Phase 8 — Write findings
 
+**Append Phase 3's held `grounding/baselines.md` entries** once the two finding files below are
+written, and before the ledger's `evidence` column — never under `--no-code`, which holds none (Phase
+3). The pins land in the same phase as the findings pinned to them, so no stop of this run leaves one
+without the other.
+
 Write `<BRD-dir>/grounding/code-grounding.md` (every `[CG#n]`) and
 `<BRD-dir>/grounding/design-grounding.md` (every `[DG#n]` this run produced — **or, where Phase 5
 produced no `[DG#n]`, a short note saying so and why — design grounding skipped, or run and finding
 no divergence, which are different facts and are not written as the same one — appended to whatever
 the file already holds rather than replacing it**: an existing corpus is not overwritten by a run that
-ground no design, and the Phase 7 sweep may have edited blocks inside it) — one block per finding, **serialised exactly as
+ground no design, and this phase's class-4 cascade below may edit blocks inside it) — one block per finding, **serialised exactly as
 `workflows-core:grounding-format` §2.1 fixes it**: one space after every colon, never alignment
 padding, keys in the §2 table's order, and an inapplicable field omitted rather than written empty.
 That section is not a style note — a writer that aligns one section's keys and not the next produces
 a file whose readers report findings as missing that are on the page. Each block carries every field
 `workflows-core:grounding-format` §2 defines (`id`, `claim`, `verdict`, `evidence`, `altitude`, `horizon`,
-`consumed_by: none`, plus `prior_verdict` on every finding reading `SUPERSEDED`, `control` on every finding asserting an absence, `class`/`cites` on a
+`consumed_by` — `none` on a block this run appends, while a block already on file keeps the value it holds, since `/create-prd`, `/create-ard` and `/specify` write it later and nothing here may erase a stamp — plus `prior_verdict` on every finding reading `SUPERSEDED`, `prerequisite` on every finding reading `horizon: will-change`, `control` on every finding asserting an absence, `class`/`cites` on a
 `[DG#n]` and `commit` on everything **except** a
 `[DG#n]` of class 1, 2 or 3 — those are settled from the frame set alone and are pinned to no commit,
-per §2's applicability note) plus this run's verifier `outcome` **and any `notes` the verifier returned** — **and nothing else.** §2.1 makes the field set closed: `own_verdict`, `own_evidence`, `own_control`, `control_outcome` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on — where a `contradict` rewrote a finding, their values are already in that block under the record's own names (`verdict`, `evidence`, `control`) and the return names never appear — and a block carrying `own_verdict` beside `verdict` states two verdicts at once, leaving every downstream reader free to quote whichever half suits. That is the state `/brd-split` step 7 and `/brd-interview` step 7 now refuse, so writing it here deadlocks the route rather than merely muddying the record. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
+per §2's applicability note) plus this run's verifier `outcome` — on every block but two kinds, each of which keeps the `outcome` it holds: one Phase 7 superseded, its `contradict` written on its successor or, where there is none, recorded in the Final report only; and an on-file one whose `contradict` was an incomplete return, owing a control and returning no `own_control`, whose block this run does not touch and whose `contradict` the Final report records as not verified by this run (Phase 7, *On-file*, both) — **and any `notes` the verifier returned** — **and nothing else.** §2.1 makes the field set closed: `own_verdict`, `own_evidence`, `own_control`, `control_outcome` and the verifier's re-derivation `commit` are return fields Phase 7 has already acted on — where a `contradict` rewrote an own-run finding or appended an on-file finding's successor, their values are already in that block under the record's own names (`verdict`, `evidence`, `control`) and the return names never appear — and a block carrying `own_verdict` beside `verdict` states two verdicts at once, leaving every downstream reader free to quote whichever half suits. That is the state `/brd-split` step 7 and `/brd-interview` step 7 now refuse, so writing it here deadlocks the route rather than merely muddying the record. Its contract calls those *"anything the caller should know before recording this outcome"*, so they are read before the outcome is written, not after — a verdict recorded without them is recorded against a caveat the verifier raised and nothing carried.
 A `--rebaseline` run appends its new findings after the existing ones and marks any finding it
-superseded with `verdict: SUPERSEDED`, id retained, rather than deleting or renumbering it — and
-writes the verdict that finding carried until then as its `prior_verdict`, in the same block
-(`workflows-core:grounding-format` §2). **Every write of `verdict: SUPERSEDED` in this phase carries
-one**, the class-4 and frame-set supersessions below included: superseding overwrites `verdict`, and
-`/product-workflows:brd-interview`'s *A decision the re-grounding moved* reads `prior_verdict` to
-tell a re-grounding that came back as it stood from one that moved a decision's ground.
-**Superseding a `[CG#n]` supersedes every class-4 `[DG#n]` citing it, in the same pass.** That
-`[DG#n]` asserted the pinned code could not perform a capture, on the authority of a finding this run
-has just replaced against a moved commit; leaving it means a design finding standing on a superseded
-code finding, with a citation that still resolves and a claim id that still matches — the state
-`workflows-core:grounding-format` §6.3 forbids and the one no reader can detect. Each is either
-re-derived against the new pin by this run's own Phase 5 design pass, and supersedes the old id like
-any other re-grounded finding, or — where no design pass ran this run — marked `SUPERSEDED`, with
-its `prior_verdict` and a one-line note naming the `[CG#n]` that took it there, so the next `/prd-ground` re-derives it rather
-than a reader trusting it.
+superseded — never one already reading `SUPERSEDED`, whichever run retired it — with `verdict:
+SUPERSEDED`, id retained, rather than deleting or renumbering it — and writes the verdict that
+finding carried until then as its `prior_verdict`, in the same block
+(`workflows-core:grounding-format` §2). **Phase 6's horizon supersession and Phase 7's `contradict`
+on an on-file finding are written the same way**, on any run: the block superseded keeps its id and
+takes `SUPERSEDED` and its `prior_verdict`, and its successor is appended after the existing
+findings. **Every write of `verdict: SUPERSEDED` in this phase carries one**, the class-4 and
+frame-set supersessions below included, **and none of them is made on a block already reading
+`SUPERSEDED`**, which would record `SUPERSEDED` as its `prior_verdict`
+(`workflows-core:grounding-format` §2 forbids it) and put a second rule's note on a block the first
+already retired: superseding overwrites `verdict`, and `/product-workflows:brd-interview`'s *A
+decision the re-grounding moved* reads `prior_verdict` to tell a re-grounding that came back as it
+stood from one that moved a decision's ground.
 
-**A finding the Phase 7 class-4 sweep touched is written in place, whichever set it came from.** The
-sweep either re-derived it or marked it `SUPERSEDED` with a note; both are edits to an existing block
-— same id, never a second block appended for it. Where the run held the finding it is
-written like any other of this run's. **This applies on a `--no-design` run too**, which otherwise
-writes no `[DG#n]` at all: the sweep is the only thing that can change an on-file design finding on
-such a run, and a run that superseded a finding and did not write it would leave a record on disk
-still asserting a capture its own foundation no longer supports. Opening `design-grounding.md` to edit those blocks is not
-the same as writing design findings, and this mode's rule below is unchanged: the sweep edits only
-blocks it touched, alongside whatever else this phase already appends to that file on such a run.
+**Superseding a `[CG#n]` supersedes every class-4 `[DG#n]` citing it, on file or held, in the same
+pass — whichever route superseded it.** Three routes do: a `--rebaseline` pass, which replaces a
+`[CG#n]` against a moved commit; Phase 7's `contradict` on an on-file `[CG#n]`, which replaces its
+verdict at the same commit; and Phase 6's horizon supersession, which replaces its horizon at the
+same commit. In each case the `[DG#n]` asserted the pinned code could not perform a capture on the
+authority of a finding this run has just replaced; leaving it means a design finding standing on a
+superseded code finding, with a citation that still resolves and a claim id that still matches —
+the state `workflows-core:grounding-format` §6.3 forbids and the one no reader can detect. It is
+never Phase 7's sweep's, which acts only on a `[CG#n]` rewritten in place.
+
+**Which rule writes such a `[DG#n]` turns on its frame set, never on the route:**
+
+- **Where the frame-set rule below supersedes it**, on the terms that rule gives a prior class-4
+  finding (*A set this run re-ground supersedes its own prior findings*) — that rule writes it, and
+  this rule writes nothing more to it: two rules claiming one block is how a block ends up with two
+  conflicting writes. On the `--rebaseline` route that is every such finding in a set this run
+  reconciled, and that set's new findings are this run's re-derivation against the new pin.
+- **Otherwise it is marked `SUPERSEDED`**, on any route — on every `--no-design` run, for a set
+  recorded `skipped: no index`, for a finding no frame set places, for a class-4 finding this run
+  holds, and on the other two routes wherever the frame-set rule does not take it. **That rule takes
+  a prior class-4 finding only where Phase 5 re-ground its claim against the repository its cited
+  `[CG#n]` is pinned to**, and Phase 5 re-grounds no claim a `[CG#n]` on file answers at that
+  repository's recorded pin — which every `[CG#n]` Phase 7 contradicts on file does, being one of
+  the findings Phase 7's opening set re-checks — so on the `contradict` route this bullet always
+  writes it, and on the horizon route it writes it wherever the superseded `[CG#n]` answered its
+  claim at the pin. On those two routes no `[DG#n]` this run wrote cites the successor:
+  Phase 5's design pass ran before Phase 6 or Phase 7 appended any successor, and it is handed only
+  this run's own merged `[CG#n]` set, never an on-file one — under `--no-code`, where it is handed
+  the on-file set, no `[CG#n]` is superseded at all.
+- **Never on a block already reading `SUPERSEDED`**, on any route — one an earlier run retired, or
+  one Phase 6 superseded this run for its horizon, before this rule runs. That block keeps the write
+  it has; re-marking it would record `SUPERSEDED` as its `prior_verdict` and put two rules' notes on
+  it. Where Phase 6 appended it a successor, the successor is a class-4 finding this run holds and
+  cites the same superseded `[CG#n]`, so the bullet above marks the successor instead; where Phase 6
+  appended none (its second exception), there is nothing further to mark.
+
+**Marked `SUPERSEDED` means**: id retained, the verdict it carried written as `prior_verdict`, and a
+one-line note naming the `[CG#n]` that took it there, the verdict that finding carried, the verdict
+its successor carries — or that it has none — and the run that replaces it:
+`/product-workflows:prd-ground <KEY> --no-code` where that `[CG#n]` has a successor, and a plain
+`/product-workflows:prd-ground <KEY>` where it has none. **Where it has one, it has to be that mode
+rather than a plain re-run**: on a plain re-run `HEAD` still matches the pin and the successor
+answers the claim there, so Phase 5 does not re-ground it, and a `design-grounder` handed no
+`[CG#n]` for a claim **does not emit a class-4 finding for it**. Under `--no-code` the `[CG#n]` set
+is read from file, successor included, which is the whole reason that mode can add design grounding.
+**Where it has none**, no `[CG#n]` on file answers the claim, so that mode would hand the design pass
+nothing for it, while a plain re-run re-grounds exactly that claim (Phase 5) and its design pass
+takes the new `[CG#n]`. Its verifier `outcome` stays exactly as it is. Nothing is re-derived and
+nothing is invented.
+
+**What must NOT happen here is clearing the `outcome`**, and it is worth saying because it looks
+like the safer move. A finding with no outcome is not evidence
+(`workflows-core:grounding-format` §8), which reads as a useful brake — but `/brd-split` and
+`/brd-interview` both count outcome-less findings **without excluding superseded ones**, and no
+`/prd-ground` mode restores an outcome to an on-file `[DG#n]`: Phase 7 never dispatches one — its
+opening set holds none, and its sweep holds only this run's own findings — and Phase 5 mints new ids
+rather than re-outcoming old ones. The route would deadlock with no command able to clear it and no
+stop naming the hand edit that could. `SUPERSEDED` says the same thing about the finding — it no
+longer
+stands — while leaving the record verified and the route able to move.
+
+**Report every class-4 finding this rule marked `SUPERSEDED`**, each with the `[CG#n]` that took it
+there, the route that superseded that `[CG#n]`, and the re-run that replaces it — in the Final
+report, beside the Phase 7 sweep's own states and never folded into them.
+
+**Every edit to a finding already on file is written in place — same id, never a second block
+appended for it** — among them every supersession: Phase 6's for a moved horizon, Phase 7's on a
+`contradict`, a `--rebaseline` pass's, the cascade's above, and a re-ground frame set's (below). A
+successor is a new block with a new id, appended; it is never written over the block it succeeds.
+The Phase 7 sweep edits none of them: every finding it re-derives is one this run holds, written
+like any other of this run's. **This applies on a `--no-design` run too**, which writes no
+`[DG#n]` of Phase 5's: on such a run an on-file design finding changes by Phase 6's horizon
+supersession, or by the cascade above through any of its routes — a `--rebaseline` supersession on
+a `--rebaseline --no-design` run, and a `contradict` or a horizon supersession of an on-file
+`[CG#n]` on that run or on a plain `--no-design` one — and a run that superseded a finding and did
+not write it would leave a record on disk still asserting a capture its own foundation no longer
+supports. Opening `design-grounding.md` to edit those blocks is not the same as writing design
+findings, and this mode's rule below is unchanged: Phase 6 and the cascade edit only blocks they
+superseded, and append only Phase 6's successors, alongside whatever else this phase already
+appends to that file on such a run.
 
 **Under `--no-code` this phase writes `design-grounding.md` and, on `route: brd`, the coverage
 ledger's `evidence` column (below) — and nothing else.**
@@ -1196,16 +1539,44 @@ written, and `/brd-split` would stop a run whose flag it is supposed to honour. 
 the directory, not of the run. List **every** immediate subdirectory, each against exactly one
 disposition:
 
-- `ground` — with the `[DG#n]` ids this run reconciled against that set.
+- `ground` — with the `[DG#n]` ids this run reconciled against that set, or `none` where the
+  design pass reconciled it and returned no finding.
 - `skipped: --no-design` — the operator turned the pass off for this run.
 - `skipped: no index` — Phase 5 got `NO_INDEX` for that set and could not reconcile it.
 
 **A set this run re-ground supersedes its own prior findings, and the mode that makes that ordinary
-is `--no-code`.** Where this run wrote `[DG#n]` for a frame set that already had them on file, mark
-every superseded one `verdict: SUPERSEDED`, id retained, its `prior_verdict` written, exactly as a
-`--rebaseline` pass does for `[CG#n]` — never delete or renumber, so an existing citation still resolves. Without this rule a
+is `--no-code`.** **A set this run re-ground is every set its design pass reconciled** — Phase 5
+dispatched `design-grounder` on it and got `status: OK`, the census above recording it `ground` —
+**whether or not that dispatch returned a finding there**: agreement produces none (Phase 5), and a
+set that now agrees with the inventory has retired every divergence it had on file. For every such
+set, mark its prior findings `verdict: SUPERSEDED`, id retained, its `prior_verdict` written, exactly
+as a `--rebaseline` pass does for `[CG#n]` — never delete or renumber, so an existing citation still
+resolves — and give each the one-line note `superseded: frame set <frame-set> re-ground`,
+`<frame-set>` being that set's directory name, written exactly so. That literal is how
+`/product-workflows:brd-interview`'s *A decision the re-grounding moved* tells a finding this
+re-grounding retired — which looked for a successor to it in this run and found none, so no later run
+owes it one — from a finding still waiting on a run that will re-derive it. **A prior class-4 finding is among them only where this run re-ground its claim against
+the repository its cited `[CG#n]` is pinned to.** That repository is the one whose
+`grounding/baselines.md` entry records a pin equal to that `[CG#n]`'s `commit`, and *re-ground* is
+Phase 5's known set, never a judgement: Phase 5 dispatched a `code-grounder` against that repository
+this run, and that dispatch's claims carried the requirement id the `[CG#n]`'s `claim` names. A
+`--rebaseline` pass re-grounds every claim against a moved repository, so it takes every such
+finding citing that repository's old pin; **a plain re-run against an unmoved repository re-grounds
+only the claims no `[CG#n]` on file answered at its pin** — a row a later re-cut gave this slice —
+so it takes a prior class-4 finding on such a claim and on no other. **Or under `--no-code`**, where
+`cg_findings` is the whole unsuperseded `[CG#n]` set on file. Otherwise it stands: a design pass
+handed no `[CG#n]` for a claim emits no class-4 finding for that claim, so superseding it would
+retire a finding nothing replaces, and the class-4 cascade above retires it once its cited `[CG#n]`
+is superseded. **A prior finding belongs to the one set whose index names every path of its `evidence`
+that any set's index names, there being at least one such path** — the placement
+`/product-workflows:brd-interview`'s successor test makes, since a finding record carries no
+frame-set field and a design finding's `evidence` may cite code paths beside its frames — and one
+that placement does not settle belongs to none here. **Never re-mark a block already reading
+`SUPERSEDED`**: its verdict is already retired, and a second write would record `SUPERSEDED` as its
+`prior_verdict`, which `workflows-core:grounding-format` §2 forbids. Without this rule a
 second `--no-code` run over a changed frame set appends a whole new finding set beside the stale one,
-both unmarked, and `/brd-split` sees the set recorded `ground` and passes. `--rebaseline` cannot be
+both unmarked — or, where the changed set now agrees with the inventory, appends nothing and leaves
+the stale one standing alone — and `/brd-split` sees the set recorded `ground` and passes. `--rebaseline` cannot be
 the answer here: it is a code-pin concept and `--no-code` refuses it outright, so the supersession
 that mode needs has to be its own rule rather than a flag.
 
@@ -1357,7 +1728,7 @@ in two repositories, or by a `[CG#n]` and a `[DG#n]` both, counts once. **A `CON
 `claim` names no requirement id contributes none**, which is where Phase 3's baseline `[CG#n]` falls
 out: its `claim` is not a requirement premise, so nothing resolves it back to a requirement row —
 `workflows-core:grounding-format` §4.1 rule 1, the same property on which that section already
-excludes baselines from the unconsumed-item report. A class-1 `[DG#n]` recorded `none — frame-only`
+excludes baselines from the unconsumed-item report. A class-1 `[DG#n]`, whose `claim` opens `none — frame-only`,
 falls out the same way. **That exclusion is what keeps this branch off the greenfield run the
 sentence above excludes by name:** a baseline finding is `CONFIRMED` by construction and Phase 3
 assigns one per repository that passes its gate, so counting them would hold `<N>` at one or more on
@@ -1471,9 +1842,9 @@ reference gap, `emit-block` (`workflows-core:feedback-emission`) fires at
 that halt before escalating. **None of Phase 0's stops qualify — every one is a user, sequencing or
 environment halt, never a plugin capability gap** — for example a missing key, an unresolved BRD,
 a resolved root BRD or Epic folder, an input not yet on main (`PRD_GROUND_NO_INVENTORY`, `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
-`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off;
+`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off; `PRD_GROUND_CARVE_UNFINISHED` where the parent's carve that wrote them has not finished; `PRD_GROUND_SLICE_UNRECONCILED` where the slice does not agree with its parent's ledger, or that ledger cannot be read; `PRD_GROUND_RESTORE_FROM_DEFAULT` where they are on the default branch and missing from the worktree; `PRD_GROUND_SLICE_FILE_UNREADABLE` where one is in the folder and cannot be read;
 `PRD_GROUND_NEEDS_PRD` and `PRD_GROUND_PRD_NOT_HANDED_OFF` on the idea route), a key naming the wrong
-folder (the no-parent forms of `PRD_GROUND_NO_INVENTORY` and `PRD_GROUND_NEEDS_INTAKE`, on a folder
+folder (`PRD_GROUND_CARVE_INTERRUPTED`, on an empty folder a carve created and never linked, and `PRD_GROUND_LINK_MISSING`, on a slice that lost its `brd-link.md`; the no-parent forms of `PRD_GROUND_NO_INVENTORY` and `PRD_GROUND_NEEDS_INTAKE`, on a folder
 that is neither a slice nor a BRD container — an argument halt, not a missing input, save on a
 legacy folder holding an `idea.md` and no `prd.md`, whose missing input is the PRD),
 an inventory carrying no claim at all
@@ -1481,8 +1852,9 @@ an inventory carrying no claim at all
 parent allocated, not about this plugin), and an unset `$REPOS_PATH`. The list is illustrative and
 the rule is what binds: a Phase 0 stop added later is covered by it without being named here. `PRD_GROUND_DIRTY_TREE`, `PRD_GROUND_NEEDS_REBASELINE`, and Phase 7's
 `PRD_GROUND_VERIFY_COMMIT_MISMATCH` are repository state, not a plugin gap, either — unlike Phase
-7's `INPUT_MISSING`, which is this command getting its own dispatch contract wrong and does fire
-`emit-block`.
+7's `INPUT_MISSING`, which is this command getting its own dispatch contract wrong, and
+`PRD_GROUND_VERIFY_INCOMPLETE`, which is the verifier getting its return contract wrong: both do
+fire `emit-block`.
 
 1. **Invoke `impl-maintenance`** (subagent_type: "workflows-core:impl-maintenance", model:
    `<detection_model>`) with a compact handoff: command `/prd-ground`; what was produced (baselines,
@@ -1521,17 +1893,27 @@ corpus was actually ground at, stated as its own line on every run rather than o
 one, because a reader cannot otherwise tell an Opus corpus from a degraded one and the two are not
 interchangeable evidence; the prerequisite-readiness block from Phase 4, verbatim
 in the two-column form Phase 4 step 3 fixes (on `route: idea` this is always `prerequisites: none
-declared`, per step 2's refusal); finding counts by verdict for `[CG#n]` and `[DG#n]`
+declared`, per step 2's refusal); every on-file finding Phase 6 superseded for a moved horizon,
+with its successor's id and both horizons — or, for a design finding no frame set places, with no
+successor and the horizon it would have written — and every `--no-code` horizon it did not move;
+finding counts by verdict for `[CG#n]` and `[DG#n]`
 separately, and the verifier
-tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict` rewrite named by
-id — **and, separately, every outcome Phase 7 normalised**, each named by finding id with the outcome
+tally (`agree` / `extend` / `contradict` / `unprovable`) with every `contradict` named by id and by
+what it wrote — an own-run finding's in-place rewrite; an on-file finding's supersession with its
+successor's id; an on-file finding superseded with no successor because the verifier's own verdict
+was `SUPERSEDED`, the one `contradict` no block records; and an incomplete return on an on-file
+finding, owing a control and returning none, which wrote nothing and leaves that finding **not
+verified by this run** — say so of it by id, beside the `outcome` an earlier run left on it (on an
+own-run finding the same return stops the run instead, with `PRD_GROUND_VERIFY_INCOMPLETE`) —
+**and, separately, every outcome Phase 7 normalised**, each named by finding id with the outcome
 as returned, both verdicts, and which of the two routes forced it (a differing `own_verdict`, or a
 `control_outcome` of `missing`, or of `failed` on a finding whose verdict rests on the absence), or an explicit "none" where the verifier and the findings agreed
-throughout, so a clean run reads as checked rather than as unchecked; the class-4 sweep's result in every state it reached — every `[DG#n]` re-derived, every one marked
-`SUPERSEDED` (with `--no-code` named as the run that replaces it), every one re-checked and left
-standing, and, where it did nothing, which of the three reasons applied: an empty set; a
-non-empty one over which this phase rewrote no `[CG#n]` at all; or a non-empty one where `[CG#n]`
-**were** rewritten and no finding in the set cites one of them; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
+throughout, so a clean run reads as checked rather than as unchecked; the class-4 sweep's result in every state it reached — every `[DG#n]` re-derived, every one
+re-checked and left standing, and, where it did nothing, which of the three reasons applied: an
+empty set; a non-empty one over which this phase rewrote no `[CG#n]` at all; or a non-empty one
+where `[CG#n]` **were** rewritten and no finding in the set cites one of them; every class-4
+`[DG#n]` Phase 8's cascade marked `SUPERSEDED`, each with the `[CG#n]` that took it there, the route
+that superseded that `[CG#n]` and the run its note names as replacing it; the `docs grounding:` line from Phase 1 step 0 verbatim, any repository a Phase 4.5 lead added,
 and the count of documentation divergences recorded (each named by the `[CG#n]` it diverges from —
 never by an identifier of its own, because it has none); whether the derivation matrix ran and why; any `design-grounder` class-4 gap deferred for want
 of a settling `[CG#n]`; **on `route: idea`, the claim-exclusion count and prefixes step 8i
@@ -1566,20 +1948,21 @@ folder — with nothing built in the interim — is exactly what stating it plai
 prevent (design §9). Where at least one claim came back anything other than a verified absence, this
 line is simply omitted; a mixed result speaks for itself in the verdict counts already reported above.
 
-**On `route: brd`, reporting it now reads one ledger per `covered-by` row.** §6 counts a delegated row through the
-BRD it names — this run always stands on a slice (by Final-report time, step 6's gates have long
-since guaranteed `coverage-ledger.md` and `brd/brd-inventory.md` are both on main, positive evidence
-5a would have refused had this BRD been a root), so that is always a sibling or the parent
-(`coverage-ledger-format.md` §3) — so this report resolves each
-`covered-by: <BRD-KEY>` row one hop
-into that BRD's own `coverage-ledger.md`, resolved from the
-working tree by `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). **This adds
-no precondition and no gate.** A child folder that is absent from the tree this run is standing in —
-its split not yet merged, most commonly — makes that row `unresolved` in the line and nothing more:
-grounding this BRD does not depend on any child, and a run must never stop, degrade, or withhold its
-findings because a child could not be read. Phase 0's `require-on-main` gates stay exactly as they
-are, on this BRD's own inventory and ledger. A slice does **not** always reach this with
-nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
-names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of §2's two routes: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
-delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
-claims.
+**On `route: brd`, reporting it can read ledgers beyond this slice's own.** This run always stands
+on a slice — by Final-report time, step 6's gates have long since guaranteed `coverage-ledger.md` and
+`brd/brd-inventory.md` are both on main, positive evidence 5a would have refused had this BRD been a
+root — and a slice does **not** always reach this with nothing to resolve: it can hold **orphan
+rows** (`coverage-ledger-format.md` §2) — ledger rows for a `[BR#n]` this slice no longer claims,
+reached by any of §2's three routes. §6.1 counts every one of them through the parent's current
+disposition for its `[BR#n]`, never as it reads, and resolves a `covered-by` that disposition maps
+to one hop — into a sibling or the parent (`coverage-ledger-format.md` §3) — exactly as it resolves a
+parent's delegated rows. So this report reads `<PARENT-KEY>`'s own `coverage-ledger.md` and each
+ledger such a mapping names, resolved from the working tree by `resolve-address`
+(`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3). **This adds
+no precondition and no gate.** A folder that is absent from the tree this run is standing in — its
+split not yet merged, most commonly — makes that row `unresolved` in the line and nothing more:
+grounding this BRD does not depend on any other, and a run must never stop, degrade, or withhold its
+findings because another ledger could not be read. Phase 0's `require-on-main` gates stay exactly as
+they are, on this BRD's own inventory and ledger. A slice's line reports zero delegated only when
+its parent withdrew none of its claims — provisional, committed, or settled here before the parent
+re-allocated it, the three routes to an orphan row (§2) — never as a property of being a slice.

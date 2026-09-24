@@ -73,15 +73,7 @@ not work: a flag is a token, so `--redo` would arrive as the address.
    `Required path environment variable unset` rule in `workflows-core:escalation-rules`:
    `choices: ["Set SPECS_PATH (enter the path)", "Cancel"]`.
 
-2. **Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")`
-   and execute its `specs-preflight` entry point (§3) inline, as early as `$SPECS_PATH` is known and
-   **before** Phase 4's gate — `require-on-main` performs no fetch of its own
-   (`workflows-core:phase-handoff` §3.2) and relies on this step's best-effort one. Prompt-free and
-   silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5
-   notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the
-   terminal `commit-artifacts` step skips on it.
-
-3. **Resolve the address.** Resolve the single positional `<ADDRESS>` — a `<KEY>`, or an `@<path>`
+2. **Resolve the address.** Resolve the single positional `<ADDRESS>` — a `<KEY>`, or an `@<path>`
    naming a folder — with `resolve-address` (`Skill(skill: "workflows-core:reference", args: "addressing resolve-address")`, §3).
    A key that fails §1's grammar stops with
    `BRD_PROPOSAL_NEEDS_KEY: /brd-proposal needs an address (^[A-Z][A-Z0-9_]*(-\d+)+$, e.g. PRODUCT-1234) — re-run '/product-workflows:brd-proposal <ADDRESS>'.`
@@ -89,6 +81,21 @@ not work: a flag is a token, so `--redo` would arrive as the address.
    `status: absent` stops with
    `BRD_PROPOSAL_NOT_FOUND: no folder found for <KEY> under $SPECS_PATH/specifications/ (every level addressing.md §3 bounds, plus §5's legacy fallback) — /brd-proposal prices an existing BRD container and creates none.`
    This command creates no folder in the specs tree.
+
+3. **Specs-repo preflight — once step 2's resolution returns `status: found`.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")`
+   and execute its `specs-preflight` entry point (§3) inline, before step 4's slice refusal and every later read, Phase 4's gate among them — `require-on-main` performs no fetch of its own
+   (`workflows-core:phase-handoff` §3.2) and relies on this step's best-effort one. Prompt-free and
+   silent when the specs repo is clean and on its default branch. If a guard fires, emit its §5
+   notice; if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole run — the
+   terminal `commit-artifacts` step skips on it.
+   Its run key set (`workflows-core:specs-repo-git` §3.2) is fixed from what step 2 returned and
+   nothing more: the resolved `key`, read off the folder's carrier frontmatter as
+   `workflows-core:addressing` §4 does, and, where §4.1 places the folder at Epic level — an `EPIC-`
+   prefix, or with no prefix a resolved `kind: epic` — also the key its parent's carrier asserts.
+   Nothing between the resolution and this step reads the folder beyond that frontmatter, so a stale
+   plugin branch the preflight switches away from cannot have shaped a refusal; an `@<path>` whose
+   folder asserts no key gives an empty set, a keyless run (§3.2). A run that stops on its address
+   in step 2 runs no preflight.
 
 4. **Refuse a `PRD-` slice**, structurally, **on the directory prefix, before any file inside the
    folder is read**. The umbrella aggregates slices; pricing one is the sibling's job, and the two
@@ -467,7 +474,7 @@ traceability is relative links that resolve rather than names a reader must go a
 links reach down into the slice folders, which is where the priced detail lives.
 
 **Archive the predecessor before overwriting it**, exactly as §2 fixes it: the path under
-`revisions/`, the same-day suffix, and the `revision_of:` the new canonical records are all §2's, and
+`revisions/`, the first free name it falls to wherever the dated one is taken, and the `revision_of:` the new canonical records are all §2's, and
 Phase 11 hands off the paths it produced.
 
 **Render §4's twenty-three-row section set, in its order, at umbrella altitude** — §14 fixes what
@@ -514,7 +521,7 @@ spine-only brief is a defect, not a shorter brief** (§10): every item in rows 2
 carries reaches the brief, and every figure the brief repeats matches the umbrella.
 
 **Archive the prior brief only where this run renders one** (§2) — the prior `proposal-brief.md`
-moves to `<folder>/revisions/<KEY>_proposal-brief_<YYYYMMDD>.md` under §2's same-day suffix rule.
+moves to `<folder>/revisions/<KEY>_proposal-brief_<YYYYMMDD>.md` under §2's first-free rule.
 Archiving is tied to overwriting, so a run that renders no brief archives none. Where a prior brief
 is therefore left standing beside a newly written umbrella, **say so plainly in the final report**:
 that file describes the archived revision and not this one.
@@ -595,8 +602,9 @@ On the first choice, execute `handoff-to-main` (`Skill(skill: "workflows-core:re
 (§2.9's table — the shared prefix every `/brd-*` command uses; the eight prefixes §1 rule 3 fixes are
 not extended, and nothing about an umbrella makes it a ninth phase), `feature_folder` as resolved in
 Phase 0, `deliverable_paths` = `proposal.md`, `proposal-brief.md` where this run rendered one, and, on
-a revision, the archived prior under `revisions/` — `<KEY>_proposal_<YYYYMMDD>.md`, and
-`<KEY>_proposal-brief_<YYYYMMDD>.md` where a brief was archived beside it,
+a revision, the archived prior under `revisions/` at the name §2's first-free rule actually wrote —
+`<KEY>_proposal_<YYYYMMDD>.md`, or the first free `-2`, `-3` form where that was taken — and the brief
+archived beside it, where one was, at the name the same rule wrote for it,
 `title: <BRD-KEY> Programme effort proposal <YYYYMMDD>`, and `body_facts` = the slices included and
 the slices excluded, each by key; the umbrella tier with the slice that set it and the tier mix; the
 `[WP#n]` count and the total expected hours with its summed range; every named adjustment and what it

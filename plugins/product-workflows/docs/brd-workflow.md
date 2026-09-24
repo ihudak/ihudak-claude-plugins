@@ -177,19 +177,39 @@ askable, and the round opened puts the question again against the current findin
 it had. The answer supersedes the held record where it reads `open` or `decided`, in `/brd-interview` for
 a `[V]` and in `/brd-reconcile` for a `[C]`, which reads each status as the register stood before
 its run wrote anything; one a propagation sweep reopened meanwhile is re-decided in place, and one
-another run left `withdrawn` or `superseded` does not move and is named beside the new record under
-what still needs a human.
+another run left `withdrawn` or `superseded` does not move. For a `[V]` the answer is then a new
+record named beside it under what still needs a human; for a `[C]`, `/brd-reconcile` acts on a
+superseded record's live successor instead, and on a withdrawn one freezes nothing, and closes the
+question whichever way the operator takes the answer.
 
-**A settled decision a re-grounding moved is reopened.** Where a `--rebaseline` pass supersedes
-every finding a decided `[VD#n]` or `[CD#n]` the will-change rule did not hold rests on,
+**A settled decision a re-grounding moved is reopened.** Where a re-grounding supersedes
+any finding a decided `[VD#n]` or `[CD#n]` the will-change rule did not hold rests on,
 `/brd-interview` reopens it, naming the successor findings as the cause, unless every superseded
-finding has a successor — a later finding on the same requirement, grounded against the same
-repository or frame set — and each successor carries the verdict its superseded finding carried,
-kept on that finding as `prior_verdict`, and the horizon that finding carried; a reopened decision
-has its question put in the next round, and a confirmed one raises nothing. A `[V]` is re-decided there, and a `[C]` by
+finding has a successor — a later finding on the same requirement (or, for a design finding tied
+to no requirement, on the same frames), grounded against the same repository or frame set — and each successor carries the verdict its superseded finding carried,
+kept on that finding as `prior_verdict`, and the horizon that finding carried; a finding it rests
+on that was not superseded stands as cited. A `/prd-ground --rebaseline` pass is not the only run
+that supersedes: any `/prd-ground` run whose verifier contradicts an on-file finding — one an
+earlier run wrote — supersedes it too, appending a successor that carries the verifier's verdict
+rather than rewriting it in place, and so does any run that moves an on-file finding's horizon,
+appending a successor with the same verdict and the new horizon, so a decision citing either is
+tested like any other. A reopened
+decision has its question put in the next round, and a confirmed one raises nothing. A `[V]` is
+re-decided there, and a `[C]` by
 `/brd-reconcile` from the customer's answer in the next package, each keeping its id — unless another
-run has meanwhile left the record `withdrawn` or `superseded`, when it does not move and the answer is
-a new record named beside it under what still needs a human.
+run has meanwhile left the record `withdrawn` or `superseded`, when it does not move: a `[V]` answer
+is then a new record named beside it under what still needs a human, while `/brd-reconcile` acts on
+a superseded `[CD#n]`'s live successor and freezes nothing beside a withdrawn one, closing the
+question whichever way the operator takes the answer.
+
+**A decision reopened elsewhere is put again too.** `/brd-reconcile` reopens a decided `[VD#n]` or
+`[CD#n]` when a customer answer contradicts or constrains it without replacing it, and its
+propagation sweep reopens one in a dependent BRD when the prerequisite decision it rests on moves.
+The next `/brd-interview` round opened on that BRD puts the decision's question again, under its own
+tag and against the current findings, with each `Reopened` paragraph quoted as context, unless a
+question already putting it is still unanswered; the answer re-decides it in place, keeping its id.
+Every question that puts a decision again names it on a `- **Re-puts:**` line, and that line is how
+each command ties the answer back to the decision.
 
 **Where the route hands over is `/brd-reconcile`**: a BRD whose customer decisions are frozen and
 whose tree holds nothing the review made false is the state the PRD pipeline is entered from.

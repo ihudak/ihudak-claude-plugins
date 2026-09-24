@@ -21,8 +21,18 @@ exactly the folder this command must accept, so a kind-based test would refuse e
   way.
 - **A `PRD-` folder carrying `brd-link.md` → the BRD route.** Every existing step applies unchanged,
   over that slice's own `[BR#n]` inventory.
-- **A `PRD-` folder with no `brd-link.md` → the idea route.** `/create-prd`'s own unprompted output;
-  its claims come from its own `prd.md`.
+- **A `PRD-` folder with no `brd-link.md`, sitting inside a BRD folder → a stop.** Only a slice
+  sits inside a BRD — the parent is recognised by its `BRD-` prefix, or, where it is a legacy
+  unprefixed folder, by the positive evidence that it is a BRD — and no [`/brd-split`](brd-split.md)
+  run finds such a folder again, since that command finds a child by its `brd-link.md`. Which stop
+  turns on what the folder holds. An **empty** folder is a carve that stopped between creating it and
+  writing its first file: `PRD_GROUND_CARVE_INTERRUPTED` names deleting it and then the parent's
+  instructed re-run. A folder holding **anything** — a ledger, grounding, decisions — is a slice
+  that lost its `brd-link.md`: `PRD_GROUND_LINK_MISSING` names the commit to restore it from where
+  any ref holds one, and otherwise what the file must say, and never names removing the folder.
+  Neither names `/create-prd`, which would author a PRD inside a BRD.
+- **Any other `PRD-` folder with no `brd-link.md` → the idea route.** `/create-prd`'s own unprompted
+  output; its claims come from its own `prd.md`.
 - **Resolved through the legacy unprefixed fallback, with no ledger and no inventory** — split on
   `prd.md` being present and asserting `kind: prd`: present → the idea route; absent, or present
   without `kind: prd` → the BRD route's no-link branch, which stops naming what the folder carries
@@ -67,11 +77,15 @@ sits with PA/Dev rather than PM. On this route it is **optional and ungated**: n
   ([`decision-register-format.md`](../../references/decision-register-format.md) §3), never a record
   that merely reads as settled. A prerequisite declared while it is still in flight carries `open`
   records and contributes nothing, which is ordinary and is reported as its own state rather than as
-  a silent absence. **Refused outright on the idea route** — `PRD_GROUND_NO_PREREQUISITES` — because
-  a `will-change` horizon needs a decision register to freeze a prerequisite's decision in, and the
-  idea route has none anywhere: every finding there is `current`, whatever this flag names, so
-  accepting it and doing nothing would leave a documented flag with a stated effect that never
-  happens.
+  a silent absence. A horizon a new prerequisite moves on a finding an earlier run wrote — an
+  on-file finding — is never rewritten in place: the finding is superseded and a successor with the
+  same verdict and the new horizon is appended and verified — or, for a design finding no frame
+  set places, it is superseded with none — so a decision taken on the old horizon
+  is put again by [`/brd-interview`](brd-interview.md). **Refused outright on the idea route** —
+  `PRD_GROUND_NO_PREREQUISITES` — because a `will-change` horizon needs a decision register to
+  freeze a prerequisite's decision in, and the idea route has none anywhere: every finding there is
+  `current`, whatever this flag names, so accepting it and doing nothing would leave a documented
+  flag with a stated effect that never happens.
 - **`--derivation-matrix` / `--no-derivation-matrix`** (optional, mutually exclusive) — force the
   implementation-altitude data-source matrix on or off. Left unset, the command defaults it on when
   the claim list reads as reporting- or data-centric, on either route, and off otherwise.
@@ -156,10 +170,12 @@ also runs, in Phase 11, for session lessons-learned.
 - **A repository that stays put for the whole run.** If a resolved repository's `HEAD` moves
   *after* Phase 3 pinned it, the verifier refuses rather than verifying and the run stops with
   `PRD_GROUND_VERIFY_COMMIT_MISMATCH`, naming the finding, the pinned commit, and the `HEAD` it
-  actually found. The remedy is a re-run from a clean tree **with `--rebaseline`**: Phase 3 appended
-  that repository's pin to `grounding/baselines.md` before dispatching anything, so a plain re-run
-  would find a recorded pin its `HEAD` no longer matches and stop again, this time with
-  `PRD_GROUND_NEEDS_REBASELINE`. The same applies to a `code-grounder` dispatch that reports a
+  actually found. The remedy is a re-run from a clean tree **with `--rebaseline`**: a new pin is
+  written to `grounding/baselines.md` only in Phase 8, with the findings it pins, so the pin an
+  earlier run recorded still stands, and a plain re-run would find its `HEAD` no longer matching it
+  and stop again, this time with `PRD_GROUND_NEEDS_REBASELINE`. Because no stop before Phase 8
+  records a pin, a `--rebaseline` run that stops midway leaves the old pin recorded, and its re-run
+  supersedes the old findings as a completed run would have. The same applies to a `code-grounder` dispatch that reports a
   moved `HEAD` in Phase 5.
 
 ### On the BRD route
@@ -185,16 +201,19 @@ also runs, in Phase 11, for session lessons-learned.
   gates `coverage-ledger.md` on `origin/<default>` via `require-on-main` before reading anything
   else; an unmerged pull request stops the run naming the branch/PR state. It gates
   `brd/brd-inventory.md` separately, never inferring it from the ledger's gate, and splits that
-  file's own "on no ref" the same way. No inventory in the folder stops with
-  `PRD_GROUND_NO_INVENTORY`: on a slice, its remedy turns on the slice's `claims:` and the parent's
-  ledger — a slice claiming nothing gets the empty-inventory remedy; a slice with no ledger in its
-  folder either, none of whose claimed rows the parent's ledger settles onto it, was never given its
-  inventory, by a parent `/brd-split` interrupted after writing the slice's `brd-link.md` — a folder no command has committed — so the remedy is to remove that folder, from every branch carrying it where it was committed by hand, the default branch included, and run the parent's instructed
-  re-run where one of those rows is still `unallocated` there, and to empty the left-over `claims:`
-  by hand and re-run the parent in the form its ledger calls for where every one is settled
-  elsewhere; and otherwise the file was lost after it was written
-  and is restored from the ref that carried it, since a parent `/brd-split` reconciles only the rows
-  its walk moves and never writes back the ones the slice already claims — and on a folder naming no
+  file's own "on no ref" the same way. **The ledger's gate resolves first** — including, where the
+  ledger is on no ref, whether it is in the folder at all — and the inventory's is evaluated only
+  after it, so where both stop, the ledger's stop is the one printed: the ledger's never-produced
+  branch accounts for an inventory an interrupted carve left behind, and an inventory stop printed
+  first would name the wrong remedy. **The one exception** is a ledger in the folder and on no ref
+  beside a missing inventory: there the inventory's own stop prints, because a slice missing a file
+  cannot be reconciled against its parent. No inventory in the folder stops with
+  `PRD_GROUND_NO_INVENTORY`, and under that order the ledger was always written when it does, so
+  on a slice the inventory was written and then lost: its remedy turns on the slice's `claims:` and
+  the parent's ledger — a slice claiming nothing gets the empty-inventory remedy; a slice whose
+  ledger is on the default branch but missing from the working tree is told to restore it from
+  there; and otherwise the inventory is restored from the ref that carried it, or reported, since a parent `/brd-split` writes nothing into a slice
+  with a file missing and never re-creates one — and on a folder naming no
   parent it names a fresh intake under a new key, and also `/create-prd` on the same key where the
   folder holds an `idea.md` and no `prd.md`. An inventory in the folder and on no ref, with a `coverage-ledger.md` there too, stops with
   `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`, whose action is to commit and merge it, and which names no
@@ -218,12 +237,25 @@ also runs, in Phase 11, for session lessons-learned.
   source document of its own to intake and its ledger and inventory are written by the parent's split
   ([`brd-format.md`](../../references/brd-format.md) §2.1,
   [`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3). A ledger **in** the
-  folder and on no ref means it was produced and its handoff was declined, and stops with
-  `PRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
+  folder and on no ref means it was produced, but not whether the carve that wrote it finished:
+  `/brd-split` writes a slice's three files before its walk places a row and reconciles them against
+  the parent's ledger only when the walk completes. So the run reads the **parent's** ledger first
+  — unless the inventory is missing, the exception above. Where that ledger still holds an `unallocated` row — an interrupted carve, or a `/brd-intake`
+  re-run over the parent, which resets every row; the stop says what the ledger shows and not
+  which — the run stops with `PRD_GROUND_CARVE_UNFINISHED`: the slice's files are provisional,
+  nothing in the folder is to be committed, and the fix is the parent's **instructed** re-run,
+  `/brd-split <PARENT-KEY> "<how to cut it>"`, taken to completion, since the bare form stops asking
+  for an instruction while a row is unallocated. Where the parent is fully allocated but this slice
+  is not what it records — a carve stopped after its last walk write and before it reconciled this
+  slice — the run stops with `PRD_GROUND_SLICE_UNRECONCILED` (below). Where the parent's ledger
+  cannot be read, the run stops with `PRD_GROUND_SLICE_UNRECONCILED`, reporting that ledger by path
+  and naming no `/brd-split` form, and so does a slice whose `brd-link.md` names no `parent:`. Only where the parent
+  is fully allocated and this slice agrees with it was the handoff simply declined, and the run stops
+  with `PRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
   names the producing command only where re-running it would actually stage them, and the clause it
   carries is read off this slice's own `claims:` list. Where this slice **claims rows**, a **bare**
-  `/brd-split` on a fully-allocated parent is a no-op that stages nothing and opens no pull request —
-  but an instruction typed after the key can still make it a live run, where the parent holds a row a
+  `/brd-split` on a fully-allocated parent writes nothing into this slice and declares none of its
+  files — but an instruction typed after the key can still make it a live run, where the parent holds a row a
   child has recorded it will not build; that run stages what its own walk moved, never these files as
   they stand. Where this slice **claims nothing** the parent re-run is not a no-op at all: the bare
   form resolves the empty child and stages that decision rather than this slice's inventory and
@@ -231,6 +263,22 @@ also runs, in Phase 11, for session lessons-learned.
   lands them as its own walk leaves them. Committing what is already on disk stays the direct route to
   landing them as they stand. `/brd-intake` is never named here: it re-runs only over a BRD
   container, and every container has already been refused as a root.
+- **This slice in step with its parent.** Once both gates pass, both files must be in the working
+  tree: a gate passes a file that is on the default branch and missing from a working tree on a
+  branch this run reuses, and there the run stops with `PRD_GROUND_RESTORE_FROM_DEFAULT`, naming the
+  restore, rather than reading a missing inventory as an empty set and sending the operator to a
+  `/brd-split` run that writes nothing into a slice with a file missing. Both must also be readable:
+  one in the folder that the run cannot read stops with `PRD_GROUND_SLICE_FILE_UNREADABLE`, naming
+  the file and the error, rather than failing at the last write of a spent run. Then the run compares three sets of
+  `[BR#n]` ids: the slice's `brd-link.md` `claims:`, the rows of its `brd/brd-inventory.md`, and the
+  rows of the parent's `coverage-ledger.md` reading exactly `covered-by: <this slice's key>`. Every
+  completed `/brd-split` run leaves the three equal, so a difference means the slice's files are not
+  the allocation the parent records — typically a carve cancelled mid-walk whose provisional files
+  were committed by hand, which both gates pass. The run stops with `PRD_GROUND_SLICE_UNRECONCILED`,
+  naming each id by the set that lacks it, and grounds nothing. Its remedy is the parent's
+  **instructed** re-run where the parent still holds an `unallocated` row, and otherwise the **bare**
+  `/brd-split <PARENT-KEY>`, which reconciles every child against the parent's ledger and writes
+  nothing for a child already in step; where the parent's ledger cannot be read, it names no form.
 
 ### On the idea route
 
@@ -269,7 +317,7 @@ Under the resolved folder — the `PRD-<SLICE-KEY>-<slug>/` slice folder inside 
 `PRD-<KEY>-<slug>/` folder on the idea route:
 
 - `grounding/baselines.md` — one dated entry per repository: the pinned commit and how it was
-  verified. `--rebaseline` appends rather than overwrites.
+  verified, appended in Phase 8 with the findings it pins, never earlier. `--rebaseline` appends rather than overwrites.
 - `grounding/code-grounding.md` — every `[CG#n]` finding, plus the optional derivation matrix and,
   when documentation grounding ran, a `## Documentation divergences` section: one identifier-free
   prose entry per page that contradicts a verified `[CG#n]`, naming that finding by id.
@@ -311,7 +359,9 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
   route, this slice's inventory and its ledger, separately — the inventory's own stops name whether
   it is missing from the folder or merely unmerged, because re-running the producer on the second
   would rewrite it; no grounding starts until the command that wrote them — `/brd-split` on the
-  parent, since a root is refused before this gate — has merged its output.
+  parent, since a root is refused before this gate — has merged its output. Past both gates, the
+  slice must also agree with its parent's ledger (`PRD_GROUND_SLICE_UNRECONCILED`), because a carve
+  cancelled mid-walk leaves provisional files that pass both.
   On the idea route, `prd.md` itself — a claim list read off an unmerged artifact would ground a
   document `/create-ard` and `/specify` cannot yet see. See "What it needs" above for the exact stop
   conditions on each route.
@@ -339,8 +389,10 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
   diverges from instead, because a divergence is not an answer to a requirement premise, and a new
   prefix would sit permanently unverified in a namespace where an unverified id blocks
   [`/brd-split`](brd-split.md) (`workflows-core:grounding-format` §8).
-- **Phase 7 — `grounding-verifier` over every finding, pinned to Opus.** Every finding the run holds,
-  except any already reading `SUPERSEDED`: a retired finding keeps the outcome it had, and re-deriving
+- **Phase 7 — `grounding-verifier` over every finding, pinned to Opus.** Every finding the run holds
+  — its own, and every `[CG#n]` already on file pinned to a repository whose `HEAD` still matches its
+  recorded pin (none under `--no-code`), but never a `[DG#n]` already on file — except any already
+  reading `SUPERSEDED`: a retired finding keeps the outcome it had, and re-deriving
   it could only bring it back to life beside its successor. A finding without a
   verifier outcome is never treated as evidence. **The outcome is first reconciled against the verdict
   the verifier re-derived**, which it returns on every outcome: `agree` means *the same verdict* and
@@ -358,16 +410,27 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
   normalises to `contradict` even where the verifier's own search also found nothing: two searches
   sharing one blind spot is the state a control exists to expose. The one exception is a finding
   already reading `NOT-PROVABLE` with its own failed control recorded — that is what the format tells
-  a writer to do, and reproducing its result is agreement. A `contradict` outcome rewrites the finding
-  in place — same id, replaced verdict and evidence — so an existing citation keeps resolving; an
-  `agree`/`extend`/`unprovable` outcome is recorded alongside the finding unchanged (`extend` also
+  a writer to do, and reproducing its result is agreement. A `contradict` outcome on an own-run
+  finding — one this run produced, which nothing outside this run cites yet — rewrites it in place:
+  same id, replaced verdict and evidence. On an on-file finding — one an earlier run wrote, which a
+  decision may already cite — it supersedes the finding instead, keeping its verdict as
+  `prior_verdict`, and appends a successor with the next id carrying the verifier's verdict, so an
+  existing citation keeps resolving and [`/brd-interview`](brd-interview.md) sees the change as it
+  sees any re-grounding; a class-4 `[DG#n]` citing a code finding superseded this way is superseded
+  with it, naming the run that re-derives it: `--no-code` where the code finding has a successor,
+  and a plain re-run where it has none, since that re-grounds a claim nothing on file answers. An `agree`/`extend`/`unprovable` outcome
+  is recorded alongside the finding unchanged (`extend` also
   appends the additional evidence the verifier's own search turned up). Which anchor each finding
   is verified against depends on what it rests on: a `[CG#n]` and a class-4 `[DG#n]` are re-derived
   against the pinned repository, a class-1/2/3 `[DG#n]` against the frame set it was reconciled
   from — see `workflows-core:grounding-format` §8. A verifier that
   refuses rather than verifying (a moved `HEAD`, a repository or frame set no longer resolvable)
-  stops the run before Phase 8 writes anything, so no finding is ever written without an outcome —
-  which is what keeps `/brd-split`'s own verification gate reachable on the BRD route.
+  stops the run before Phase 8 writes anything, and so does a `contradict` on a finding this run
+  produced whose return lacks the positive control the rewritten finding would owe
+  (`PRD_GROUND_VERIFY_INCOMPLETE`), so no finding is ever written without an outcome — which is what
+  keeps `/brd-split`'s own verification gate reachable on the BRD route. The same incomplete return
+  on an on-file finding writes nothing: the finding keeps the verdict and outcome it had, and the
+  report names it as not verified by this run.
 
 ## When it is worth running (idea route)
 

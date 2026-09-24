@@ -19,7 +19,8 @@ belongs to `workflows-core:addressing` §1.
 
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
 shape, enforces §6, and — on §4's first cause — reopens a `decided` `[VD#n]` or `[CD#n]` a
-`--rebaseline` pass moved the ground under; by `commands/create-prd.md`, which writes an `[AS#n]` — and only an `[AS#n]` —
+`--rebaseline` pass moved the ground under, and which puts the question of a record reading
+`reopened` again wherever no question putting it is in flight, whichever run reopened it; by `commands/create-prd.md`, which writes an `[AS#n]` — and only an `[AS#n]` —
 for a customer-authority gap that only PRD authoring could surface (§7); by `agents/brd-package-reviewer.md`, which reads them; and by
 `commands/brd-package.md`, which surfaces every open `[AS#n]` in the customer prompt (§7) and finds
 every position resting on a prerequisite by its `conditional_on` field (§5); and by
@@ -33,7 +34,10 @@ report, `commands/prd-proposal.md`'s tier grading, `agents/proposal-reviewer.md`
 lists every command and agent that names the register. It is not a list of readers in either
 direction: a file may name it only to compare its modification time or to describe another
 command's write, and `agents/customer-review-reader.md` reads it without naming it — it is handed
-the register by path, as its `assumptions` input.
+the register by path, as its `assumptions` input. **Every one of them reads the register through
+§8** — the agent through its caller, which applies §8 to what the agent returns, since it reads the
+files it is handed as they stand: an item a stopped `/brd-interview` run left, which no round record
+names, is never counted.
 
 ## 1. Record shape
 
@@ -70,7 +74,7 @@ round: 2
 
 | Field | Notes |
 |---|---|
-| `id` | `[VD#n]` or `[CD#n]` — contiguous within its own prefix, assigned once, never renumbered, never reused after a terminal status |
+| `id` | `[VD#n]` or `[CD#n]` — contiguous within its own prefix, assigned once, never renumbered, never reused after a terminal status; a removed torn write is the one exception to each (§8) |
 | `statement` | one sentence, stating the decision itself and not the discussion that produced it |
 | `options_considered` | what was actually on the table, including the one chosen — save on a `[CD#n]` whose customer answered outside it (below). **A question put as yes or no, listing no options, records `["yes", "no"]`**; one that listed its options records them as put — the set a customer answering yes or no was offered, written down rather than left for a reader to infer. **A `[CD#n]` answering what put no options records a fixed pair**: an `[AS#n]`, which asserts rather than offers, `["as assumed", "not as assumed"]`; an escalated `[SR#n]`, which sets the package's position against an attack on it, `["as the package states", "as the finding argues"]` |
 | `chosen` | exactly one member of `options_considered` — **or, on a `[CD#n]` only, where the customer answered with none of the options put, their answer quoted after one fixed marker**: `chosen: "outside the options: <the customer's answer, verbatim>"`. `options_considered` then stays exactly as put and is never widened to take the answer in: it records what the customer was offered, and an option added afterwards would claim they were offered what they volunteered. The marker is the only way a `chosen` may name no member, so a reader tells the two cases apart by the field alone. **Quote it so YAML reads it back exactly**: a one-line answer carrying no `"` and no `\` in the double-quoted form above; any other — spanning lines, or carrying either character — as a literal block scalar, `chosen: |`, its first line `outside the options: ` and the answer following verbatim, so the answer's own line breaks and quotes are never escaped or folded. A `[VD#n]` never takes it: an option the operator names joins `options_considered` before it is chosen (`commands/brd-interview.md`, *Put each `[V]` to the operator*) |
@@ -199,7 +203,10 @@ identified, still carrying the reason it was withdrawn, and it is no longer requ
 **Only two things may reopen a decision:**
 
 1. **A new grounding finding** that bears on it — including a finding that supersedes one already in
-   the decision's `evidence` list (`workflows-core:grounding-format` §3).
+   the decision's `evidence` list (`workflows-core:grounding-format` §3). A verifier's `contradict`
+   on an on-file finding is recorded as a supersession (`workflows-core:grounding-format` §8), so it
+   reaches this cause like any other supersession, and so is a grounding run's move of an on-file
+   finding's horizon (`workflows-core:grounding-format` §5).
 2. **An incoming customer decision** that contradicts or constrains it.
 
 Nothing else. Not a later reader's discomfort, not a fresh idea, not a review pass that would have
@@ -232,29 +239,35 @@ resolves against (below). **Superseding moves `status` to `superseded` and adds 
 paragraph; nothing else on the record moves** — it is neither a re-decision nor a reversion, so none
 of the per-field rules below applies to it, and the superseded position stays on the page exactly as
 it was taken, which is what lets a reader see what was replaced. Every writer of `superseded` writes
-it this way: `commands/brd-interview.md` for a `[VD#n]` the will-change rule held, whose question a
-later round put again (*A decision the re-grounding moved*); and `commands/brd-reconcile.md` for a
+it this way: `commands/brd-interview.md` for a `[VD#n]` reading `open` or `decided` whose question
+a later round put again and answered — one the will-change rule held, or a reopened one a
+propagation sweep's reversion returned to `open` or `decided` while its question waited (*A
+decision the re-grounding moved*); and `commands/brd-reconcile.md` for a
 `[VD#n]` or `[CD#n]` a later customer answer replaces and for an `[AS#n]` a `[CD#n]` settles (its
 *Freeze the customer decisions* phase, steps 2 and 3; §7).
 
 **Cause 1 has a command that observes it.** A `commands/prd-ground.md` `--rebaseline` pass marks
-every finding it replaces `verdict: SUPERSEDED`, and `commands/brd-interview.md` (*A decision the
-re-grounding moved*) takes each `decided` record §6 did not hold, every one of whose `evidence`
-findings a pass has superseded: it reopens the record, naming the successor findings as the cause, unless those
-successors confirm its premise by the test that section fixes, and puts its question in the next
-round it opens. That section also fixes which findings are a superseded finding's successors. The
-test is mechanical and the same for a `[VD#n]` and a `[CD#n]`: every superseded finding in the
-record's `evidence` carries a `prior_verdict` — the verdict it carried, kept on it when it was
-superseded (`workflows-core:grounding-format` §2) — and has at least one successor, and every
-successor carries that verdict and the superseded finding's own `horizon`, which superseding
+every finding it replaces `verdict: SUPERSEDED`, and so does any `commands/prd-ground.md` run whose
+verifier contradicts an on-file finding, or whose horizon pass moves one's horizon, appending its
+successor; and `commands/brd-interview.md` (*A decision the re-grounding moved*) takes each
+`decided` record §6 did not hold, **any** one of whose `evidence` findings a run has superseded — a
+supersession replaces findings one at a time, so waiting for the whole list would leave the record
+standing on a premise the code no longer shows: it reopens the record, naming the successor findings
+as the cause, unless those successors confirm its premise by the test that section fixes, and puts
+its question in the next round it opens. A finding of the list no run superseded stands as cited and
+takes no part in the test. That section also fixes which findings are a superseded finding's
+successors. The test is mechanical and the same for a `[VD#n]` and a `[CD#n]`: every superseded
+finding in the record's `evidence` carries a `prior_verdict` — the verdict it carried, kept on it
+when it was superseded (`workflows-core:grounding-format` §2) — and has at least one successor, and
+every successor carries that verdict and the superseded finding's own `horizon`, which superseding
 leaves as it stood. A finding carrying no `prior_verdict`, superseded before the field existed,
 confirms nothing, and nor does one no successor answers: "every successor" is not read as true of
-none. The horizon is compared, not required to be `current`, because a record §6 left `decided`
-may rest on a `will-change` finding beside a `current` one, and a pass before the prerequisite
-ships re-grounds it `will-change` again — the ground as it stood. A successor that has moved from
+none. The horizon is compared, not required to be `current`, because a record §6 left `decided` may
+rest on a `will-change` finding beside a `current` one, and a pass before the prerequisite ships
+re-grounds it `will-change` again — the ground as it stood. A successor that has moved from
 `will-change` to `current` does not confirm: the prerequisite shipped, and the premise the record
-was decided on moved with it. A record whose successors
-confirm is not reopened — the ground was re-derived and came back as it stood, which is no cause.
+was decided on moved with it. A record whose successors confirm is not reopened — the ground was
+re-derived and came back as it stood, which is no cause.
 
 **This section names one set — a record's *decision fields*, all thirteen §1 defines — and fixes
 what each of them does when a record already on file is written again.** A re-decision and a
@@ -286,7 +299,11 @@ answers was raised by, which the answer's being re-taken does not change. That i
 
 A **re-decision**, taken by the run that reopened the record or by a
 later one, writes its argumentation after the `Reopened` paragraph: why the change moves the answer,
-or why it does not. A **reversion** — `commands/brd-reconcile.md`'s propagation sweep writes
+or why it does not. A record is re-decided only by an answer to a question that puts it again, and
+whichever run reopened it, a later one reaches it: `commands/brd-interview.md` puts the question of
+every record reading `reopened` whose question no round holds in flight (its *A decision reopened
+elsewhere*), and the answer re-decides the record the question's `- **Re-puts:**` line names —
+`commands/brd-interview.md` for a `[VD#n]`, `commands/brd-reconcile.md` for a `[CD#n]`. A **reversion** — `commands/brd-reconcile.md`'s propagation sweep writes
 one, and nothing else does — returns those fields to the position that stood before the prerequisite
 moved it and appends its `Reverted <YYYYMMDD>:` paragraph. Neither replaces the `Reopened` paragraph
 or anything above it, so the record carries the original reasoning, each cause and each answer to a
@@ -393,12 +410,20 @@ successor finding that no longer carries `horizon: will-change`**: a `commands/p
 `--rebaseline` pass marks every finding it re-grounds `SUPERSEDED` and writes its successor
 (`workflows-core:grounding-format` §3, §5), but it keeps `will-change` on a successor until the
 naming decision ships, so a supersession alone observes nothing — every pass after the pinned code
-moves writes one. So once every finding in the record's `evidence` is `SUPERSEDED`, each has a
-successor, and no successor is `will-change`, `commands/brd-interview.md` counts the record's question among those
-that make a new round askable and puts it again in that round, under the tag it had, against the
-current findings (its *A decision the re-grounding moved*); until then the record waits on its
-prerequisite, and that run reports it so. The answer is tested by this rule like any other, and
-what it does turns on the held record's `status` as the answer's writer reads it —
+moves writes one. A verifier's `contradict` on an on-file finding writes a successor carrying the
+superseded finding's own horizon, so it observes nothing either; and a run whose horizon pass moves
+an on-file finding's horizon supersedes it with a successor carrying the new one, which moves off
+`will-change` only where that pass saw the naming decision ship. So once every finding in the
+record's `evidence` is `SUPERSEDED`, each has a successor, and no successor is `will-change`,
+`commands/brd-interview.md` counts the record's question among those that make a new round askable
+and puts it again in that round, under the tag it had, against the current findings (its *A decision
+the re-grounding moved*); until then the record waits on its prerequisite, and that run reports it
+so — except where a superseded finding is one no successor will come to, because it cannot be
+matched to one — its own source cannot be decided, or it is a frame-only finding written before
+such findings named their field — or because the run that retired it re-ground its frame set and found none, when the
+record is put again at once, naming that finding. The answer is tested by this
+rule like any other, and what it does turns on the held record's `status` as the answer's writer
+reads it —
 `commands/brd-interview.md` for a `[VD#n]`, and `commands/brd-reconcile.md` for a `[CD#n]`, from
 the answering question's `- **Re-puts:**` line and from the register as it stood before that run
 wrote anything: `open` or `decided`, the answer is a new record and the held one is `superseded` by
@@ -427,7 +452,7 @@ detail an author may settle for themselves. All thirteen are accounted for here.
 
 | §1 field | On an `[AS#n]` |
 |---|---|
-| `id` | **As-is**, under its own prefix: `[AS#1]`, `[AS#2]`, … contiguous within that prefix, assigned once, never renumbered or reused |
+| `id` | **As-is**, under its own prefix: `[AS#1]`, `[AS#2]`, … contiguous within that prefix, assigned once, never renumbered or reused, a removed torn write aside (§8) |
 | `statement` | **As-is**: one sentence, saying what is assumed — the assumption itself, never the reason for it and never the reason it is unevidenced |
 | `options_considered` | **Not applicable.** An assumption is an assertion, not a choice between options; a record that weighs options is a decision and takes a `[VD#n]` or `[CD#n]` |
 | `chosen` | **Not applicable**, for the same reason: there is nothing to choose from |
@@ -518,3 +543,117 @@ assumption recorded as `superseded` by it — its closing `Superseded <YYYYMMDD>
 naming that decision (§4). An `[AS#n]` the customer contradicts is `superseded` the
 same way, by the decision that contradicts it, and everything that was built on it is reopened under
 §4 — the incoming customer decision is precisely one of the two causes that rule admits.
+
+## 8. Torn writes
+
+`commands/brd-interview.md` writes a round's deliverables in one phase, *Write the register and the
+round record*, and in one order: `code-defect-log.md`, then `decisions.md`, then
+`interview/customer-questions.md`, then `interview/round-<N>.md` **last** — the log first, so a
+counted decision never cites a `[CDF#n]` that is on no file. **The round record is the commit
+point**: a round's deliverables count only once its record names them. Two writes sit outside that
+order, each keyed to the record so that no interruption can falsify it: a **baseline** line,
+appended to a round record that predates the lines below before anything new is written, and each
+**re-disposition** of a `[CDF#n]`, applied to the log only **after** the round record names it. A run that stops
+between those writes — a crash, a lost session, a context exhausted mid-phase — leaves items on disk
+that claim a round no record holds, and a reader that counted them would act on questions nobody
+recorded asking and decisions nobody recorded taking. Such an item is a **torn write**. This section
+defines it once; every reader cites it and none restates it.
+
+**An item stamped with round N is a torn write where `interview/round-<N>.md` in the same BRD folder
+does not exist, or does not name it.** The items, what stamps each with a round, and what naming it
+means:
+
+| Item | Stamped with round N by | Named by round N's record where |
+|---|---|---|
+| a `[VD#n]` whose `argumentation` carries no `Reopened` paragraph | its `round: N` | a question in the record carries the state *decided* naming that id |
+| an `[AS#n]` | its `round: N` | the record exists: an assumption is recorded only by the run that generates its round (`commands/brd-interview.md`, *Generate the round's question set*), and that run's write of the record is its first |
+| a `[CDF#n]` (`references/code-defect-log-format.md`) | its `round: N` | one of the record's `code defects:` lines names it raised, or its `code defects on file:` baseline line lists it; or a record that is not itself a torn write cites it in `defects`. A record carrying neither line was written before both existed, and names every `[CDF#n]` of its round — no run that writes to such a record leaves it so (the baseline, below) |
+| an entry in `interview/customer-questions.md` | its heading, `## Round <N>, question <position>` | the question at `<position>` carries the tag `[C]` in its last recorded state — *held for the customer*, or *answered by the customer* |
+| a `- **Requirement defect:** [DEF#n]` line on an entry that is not itself a torn write and carries no `- **Re-puts:**` line | its entry's heading | one of the record's `requirement defects:` lines lists that `[DEF#n]` asked, or its `requirement defects on file:` baseline line lists it. A record carrying neither line was written before both existed, and names every such line — no run that writes to such a record leaves it so (the baseline, below) |
+
+**Nothing else is ever a torn write**, and four things in particular are not:
+
+- **A record carrying a `Reopened` paragraph** (§4). It was on file before the run that last wrote
+  it, so no rule may remove it. A re-decision a stopped run wrote onto it stands and is counted:
+  what it replaced survives only in `argumentation` (§4) and cannot be restored. A reopen a stopped
+  run wrote stands too, and the question that run held for it, never on a counted record, is put
+  again by `commands/brd-interview.md`'s *A decision reopened elsewhere*.
+- **A `[CD#n]`.** `commands/brd-reconcile.md` mints it by its own rules, and a customer's answer is
+  never removed by a rule about another command's interruption.
+- **A record carrying no `round`** (§1, §7), and an entry whose heading has not that form.
+- **A change made in place to an item the stopped run did not first write** — a reopen — which is
+  not stamped with that run's round and stands. A `[CDF#n]`'s re-disposition is not among them: it
+  reaches the log only after the round record names it (below), so a stopped run leaves none. **One
+  exception**: a `Superseded <YYYYMMDD>: by [VD#m]` paragraph naming a `[VD#m]` that is a torn write
+  is part of that torn write. A reader reads the record it sits on as it stood before it, with the
+  `status` it held before that supersession, and the removal below restores exactly that. Superseding
+  moves nothing else (§4), and `commands/brd-interview.md` supersedes only a record reading `open` or
+  `decided`, so that status is read off the record's other fields by §6: `open` where it carries no
+  `conditional_on` and every finding in its `evidence`, of which there is at least one, carries
+  `horizon: will-change` — the only shape in which §6 lets a `[VD#n]` stand `open` — and `decided` otherwise, a
+  held record written `conditional_on` and a reverted one alike.
+
+**A reader never counts a torn write.** A torn record is read as absent from the register, a torn
+entry as absent from the question set, and a torn defect line as absent from its entry. The test
+reads the worktree's round records, never a ref: whether a round record has merged is
+`workflows-core:phase-handoff`'s question and not this one. A round record that exists and cannot be
+read decides nothing; a reader that needs the answer treats the item as undecidable, by its own rule
+for an unreadable input.
+
+**`commands/brd-interview.md` removes torn writes, and nothing else does.** Its *Write the register
+and the round record* phase removes every torn write in this BRD's folder in the same writes, before
+it appends its own, restoring each `superseded` paragraph above; the path on which it opens no round,
+itself a completed run, does the same before its handoff and reports what it removed. That removal is the one deletion any run makes inside a register,
+a question set or a log it leaves standing, and it deletes nothing any reader ever counted. **Its *Resolve inputs*
+phase reports each torn write it finds**, by id or heading, so an operator sees what an interrupted
+run left before anything is removed.
+
+**The baseline.** A round record that `commands/brd-interview.md` is about to write to — a round it
+resumes or re-opens — and that carries no `code defects:` line, or no `requirement defects:` line,
+was written before that line existed, and the table above reads it as naming every item of its kind
+in its round. That reading is right for the items on file when the run began, and wrong for any this
+run writes, so **before its first write of the round's deliverables** the run appends to the record
+a baseline line for each line it lacks, naming the known set exactly — the items of that kind the
+run read at its start, none of them a torn write:
+
+```
+code defects on file: [CDF#n], …
+requirement defects on file: [DEF#n], …
+```
+
+— each reading `none` where the set is empty. From then on the record carries a line of that kind,
+so the pre-line reading no longer applies to it, and an item this run writes counts only once a line
+the record's later writes carry names it. The baseline names nothing new, so an interruption right
+after it falsifies nothing. **A baseline line is not an account line**: `commands/brd-interview.md`'s
+*Resolve the round* reads round 1's `requirement defects:` account line to learn whether the
+requirement-defect source has run there, and a `requirement defects on file:` line never answers
+that test.
+
+**A re-disposition is written after the record that names it.** A `[CDF#n]`'s `disposition`, with
+the `blocked_on` that goes with it, moves in the log only once the round record's `code defects:`
+line has named the move — `re-dispositioned [CDF#m] #k <old> → <new>` — so a run that stops before the
+record leaves the entry as it was, and the next run offers the re-disposition again. **`#k` orders
+one `[CDF#n]`'s moves**: `k` is one more than the number of numbered moves counted round records
+already name for that `[CDF#n]`, so it is read off a known set and never off a date or a round
+number — round numbers are not time order, since a `--round N` re-open writes an earlier round's
+record after later rounds exist. A move a torn run numbered was never counted, so the next run
+reuses its number. **The latest move is the one with the highest `k`.** A move reported before the
+`code defects:` line existed carries no number: it was applied to the log in the run that reported
+it, so there is nothing to complete, and it ranks below every numbered move and counts toward no
+`k`. **A run that stops after the record and before the move is completed by the next**: every run
+of `commands/brd-interview.md`, at its start, reads the latest move any counted round record names
+for each `[CDF#n]`, and where the log still reads that move's `<old>`, applies `<new>` — the latest
+only, so a later move back is never undone by an earlier one. Until it does, the log
+disagrees with a counted record: a reader that only reads takes the record's `<new>`, and one that
+ships the log whole refuses it as it refuses a torn write (`commands/brd-package.md`, Phase 0
+step 5c).
+
+**Ids.** A rule that continues an id sequence from the highest id on file reads a torn write as on
+file, so no id ever names two blocks at once. A number a removed torn write held may be assigned
+again, since nothing counted ever named it, and one assigned after it before the removal leaves a
+gap. That gap is the only break in §1's contiguity, and in `references/code-defect-log-format.md` §2's.
+
+**A round record written and not yet handed off is not a torn write.** Its items are named, and they
+count. They are simply on no ref — the state a declined handoff leaves, with the same remedy, which
+`commands/brd-package.md` names where it gates the register, the question set and log, and the
+round records (Phase 0 steps 6, 6b and 7).

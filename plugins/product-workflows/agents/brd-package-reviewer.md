@@ -54,6 +54,10 @@ package:
 ```
 
 **Refuse to run without `brd_dir` and at least `package.decisions` and `package.grounding`.**
+The package you are handed holds no torn write
+(`${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §8): `commands/brd-package.md`
+refuses a folder holding one before it dispatches you (its Phase 0 step 5c), so every record,
+entry and log item you read counts.
 
 **Presence is the right test here, and an emptiness test would be wrong** — which is worth stating, because three sibling reviewers in this family were changed the other way. A register holding no `[VD#n]` and no `[AS#n]` is a **legitimate** package when every question its rounds asked was customer-facing: `/brd-package` step 8 admits exactly that case, gating on `[C]` **or** open `[AS#n]` **or** `[VD#n]`, and refusing an empty register here would refuse a package that is all `[C]` — the commonest shape on a first round. The vacuity this family guards against is real and is caught one station up, by that step's `BRD_PACKAGE_NOTHING_TO_REVIEW`, which tests the whole review surface rather than one input of it. Test emptiness where the emptiness is the defect, not wherever a field could be empty.
 Return `status: INPUT_MISSING` naming exactly what was absent. A review of a package you were handed
@@ -170,7 +174,8 @@ findings:
     class:    unsupported-decision | mis-tagged-question | assumption-as-fact |
               overclaimed-grounding | will-not-survive-review | unrecorded-defect-claim
     target:   <the exact thing attacked — a [VD#n], an [AS#n], a [C] question, or a
-               document and the sentence or section inside it>
+               document and the sentence or section inside it. Where the position attacked is
+               one record, the target is that record's bracketed id alone, and nothing else>
     attack: |
       <what is wrong, argued — not what the target says>
     rests_on: [<the [CG#n]/[DG#n], [VD#n] or [AS#n] ids the attack turns on>]

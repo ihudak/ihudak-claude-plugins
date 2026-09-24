@@ -45,7 +45,7 @@ Every finding — `[CG#n]` from `code-grounder`, `[DG#n]` from `design-grounder`
 | `id` | `[CG#1]`, `[DG#1]`, … — contiguous within its own prefix, assigned once, never renumbered |
 | `claim` | the requirement premise under test — a `[BR#n]` on the BRD route, an `[AC#n]`/`[FR#n]`/`[US#n]` on the idea route — quoted or closely paraphrased |
 | `verdict` | exactly one of the six values in §3 |
-| `prior_verdict` | *(required where `verdict` is `SUPERSEDED`, omitted otherwise)* the verdict the finding carried at the moment it was superseded — one of §3's other five, never `SUPERSEDED`. Written by whichever run marks the finding `SUPERSEDED`, in the same write, since superseding overwrites `verdict` and this is the only place the verdict survives. It is history, not a second verdict: `verdict` reads `SUPERSEDED` and is the one every consumer reads |
+| `prior_verdict` | *(required where `verdict` is `SUPERSEDED`, omitted otherwise)* the verdict the finding carried at the moment it was superseded — one of §3's other five, never `SUPERSEDED`. Written by whichever run marks the finding `SUPERSEDED`, in the same write, since superseding overwrites `verdict` and this is the only place the verdict survives. A finding already reading `SUPERSEDED` is never marked again, by any rule of any run, so no write can record `SUPERSEDED` here. It is history, not a second verdict: `verdict` reads `SUPERSEDED` and is the one every consumer reads |
 | `evidence` | a `file:line` list, or — when the verdict is `NOT-PROVABLE` or the finding asserts an absence — an explicit statement of why no evidence exists rather than an empty field |
 | `control` | *(required wherever the finding asserts an absence — the second half of `evidence`'s own disjunction, not the whole of it: a `NOT-PROVABLE` finding that asserts no absence owes `evidence` and no control; omitted otherwise)* the **positive control** on the search that reached that absence: the same method, run against a case of the same kind known to be present in this same source, and what it returned (§2.2) |
 | `commit` | the pinned commit SHA the finding was checked against (`baseline-integrity`, §4); **absent on a `[DG#n]` of class 1, 2 or 3**, which is settled from the frame set and the requirement text alone (§6) and is pinned to no commit. A class-4 `[DG#n]` carries the cited `[CG#n]`'s own |
@@ -115,13 +115,21 @@ So, canonically:
   them. **`own_verdict` in particular is never a record field**, and writing it is not a harmless
   extra: `verdict` is what every downstream consumer reads, so a block carrying both states two
   verdicts at once and a reader can quote whichever half suits. Where a re-derivation moved the
-  verdict, §8's `contradict` handling has already replaced `verdict` and left a one-line note of what
-  it was — so a correct record carries exactly one verdict plus its history, never a live
-  disagreement. **`prior_verdict` is a §2 field and not an exception to this**: it appears only
-  beside `verdict: SUPERSEDED`, so the block's one live verdict is still `SUPERSEDED`, and what it
-  keeps is the history a supersession would otherwise erase. This is the same failure §2.1 exists to prevent, met at the field set rather than at
+  verdict, §8's `contradict` handling has already acted on it — on an own-run finding by replacing
+  `verdict` and leaving a one-line note of what it was, on an on-file finding by superseding the
+  block and appending a successor that carries the new verdict — so a correct record carries exactly
+  one verdict plus its history, never a live disagreement. **`prior_verdict` is a §2 field and not
+  an exception to this**: it appears only beside `verdict: SUPERSEDED`, so the block's one live
+  verdict is still `SUPERSEDED`, and what it keeps is the history a supersession would otherwise
+  erase. This is the same failure §2.1 exists to prevent, met at the field set rather than at
   the bytes: a writer free to add a field produces an artifact whose readers disagree about which
   value is the finding's.
+  **A `contradict` whose return is incomplete writes no `outcome` at all**: where the finding it
+  would write owes a control (§2.2) and the return carries no `own_control`, an own-run finding
+  stops the verifying run before it writes any finding, and an on-file block keeps every field it
+  holds, its earlier `outcome` included, the run reporting that finding as not verified by it (§8).
+  Writing that `contradict` beside the verdict it contradicts would be exactly the live disagreement
+  this bullet forbids.
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
   `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3,
   `prerequisite` on any finding whose `horizon` is `current`, `prior_verdict` on any finding whose
@@ -346,7 +354,9 @@ git -C "<repo>" status --porcelain                  # any entry -> line-count co
 ```
 
 1. **`rev-parse HEAD`** pins the commit every `file:line` in the package will cite. Record it in
-   `baselines.md`.
+   `baselines.md` — in the same write as the findings pinned to it, never before them, so a run that
+   stops after this procedure and before its findings are written leaves the previously recorded
+   pin standing (`product-workflows:prd-ground` Phase 3).
 2. **`diff --ignore-cr-at-eol --stat`** must produce no output. `--ignore-cr-at-eol` is not
    optional: without it, a checkout can report hundreds of modified files that differ only in line
    endings, and a gate that fires on every line-ending checkout trains its own operators to ignore
@@ -431,7 +441,23 @@ contributes no `will-change` horizons at all** — there is nothing stable enoug
 finding that touches it stays `current`, and that absence is itself reported rather than silently
 assumed. A `will-change` finding is not deleted once its prerequisite ships and the code catches up
 — it stays as a true record of what the pinned commit showed; what changes is that a *later*
-finding, at a *later* commit, supersedes it (§3, `SUPERSEDED`).
+finding supersedes it (§3, `SUPERSEDED`) — at a *later* commit once the code has caught up, or at
+the same commit where a grounding run's horizon pass sees the naming decision ship.
+
+**A finding's `horizon` and `prerequisite` are never moved in place once the finding is written.** A
+decision taken on a finding records its id, not its horizon, so a horizon rewritten under that id
+would leave the decision standing on ground it was never taken on — the same failure §8's
+`contradict` handling avoids for a verdict. Where a grounding run would move either field on a
+finding already written, it supersedes the finding instead: the block takes `verdict: SUPERSEDED`
+with its verdict as `prior_verdict` (§2) and every other field as it stood, and a successor with the
+next id in its prefix carries the same `claim`, `commit`, `altitude`, `verdict`, `evidence` and
+`control` — and, on a `[DG#n]`, its `class` and any `cites` — the new `horizon` and `prerequisite`,
+`consumed_by: none`, and a note naming the id it supersedes — or, where
+the run cannot give a successor what its verifier needs, none, the note then naming the horizon it
+would have written and why no successor can be placed, so that no stale horizon is left standing.
+The run produced that successor, so it is unverified until §8's verifier re-derives it like any
+other of the run's own findings. A finding the run itself produced and has not yet written takes its
+horizon directly. `product-workflows:prd-ground`'s *Horizons* phase holds the full procedure.
 
 The motivating shape: a finding says a mechanism does not exist, and a prerequisite BRD has already
 decided to build exactly that mechanism. The finding is not wrong — it is true of the code under
@@ -696,7 +722,11 @@ reconciles it against the requirement inventory it was handed — a BRD's `[BR#n
 `[AC#n]`/`[FR#n]`/`[US#n]` rows — in exactly four classes:
 
 1. **A frame shows a field no requirement ever asks for.** The design carries more than the
-   requirement asked for; the finding names the field and the frame.
+   requirement asked for; the finding names the field and the frame. There is no requirement to
+   name, so its `claim` is `none — frame-only: <field>`, `<field>` being that one field's label
+   exactly as the frame displays it: one finding per field, so two unasked-for fields on one frame
+   are two findings told apart by that token (`product-workflows:design-grounder` writes it,
+   `product-workflows:brd-interview`'s successor test matches on it).
 2. **A requirement asks for a field no frame shows.** The inventory names something the design
    never surfaces; the finding names the requirement id and the frame set that was checked.
 3. **A frame contradicts the requirement text.** The design and the requirement disagree about the
@@ -719,9 +749,12 @@ reconciles it against the requirement inventory it was handed — a BRD's `[BR#n
    hides.** Every other finding stands or falls on a search its own writer ran; this one stands on a
    conclusion another finding reached, so it goes stale when that finding moves while its own record
    shows nothing — the ids still match, the citation still resolves, and the correctness test above
-   passes on a pair that now disagree. **Wherever a cited `[CG#n]`'s `verdict` is replaced — by §8's
-   `contradict` handling, or by a re-grounding run marking it `SUPERSEDED` — every class-4 `[DG#n]`
-   citing it is re-derived or superseded alongside it, never left standing.** A class-4 finding
+   passes on a pair that now disagree. **Wherever a cited `[CG#n]`'s `verdict` is replaced — in
+   place, by §8's `contradict` handling of an own-run finding, or by a supersession, which a
+   re-grounding run writes, and §8's `contradict` handling of an on-file finding and §5's horizon
+   rule write too — every
+   class-4 `[DG#n]` citing it is re-derived or superseded alongside it, never left standing.** A
+   class-4 finding
    outliving its own foundation is the one way this class reads as settled while resting on nothing,
    and a reader cannot detect it: they follow a citation that resolves.
 
@@ -769,8 +802,35 @@ outcome can never become evidence by the rule below.
 |---|---|
 | `agree` | Independent re-derivation reaches the same verdict |
 | `extend` | The claim holds, but the verifier's own search surfaces evidence the original finding missed |
-| `contradict` | Independent re-derivation reaches a different verdict |
+| `contradict` | Independent re-derivation reaches a different verdict. The caller rewrites an own-run finding in place and supersedes an on-file one (below) |
 | `unprovable` | The verifier could not settle the claim either way, independent of what the original finding concluded |
+
+**What a `contradict` writes turns on whether the finding is already on file.** An **own-run
+finding** — produced by the run verifying it and not yet written — is cited by nothing outside that
+run, so the caller rewrites it in place: same id, the re-derived verdict and evidence, and a
+one-line note of the verdict it replaced. An **on-file finding** — written before the verifying run
+began, as every inherited finding is (below), from an earlier run of this workflow or from another
+team's report alike — may already be cited by a decision, and rewriting it in place would leave that
+decision standing on a verdict it was never taken on, with nothing reading `SUPERSEDED` to tell any
+reader so. The caller supersedes it instead: the block takes `verdict: SUPERSEDED` with its on-file
+verdict as `prior_verdict` (§2), every other field of it as it stood, and a successor with the next
+id in its prefix carries the same `claim`, `commit`, `altitude`, `horizon` and `prerequisite`
+(§5: a horizon is never moved in place) — and, on a `[DG#n]`, its `class` and any `cites` — the
+re-derived `verdict` and `evidence`, a `control` wherever that re-derived finding owes one (§2.2),
+taken from the verifier's own and never merely because one was returned, `consumed_by: none`,
+`outcome: contradict`, and a note naming the id it supersedes. **On a `[DG#n]`, either write keeps
+every frame citation the replaced evidence carried beside the re-derived evidence**: a class-4
+finding is re-derived against the repository and may come back citing code alone, and a design
+finding that cites no frame can no longer be placed in its frame set. Citations into the old id
+still resolve, to a finding reading `SUPERSEDED`, exactly as after a re-grounding run.
+**A `contradict` whose finding owes a control and whose return carries none is incomplete, and
+it writes nothing.** The verifier's own control is the only one the re-derived finding can carry,
+so neither write above can be made honestly: on an own-run finding the caller stops before writing
+any finding, and on an on-file finding it supersedes nothing and appends no successor, and the block
+keeps every field it holds — its `verdict` and its earlier `outcome` included — with the finding
+reported as not verified by this run. Recording `outcome: contradict` on either would put a
+contradiction beside the verdict it contradicts, which §2.1 forbids.
+`product-workflows:prd-ground`'s *Verify* phase holds the full procedure, its edge cases included.
 
 **`agree` and `extend` both assert the verdict holds, so a differing re-derived verdict falsifies the
 outcome rather than qualifying it.** The verifier returns its own re-derived verdict alongside every

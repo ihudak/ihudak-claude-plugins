@@ -559,16 +559,15 @@ the round record*), and where the two disagree the dispositions win.
   read at the anchor with `git -C "$SPECS_PATH" show <sha>:./<its path relative to $SPECS_PATH>`
   (the `./` form resolves from `$SPECS_PATH` whether or not it is the repository's top level), a
   file absent at `<sha>` holding no finding there, and compared the same way. **Git records when a
-  record was committed, never when it was written**, so this misses any grounding change committed
+  record was committed, never when it was written**, so the comparison misses any grounding change committed
   before the anchor or in it — one made while that round was still open, before its last write,
   and one made after that write and committed no later than the record, which a squash commit or a
-  late commit of the record carries; the *No question at all* branch below says what the report
-  names. Where no candidate matches — the record, as it stands, in no commit any ref reaches — the
-  comparison reads every finding as unchanged. **Either way the run's final report says so, on
-  whichever branch below the generation takes, a round opened or not**: the no-match line, or the
-  compared-at line and, where its test fires, the postdate caveat, each as the *No question at all*
-  branch spells it —
-  or a requirement defect this BRD owns, that is open and that is not asked (*Round 1 is generated
+  late commit of the record carries. Where no candidate matches — the record, as it stands, in no commit any ref reaches — the
+  comparison reads every finding as unchanged. **Whether or not a candidate matched, the run's
+  final report names the anchor's outcome, on whichever branch below the generation takes, a round
+  opened or not**: the no-match line, or the compared-at line and, where its test fires, the
+  postdate caveat, each as the *No question at all* branch spells it.
+  A change is also a requirement defect this BRD owns, that is open and that is not asked (*Round 1 is generated
   from the grounding* fixes all three tests), where round 1's record carries the requirement-defect
   account line: the round-1 walk did not raise it, and a new round is exactly where it belongs (the
   round-1 test below) — or a re-decision standing at round `<highest + 1>` that no record names

@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found twenty-three more (N7–N29). This spec fixes all forty.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found twenty-five more (N7–N31). This spec fixes all forty-two.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -59,6 +59,8 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N19 | B | The reader's "an open `[AS#n]`" filters the same way N4 did, and step 2 has no rule for re-answering an `[AS#n]` that is already superseded. Found by Task 6's implementer |
 | N20 | B | `/brd-reconcile`'s reader receives only the most recent self-review, so a review of an earlier package has its `[SR#n]` matched against the wrong file's text. Found by Task 6's implementer |
 | N21 | B | A self-review finding re-escalated under a new `[SR#n]` in a later package is frozen beside its earlier answer. Nothing ties the two ids together. Found by Task 6's implementer |
+| N30 | C | A `--rebaseline` run that stops in Phase 5 or 7 has already recorded the new pin, so the re-run never supersedes the moved repository's old-pin findings, which stay live. Found by the final fix wave. Ruling R74: the new pin is recorded only in Phase 8's write, with the findings it pins |
+| N31 | A | A held record resting on a design divergence that an agreeing re-run retired (R66) waits for a successor that will never come. Found by the final fix wave. Ruling R75: as R19, a held record is put again where a superseded finding of its has no successor and its frame set was re-ground in that run, so none will come |
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
 | N22 | E | `/create-prd`'s three Overwrite choice labels promise "(archives the current one)", but no step performs, locates, names or stages that archive, so every Overwrite loses the prior PRD. Found by Task 7's implementer |
@@ -356,5 +358,5 @@ Revised during execution, after Units A–E grew and Unit F was dropped. The CHA
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all forty rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all forty-two rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

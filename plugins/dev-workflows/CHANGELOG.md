@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [4.2.4] — 2026-09-24
+
+### Fixed — behaviour
+
+- **`/ready` had no disposition for a malformed key** (N25). Phase 0 step 1 handled `resolve-address`'s `found`, `ambiguous` and `absent`, and said nothing of `status: invalid`, the status for a token that fails `workflows-core:addressing` §1's grammar; the only rule that covered it was a grammar-failure clause in `workflows-core:escalation-rules`' `key dir not found` rule, which offered a re-enter from a rule written for a folder that is not there. `invalid` now stops with `READY_NEEDS_KEY`, naming the token that failed the grammar, the stop a run with no address at all already takes. `workflows-core` 1.7.6 deletes that grammar-failure clause, which no command then uses. `docs/commands/ready.md` says so.
+
 ## [4.2.3] — 2026-09-23
 
 ### Changed

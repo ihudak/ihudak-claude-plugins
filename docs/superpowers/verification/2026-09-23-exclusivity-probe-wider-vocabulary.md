@@ -118,16 +118,27 @@ These forms were reported by round-2 readers and matched by no family. Round 3 r
 
 **Deferred by user decision** ("Split it out", 2026-09-23). These are an explicit exception to the zero-known-bugs rule. The decision-cycle lifecycle gaps that predate this round, or that its reviews surfaced beyond a narrow fix, go to their own design pass (brainstorm → spec → plan):
 1. A Phase 8 *Cancel* in `/brd-interview` leaves stray held `[C]` entries.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 2. No question source takes up a record reopened by `/brd-reconcile` or by the sweep.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 3. `/brd-interview`'s handoff names a stale key event.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 4. It is unstated whether `/create-prd` treats a keyless `prd.md` as found.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 5. `/document`'s and `/release-notes`' unplaced-folder stop wording is wrong.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 6. An in-place `contradict` rewrite reopens nothing.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 7. `/prd-ground`'s Phase 8 field list omits `prerequisite`.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 8. `/prd-ground` step 6 does not state its gate order.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 9. `/brd-reconcile` has no disposition for a same-answer resend that carries no `Re-puts:` line.
+   - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 10. The order of `/brd-split`'s parent and child writes is untraced.
+    - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 11. The fallback's `git log` is reachable from HEAD only.
+    - Fixed: see `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md`
 
 **Method notes new to round 3:**
 - **`temporal` is the noisiest family** (260 hits). Most were `RUN` or `RULE`. Its true positives were pre-feature "as today" idioms and stale not-yet claims.

@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.3.4] — 2026-09-24
+
+**Update `workflows-core` to 1.7.6 with this release**: its `escalation-rules` scopes the `key dir not found` rule to an address that resolved to no folder and names this release's `*_BRD_NOT_SLICED`, `*_FOLDER_NOT_PLACED` and `*_NO_PRD` stops as the cases it does not cover. An older one still sends a folder that is there to that rule.
+
+### Fixed — behaviour
+
+- **`/document` and `/release-notes` stopped on a folder that resolved, but holds no PRD they can read, with the `key dir not found` rule** (vi). A BRD container, a folder `workflows-core:addressing` §4.1 places at no level, and a PRD folder holding no `prd.md` each offered `["Re-enter key", "Cancel"]`, and re-entering a key that resolved cannot help. Each case now has a named stop in Phase 0 step 1, taken before Phase 1 asks anything:
+  - `DOCUMENT_BRD_NOT_SLICED` / `RELEASE_NOTES_BRD_NOT_SLICED` on a BRD container. It lists each slice under the container by §4.1's positive test and offers `["Enter a slice key", "Cancel"]`. The key typed is resolved against the keyed slices the stop listed, never parsed or searched for on its own, and a slice whose carrier asserts no key is listed by its path and cannot be entered. A container with no slice yet gets a plain stop naming `/product-workflows:brd-split <KEY> "<how to cut it>"`.
+  - `DOCUMENT_FOLDER_NOT_PLACED` / `RELEASE_NOTES_FOLDER_NOT_PLACED` on a folder placed at no level. This is a plain stop with no `choices:`, because nothing the run can offer fixes the folder. It names what the folder carries and the remedy: give it a carrier, and, where it holds an `idea.md` and no `prd.md`, run `/product-workflows:create-prd <KEY>`.
+  - `DOCUMENT_NO_PRD` / `RELEASE_NOTES_NO_PRD` on a PRD folder holding no `prd.md`, tested on the file's presence, so a `prd.md` asserting no `kind: prd` is read and not refused. The remedy follows `/product-workflows:epics`' `EPICS_NO_PRD` table. An idea-route folder is told to run `/create-prd` first. A BRD-route slice is told what its own ledger calls for: `/brd-split <KEY>` where a claimed row is still `unallocated`, the parent's `/brd-split` for a standing empty child, no command where the slice claims rows and none is `covered-here`, and a report of the missing file where the slice has no ledger. An Epic folder with no PRD folder above it is told to move the Epic folder into one.
+  - A PRD folder that resolves with no key, an `@<path>` to a folder with no carrier, now stops too, naming the carrier to add or the `<KEY>` to address it by, since both commands need the key.
+
+  The Phase 3 sites that repeated the old rule now say Phase 0 has already stopped such a run. `docs/commands/document.md` and `docs/commands/release-notes.md` document the stops.
+- **`/release-notes` had no disposition for a malformed key** (N25). `resolve-address`'s `status: invalid`, for a token that fails `workflows-core:addressing` §1's grammar, now stops with `RELEASE_NOTES_NEEDS_KEY`, naming that token. That is the stop a run with no address already takes, and the grammar is tested before `$SPECS_PATH` is. `docs/commands/release-notes.md` says so.
+- **`/release-notes` tested for a PRD before the specs-repo preflight had settled the checkout's branch.** Where a stale plugin branch was checked out, a `prd.md` that is on the default branch could look absent. The preflight now runs as soon as step 1 has resolved and placed the address, and the named stops above are tested only after it. `/document` runs its preflight in the shared *Mode detection* section, ahead of Phase 0, so its stops already came after it.
+- **`/document`'s specs-repo preflight dropped the PRD key on an Epic run** (N28). The run key set it hands the preflight (`workflows-core:specs-repo-git` §3.2) held only the resolved Epic key, so §3.5 resolved a `prd/<PRD-KEY>-…` branch to no key and switched away from a branch the run should have kept. The key set is now fixed before either mode runs, from carrier frontmatter alone. In Mode A it holds the resolved key and, on an Epic-level folder, the key its parent's carrier asserts. In Mode B it is empty.
+
 ## [1.3.3] — 2026-09-23
 
 ### Changed

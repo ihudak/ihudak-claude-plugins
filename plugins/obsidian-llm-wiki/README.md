@@ -77,18 +77,18 @@ Complete installation has three parts: (A) install the plugin into your agent, (
 configure your vault path if it differs from the default, (C) integrate the wiki layer
 into your vault's instruction files (one-time, commit to the vault repo).
 
-For the marketplace install shared across the `ihudak-plugins` plugins, see the [repo-root setup guide](../../README.md); the vault-specific steps below are unique to this plugin.
+For the marketplace install shared across the `shipwright` plugins, see the [repo-root setup guide](../../README.md); the vault-specific steps below are unique to this plugin.
 
 ### Part A — Install the Plugin
 
 #### Claude Code (marketplace)
 
-The marketplace is registered as **`ihudak-plugins`** (pointing to `ihudak/ihudak-claude-plugins`
+The marketplace is registered as **`shipwright`** (pointing to `ihudak/ai-workflows`
 on GitHub). If it is not yet registered on your machine, add it once via Claude Code settings
 or the `/plugin` command, then install:
 
 ```
-/plugin install obsidian-llm-wiki@ihudak-plugins
+/plugin install obsidian-llm-wiki@shipwright
 ```
 
 Plugin content installs under `~/.claude/plugins/cache/<marketplace>/obsidian-llm-wiki/<version>/`; persistent plugin state (if any) lives under `~/.claude/plugins/data/obsidian-llm-wiki-<marketplace>/`.

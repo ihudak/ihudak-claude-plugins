@@ -17,30 +17,30 @@ sits with PA/Dev rather than PM.
 ```mermaid
 flowchart TD
     subgraph PM["PM — owns the route"]
-        intake["/brd-intake &lt;BRD&gt;"]
-        splitroot["/brd-split &lt;BRD&gt; &lt;instruction&gt; (full)"]
-        splitslice["/brd-split &lt;SLICE&gt; (allocate-only)"]
-        interview["/brd-interview &lt;SLICE&gt;"]
-        package["/brd-package &lt;SLICE&gt;"]
-        reconcile["/brd-reconcile &lt;SLICE&gt;"]
+        intake["/brd-intake &lt;BRD&gt;"]:::prod
+        splitroot["/brd-split &lt;BRD&gt; &lt;instruction&gt; (full)"]:::prod
+        splitslice["/brd-split &lt;SLICE&gt; (allocate-only)"]:::prod
+        interview["/brd-interview &lt;SLICE&gt;"]:::prod
+        package["/brd-package &lt;SLICE&gt;"]:::prod
+        reconcile["/brd-reconcile &lt;SLICE&gt;"]:::prod
     end
     subgraph PAD["PA/Dev — grounding, PM-initiated"]
-        ground["/prd-ground &lt;SLICE&gt;"]
+        ground["/prd-ground &lt;SLICE&gt;"]:::prod
     end
     subgraph OFF["Off-platform — the customer, with a vanilla agent and nothing installed"]
-        review["the customer reviews the bundle"]
+        review["the customer reviews the bundle"]:::cust
     end
     subgraph OUT["PM/PA/PE — the PRD pipeline this route hands over to"]
-        createprd["/create-prd"]
-        createard["/create-ard"]
-        specify["/specify"]
+        createprd["/create-prd"]:::prod
+        createard["/create-ard"]:::prod
+        specify["/specify"]:::prod
     end
 
-    intake --> splitroot
+    intake -->|inventory + ledger| splitroot
     splitroot -->|each confirmed slice, a PRD- folder| ground
-    ground --> splitslice
-    splitslice --> interview
-    interview --> package
+    ground -->|"verified [CG#n]/[DG#n] — required before the walk"| splitslice
+    splitslice -->|allocated ledger| interview
+    interview -->|"decisions.md + held [C] questions"| package
     package -->|bundle sent| review
     review -->|answers come back as one file| reconcile
     reconcile -.->|a decision reopened, or a question askable again| interview
@@ -48,10 +48,14 @@ flowchart TD
     reconcile -->|slice key + the BRD route — nothing left to re-enter for, fully allocated, one row covered-here| createprd
     reconcile -->|slice key + the BRD route — nothing left to re-enter for| createard
     reconcile -->|slice key + the BRD route — nothing left to re-enter for| specify
+    interview -.->|nothing for the customer to review, one row covered-here — no reconciliation needed| createprd
+
+    classDef prod fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
+    classDef cust fill:#f3f4f6,stroke:#6b7280,color:#1f2937
 ```
 
 **The right-hand box is not part of the route.** Its three nodes are the PRD pipeline's own
-commands, drawn here because `/brd-reconcile` is where this route hands over to them and a reader
+commands, drawn here because `/brd-reconcile` is where this route hands over to them — and `/brd-interview`, on a slice that needs no customer review — and a reader
 following the diagram needs somewhere to go next. The route itself is still the six commands above —
 five `/brd-*` commands and `/prd-ground`: nothing in that box extracts a requirement or allocates a ledger row —
 each of the three reads what this route already wrote, at its own altitude, beside the documentation
@@ -215,7 +219,12 @@ each command ties the answer back to the decision.
 whose tree holds nothing the review made false is the state the PRD pipeline is entered from.
 the BRD route **ships** on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s
 next-step phase names all three — **against a slice key, and on a run that left nothing to re-enter
-for.**
+for.** **A slice that needs no customer review hands over one step earlier**: where `/brd-interview`
+settled every question from the findings and the slice's ledger holds a `covered-here` row, it names
+the same three, since each gates the slice's `decisions.md` and none reads a reconciliation record.
+The conditions below are written for `/brd-reconcile`'s phase; the level and ledger conditions bind
+`/brd-interview`'s offer the same way, and it has no re-entry split to make, since nothing in that
+state is left for a customer.
 
 **The first condition is the level, and it is the one this increment added.** A BRD is a container:
 `prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders under it, one of

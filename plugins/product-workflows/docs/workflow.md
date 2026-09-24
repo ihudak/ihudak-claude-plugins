@@ -1,52 +1,57 @@
 # Workflow overview
 
-This is the `product-workflows` pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/specify` is where this plugin's spine ends, handing `specification.md` to the companion `dev-workflows` plugin's `/dev-workflows:design`, which carries the pipeline the rest of the way to shipped code and, through the companion `docs-workflows` plugin, product documentation and release notes. A second route into a PRD exists alongside it: `/brd-intake → /brd-split → /prd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` — the second `/brd-split` running on each slice the first carved — turns a customer-supplied BRD into a grounded, allocated, decided and customer-reviewed requirement inventory instead of a PM-authored idea, then hands over to `/create-prd`, `/create-ard` or `/specify` on the BRD route — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table. `/prd-ground` is one command serving both routes, its own subgraph reached with a solid edge from `/brd-split (root)` — grounding is required there before the allocation walk — and a dashed edge from `/create-prd`, where it is optional: run against a PRD's own `[AC#n]`/`[FR#n]` rows, it seeds `/create-ard` and `/specify` with verified findings the same way it seeds `/brd-split`'s slice with them on the other route.
+This is the `product-workflows` pipeline top to bottom — every command shown here, in the order the roles typically hand work to each other. `/idea → /create-prd` opens a Product Requirements Document; `/specify` is where this plugin's spine ends, handing `specification.md` to the companion `dev-workflows` plugin's `/dev-workflows:design`, which carries the pipeline the rest of the way to shipped code and, through the companion `docs-workflows` plugin, product documentation and release notes. A second route into a PRD exists alongside it: `/brd-intake → /brd-split → /prd-ground → /brd-split → /brd-interview → /brd-package → /brd-reconcile` — the second `/brd-split` running on each slice the first carved — turns a customer-supplied BRD into a grounded, allocated and decided requirement inventory — customer-reviewed wherever a decision is the customer's to make — instead of a PM-authored idea, then hands over to `/create-prd`, `/create-ard` or `/specify` on the BRD route — see [BRD workflow](brd-workflow.md) for its own diagram and parameter table. `/prd-ground` is one command serving both routes, its own subgraph reached with a solid edge from `/brd-split (root)` — grounding is required there before the allocation walk — and a dashed edge from `/create-prd`, where it is optional: run against a PRD's own `[AC#n]`/`[FR#n]` rows, it seeds `/create-ard` and `/specify` with verified findings the same way it seeds `/brd-split`'s slice with them on the other route.
 
 ```mermaid
 flowchart TD
     subgraph PM["PM — ideation & framing"]
-        idea["/idea"] --> createvi["/create-prd"]
-        createvi --> rnpm["/docs-workflows:release-notes (early draft)"]
-        createvi -.->|PRD exists| updatevi["/update-prd"]
-        updatevi --> rnpm
+        idea["/idea"]:::prod -->|idea.md| createvi["/create-prd"]:::prod
+        createvi -.->|prd.md| rnpm["/docs-workflows:release-notes (early draft)"]:::docs
+        createvi -.->|PRD exists| updatevi["/update-prd"]:::prod
+        updatevi -.->|prd.md| rnpm
     end
     subgraph BRD["PM/PA/Dev — BRD-to-PRD route (alt. entry)"]
-        brdintake["/brd-intake"] --> brdsplitroot["/brd-split (root)"]
-        brdsplitslice["/brd-split (slice)"] --> brdinterview["/brd-interview"] --> brdpackage["/brd-package"]
-        brdreconcile["/brd-reconcile"]
+        brdintake["/brd-intake"]:::prod -->|inventory + ledger| brdsplitroot["/brd-split (root)"]:::prod
+        brdsplitslice["/brd-split (slice)"]:::prod -->|allocated ledger| brdinterview["/brd-interview"]:::prod
+        brdinterview -->|"decisions.md + held [C] questions"| brdpackage["/brd-package"]:::prod
+        brdreconcile["/brd-reconcile"]:::prod
     end
     subgraph CUST["Off-platform — the customer, nothing installed"]
-        brdreview["the customer reviews the bundle"]
+        brdreview["the customer reviews the bundle"]:::cust
     end
     subgraph GR["PA — grounding (one command, both routes)"]
-        prdground["/prd-ground"]
+        prdground["/prd-ground"]:::prod
     end
     subgraph PA["PA — architecture (optional)"]
-        createard["/create-ard"]
+        createard["/create-ard"]:::prod
     end
     subgraph PE["PE — breakdown & specification"]
-        epics["/epics"]
-        specify["/specify"]
+        epics["/epics"]:::prod
+        specify["/specify"]:::prod
     end
     subgraph EST["PM — effort proposals (optional, gates nothing on the build ladder)"]
-        prdproposal["/prd-proposal"]
-        brdproposal["/brd-proposal"]
+        prdproposal["/prd-proposal"]:::prod
+        brdproposal["/brd-proposal"]:::prod
     end
     subgraph DEV["Dev — build, verify & deliver (dev-workflows)"]
-        design["/dev-workflows:design"] --> implement["/dev-workflows:implement"]
-        ready["/dev-workflows:ready"]
+        design["/dev-workflows:design"]:::dev -->|design.md| implement["/dev-workflows:implement"]:::dev
+        ready["/dev-workflows:ready"]:::dev
     end
 
-    createvi -->|PRD| createard
-    createvi -->|PRD| epics
-    createard -->|ARD| epics
-    epics -->|Epic drafts| specify
-    createvi -->|PRD-level spec| specify
+    createvi -->|prd.md| createard
+    createvi -->|prd.md| epics
+    createard -->|ard.md| epics
+    epics -->|epic.md| specify
+    createvi -->|prd.md| specify
+    specify -.->|PRD-level specification.md| epics
     specify -->|specification.md| design
-    ready -. verifies ARD/spec/design .-> implement
+    createard -.->|Epic-level ARD| design
+    design -.->|design.md + specification.md| ready
+    ready -.->|_readiness.md — advisory| implement
     brdsplitroot -->|"each confirmed slice — claims are its [BR#n] rows"| prdground
     prdground -->|"verified [CG#n]/[DG#n] — required before the walk"| brdsplitslice
     createvi -.->|"optional — claims are the PRD's own [AC#n]/[FR#n]"| prdground
+    prdground -.->|"a claim came back CONFIRMED — recommended"| updatevi
     createvi -.->|optional — priced from whatever readiness the folder has reached| prdproposal
     prdproposal -->|each included slice's proposal.md| brdproposal
     prdground -.->|"verified [CG#n]/[DG#n]"| createard
@@ -58,16 +63,24 @@ flowchart TD
     brdreconcile -->|slice key + the BRD route — nothing left to re-enter for, fully allocated, one row covered-here| createvi
     brdreconcile -->|slice key + the BRD route — nothing left to re-enter for| createard
     brdreconcile -->|slice key + the BRD route — nothing left to re-enter for| specify
-    implement -.->|documentation & release notes, in docs-workflows| docsplugin["/docs-workflows:document · /docs-workflows:release-notes"]
+    brdinterview -.->|nothing for the customer to review, one row covered-here — no reconciliation needed| createvi
+    implement -.->|code + implementation.md, in docs-workflows| docsplugin["/docs-workflows:document · /docs-workflows:release-notes"]:::docs
+
+    classDef prod fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
+    classDef dev fill:#dcfce7,stroke:#15803d,color:#14532d
+    classDef docs fill:#fef3c7,stroke:#b45309,color:#78350f
+    classDef cust fill:#f3f4f6,stroke:#6b7280,color:#1f2937
 ```
 
-The diagram draws the ARD reaching `/epics`, but that is one of five consumers: `/epics`, `/specify`, and the companion `dev-workflows` plugin's `/dev-workflows:design`, `/dev-workflows:implement`, and `/dev-workflows:ready` all resolve the applicable ARD once it exists. The edge is drawn once to keep the diagram readable, not because the others do not consult it.
+The diagram draws the ARD reaching `/epics`, and an Epic-level ARD reaching `/dev-workflows:design`, but those are two of five consumers: `/epics`, `/specify`, and the companion `dev-workflows` plugin's `/dev-workflows:design`, `/dev-workflows:implement`, and `/dev-workflows:ready` all resolve the applicable ARD once it exists. The edges are drawn sparingly to keep the diagram readable, not because the others do not consult it.
 
 The BRD-to-PRD route hands over at `/brd-reconcile`, and the diagram draws that handover as **three** edges rather than one, because the BRD route ships on `/create-prd`, `/create-ard` and `/specify` and `/brd-reconcile`'s next-step phase offers all three against the same **slice** key **on a run that left nothing to re-enter for** — a reopened decision, a customer question still held, a finding left to re-derive, or a dependent it could only sweep on paper each drop all three, because a reopened record may not be consumed downstream and all three consume the register. **A slice key and never a root BRD key**: a BRD is a container, its `prd.md`, `ard.md` and `specification.md` are authored in the `PRD-` slice folders under it, and each of the three refuses a `BRD-` folder in its own Phase 0 — moot in practice, since `/brd-reconcile` itself refuses a resolved root before this next-step phase can ever run (`BRD_RECONCILE_ROOT_LEVEL`), naming `/brd-split` as the way to carve a slice first. On an advancing slice run only the first carries a further condition: `/create-prd <SLICE-KEY>` is offered where the reconciled ledger leaves no row `unallocated` and at least one `covered-here`, which are the two refusals its own Phase 0 raises, both read over the slice's own claimed rows. `/create-ard <SLICE-KEY>` and `/specify <SLICE-KEY>` add none of their own, since neither reads the ledger as an authoring input, and the PRD gate both run reports an absent PRD rather than stopping on it. All three do gate the register — `require-on-main` on `decisions.md`, which stops on one `/brd-reconcile` handed off and nobody merged, and is why each of the three offers carries a merge clause — but that gate tests which ref the register is on and never what it holds, so none of them refuses a merged register carrying a reopened decision, and that judgement sits with `/brd-reconcile` alone. The three are alternatives, not a sequence — neither of the other two waits on the PRD — so `/brd-reconcile` is where the route hands over, not where it ends.
 
+**The route also hands over one step earlier, on a slice that needs no customer review.** Where every question was settled from the findings and the slice's ledger holds a `covered-here` row, `/brd-interview` offers the same three commands — `/create-prd` in its list, `/create-ard` and `/specify` named beside it — because all three gate the slice's `decisions.md` and none reads a reconciliation record. The diagram draws that as one dashed edge, to `/create-prd`.
+
 The `Off-platform` box is the one node in this diagram no command runs. It is the customer reviewing the bundle with a vanilla agent and nothing installed, and the route waits there — which is why `/brd-reconcile` takes the returned review as an argument rather than looking for it.
 
-The two dashed edges leaving `/brd-reconcile` go to different commands on purpose, and are drawn separately rather than merged under one label: a decision the review reopened is settled by another interview round, while a question the customer left unanswered goes back out in the next package. They are the same two edges [BRD workflow](brd-workflow.md) draws, with the same labels — as are the three handover edges above them, and every other BRD edge here: all twelve edges that page draws appear in this diagram in the same style, and all but two with the same label. The two are the edges into and out of `/prd-ground`, which this diagram labels with what crosses them — the slice's claimed `[BR#n]` rows, and the verified findings the walk requires — where that page names the slice's folder kind on the first and leaves the second unlabelled; neither label contradicts the other, so this diagram summarises that one and never disagrees with it.
+The two dashed edges leaving `/brd-reconcile` go to different commands on purpose, and are drawn separately rather than merged under one label: a decision the review reopened is settled by another interview round, while a question the customer left unanswered goes back out in the next package. They are the same two edges [BRD workflow](brd-workflow.md) draws, with the same labels — as are the three handover edges above them, and every other BRD edge here: all thirteen edges that page draws appear in this diagram in the same style, and all but one with the same label. The one is the edge into `/prd-ground`, which this diagram labels with what crosses it — the slice's claimed `[BR#n]` rows — where that page names the slice's folder kind; neither label contradicts the other, so this diagram summarises that one and never disagrees with it.
 
 Five nodes in the diagram are not this plugin's commands and are drawn for continuity only: `/dev-workflows:design`, `/dev-workflows:implement`, and `/dev-workflows:ready` — where this plugin's spine hands off — plus `/docs-workflows:release-notes` as the PM's early draft and the combined `/docs-workflows:document · /docs-workflows:release-notes` handoff hanging off `/dev-workflows:implement`. `/dev-workflows:design`, `/dev-workflows:implement`, and `/dev-workflows:ready` ship in the companion `dev-workflows` plugin; `/docs-workflows:document` and `/docs-workflows:release-notes` ship in the companion `docs-workflows` plugin. All are documented there, not here.
 

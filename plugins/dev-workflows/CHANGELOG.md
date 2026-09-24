@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [4.2.5] — 2026-09-24
+
+### Changed — the marketplace is now `shipwright`, and the repository `ihudak/ai-workflows`
+
+The marketplace was `ihudak-plugins`, at `ihudak/ihudak-claude-plugins`. GitHub redirects the old repository URL, but the marketplace name is part of every install key (`<plugin>@ihudak-plugins`), so moving to the new name means registering the marketplace again. Removing a marketplace uninstalls the plugins installed from it, so reinstall each one you had:
+
+```bash
+claude plugin marketplace remove ihudak-plugins
+claude plugin marketplace add ihudak/ai-workflows
+claude plugin install <plugin>@shipwright
+```
+
+Run the last line once per plugin you use, then restart Claude Code. Environment variables and your specs, docs and code repositories are not touched. This plugin's `homepage` and `repository` now point at the new repository.
+
+### Fixed — documentation
+
+- The Workflow overview diagram now draws `/ready`'s inputs (`design.md` and `specification.md`) and its advisory `_readiness.md` into `/implement`, the ARD reaching `/design`, and `implementation.md` on the edge into the documentation commands. Every node is coloured by the plugin that ships it.
+
 ## [4.2.4] — 2026-09-24
 
 **Update `workflows-core` to 1.7.6 with this release**: it deletes the `key dir not found` rule's grammar-failure clause, which `/ready`'s `status: invalid` stop below replaces.

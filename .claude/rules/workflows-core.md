@@ -21,7 +21,7 @@ The host installs `workflows-core` alongside any of the three family plugins tha
 
 ## Docs tree
 
-`workflows-core` carries 16 pages — `docs/README.md` (the index), `getting-started.md`, `workflow.md` and `roles-and-phases.md`, 6 command pages under `docs/commands/` and 6 reference pages under `docs/reference/`.
+`workflows-core` carries 17 pages — `docs/README.md` (the index), `getting-started.md`, `workflow.md`, `family-map.md` and `roles-and-phases.md`, 6 command pages under `docs/commands/` and 6 reference pages under `docs/reference/`.
 
 ## Model routing reference
 

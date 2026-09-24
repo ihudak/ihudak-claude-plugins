@@ -7,13 +7,13 @@ This page takes you from zero to your first successful run — install the plugi
 ### 1. Add this marketplace to Claude Code (once)
 
 ```bash
-claude plugin marketplace add ihudak/ihudak-claude-plugins
+claude plugin marketplace add ihudak/ai-workflows
 ```
 
 ### 2. Install the plugin
 
 ```bash
-claude plugin install docs-workflows@ihudak-plugins
+claude plugin install docs-workflows@shipwright
 ```
 
 Two other plugins arrive with it, because they are **declared dependencies** rather than suggestions. `workflows-core` carries the shared reference corpus every command here loads at runtime — an unsatisfied dependency disables the plugin instead of letting it half-run, which is the intended behaviour: there is no degraded mode to fall back to. `prose-style` is the complementary semantic prose pass the style check runs alongside a repo's own linter, and the fallback linter when a repository configures none.
@@ -25,9 +25,9 @@ Two other plugins arrive with it, because they are **declared dependencies** rat
 ## Update
 
 ```bash
-claude plugin marketplace update ihudak-plugins
-claude plugin update docs-workflows@ihudak-plugins
-claude plugin update prose-style@ihudak-plugins
+claude plugin marketplace update shipwright
+claude plugin update docs-workflows@shipwright
+claude plugin update prose-style@shipwright
 ```
 
 **Both kinds of step are needed, and the `plugin update` lines are the ones that change what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one. **Update `prose-style` with it**: 0.4.0 is the release whose checker applies the specs repository's house-style rules to `/release-notes`' draft, and beside an older one that command records its style check `DEGRADED` and says to update `prose-style`.

@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [3.8.4] — 2026-09-24
+
+### Changed — the marketplace is now `shipwright`, and the repository `ihudak/ai-workflows`
+
+The marketplace was `ihudak-plugins`, at `ihudak/ihudak-claude-plugins`. GitHub redirects the old repository URL, but the marketplace name is part of every install key (`<plugin>@ihudak-plugins`), so moving to the new name means registering the marketplace again. Removing a marketplace uninstalls the plugins installed from it, so reinstall each one you had:
+
+```bash
+claude plugin marketplace remove ihudak-plugins
+claude plugin marketplace add ihudak/ai-workflows
+claude plugin install <plugin>@shipwright
+```
+
+Run the last line once per plugin you use, then restart Claude Code. Environment variables and your specs, docs and code repositories are not touched. This plugin's `homepage` and `repository` now point at the new repository.
+
+### Fixed — behaviour
+
+- **`/brd-interview` no longer leaves a decided slice with nowhere to go.** Where every question was settled from the verified findings, so the slice needs no customer review, the run said the BRD was decided but offered neither the packaging step nor any authoring command — although `/create-prd`, `/create-ard` and `/specify` each gate the slice's `decisions.md` and read no reconciliation record. It now offers the three, `/create-prd` in its list and the other two beside it, wherever the slice's ledger holds a `covered-here` row; a slice holding none is told so, since `/create-prd` refuses it. `/create-prd`, `/create-ard` and `/specify` now describe their BRD-route input as a *decided* BRD slice rather than a reconciled one.
+
+### Fixed — documentation
+
+- The Workflow overview diagram labelled the `/create-prd` → `/specify` edge "PRD-level spec"; what crosses it is `prd.md`. It now also draws `/prd-ground`'s recommended hand-off to `/update-prd` on a CONFIRMED claim, a PRD-level `specification.md` feeding `/epics`, an Epic-level ARD reaching `/dev-workflows:design`, `/dev-workflows:ready` reading what `/dev-workflows:design` leaves, and the new `/brd-interview` hand-over. Its edges name the deliverable that crosses them, and every node is coloured by the plugin that ships it. The BRD workflow diagram gains the same hand-over, labels on its previously unlabelled edges, and the same colours.
+
 ## [3.8.3] — 2026-09-24
 
 **Update `workflows-core` to 1.7.6 with this release**: its `grounding-format` §8 supersedes an on-file finding a verifier contradicts, and §5 supersedes one whose horizon moves; `/prd-ground` now writes both and `/brd-interview` reads them. Its `phase-handoff` §3.4 carries the `/prd-ground` and `/brd-package` stops below. An older `workflows-core` describes an in-place rewrite and row-F stops this release no longer takes.

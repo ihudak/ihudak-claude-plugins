@@ -5,39 +5,53 @@
 ```mermaid
 flowchart TD
     subgraph UP["Upstream — in the product-workflows and dev-workflows plugins"]
-        implement["/dev-workflows:implement"]
-        createprd["/product-workflows:create-prd"]
+        implement["/dev-workflows:implement"]:::dev
+        createprd["/product-workflows:create-prd"]:::prod
+        createard["/product-workflows:create-ard"]:::prod
+    end
+    subgraph EARLY["PM — an early draft"]
+        rnpm["/docs-workflows:release-notes (early draft)"]:::docs
     end
     subgraph DOCS["Dev — documentation & release notes"]
-        document["/docs-workflows:document"]
-        rndev["/docs-workflows:release-notes (final)"]
-        document --> rndev
+        document["/docs-workflows:document"]:::docs
+        rndev["/docs-workflows:release-notes (final)"]:::docs
     end
     subgraph COLD["Cold start — a project with no docs repository"]
-        init["/docs-workflows:docs-init"]
+        init["/docs-workflows:docs-init"]:::docs
     end
     subgraph PLAN["Plan — what the portal is still missing"]
-        audit["/docs-workflows:docs-audit"]
+        audit["/docs-workflows:docs-audit"]:::docs
     end
     subgraph SETUP["Anytime — setup utilities"]
-        profile["/docs-workflows:docs-profile"]
-        brand["/docs-workflows:docs-brand"]
-        docsserve["/docs-workflows:docs-serve"]
+        profile["/docs-workflows:docs-profile"]:::docs
+        brand["/docs-workflows:docs-brand"]:::docs
+        docsserve["/docs-workflows:docs-serve"]:::docs
     end
 
-    implement -->|every Epic implemented| document
-    createprd -.->|early draft, before any spec or design| rndev
+    implement -->|every Epic implemented — implementation.md| document
+    implement -.->|implementation.md — diff grounding on| rndev
+    createprd -.->|prd.md, before any spec or design| rnpm
+    createprd -->|prd.md| rndev
+    document -.->|next step, not an input| rndev
     init -->|inline| brand
     init -->|"source_repos[] in the profile"| audit
-    audit -.->|"you work the backlog unit by unit"| document
+    createard -.->|ard.md| audit
+    rndev -.->|release-notes.md| audit
+    audit -.->|a backlog a person works through — /document never reads it| document
     init -->|.dev-workflows/docs-profile.yml| docsserve
     profile -.->|.dev-workflows/docs-profile.yml| document
     profile -.->|.dev-workflows/docs-profile.yml| audit
     profile -.->|dev_servers block| docsserve
     brand -.->|preview the branded site| docsserve
+
+    classDef prod fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
+    classDef dev fill:#dcfce7,stroke:#15803d,color:#14532d
+    classDef docs fill:#fef3c7,stroke:#b45309,color:#78350f
 ```
 
-Two nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` ships in the companion `dev-workflows` plugin and `/product-workflows:create-prd` in the companion `product-workflows` plugin, and each is documented there.
+Three nodes are drawn for continuity and are not this plugin's commands: `/dev-workflows:implement` ships in the companion `dev-workflows` plugin, and `/product-workflows:create-prd` and `/product-workflows:create-ard` in the companion `product-workflows` plugin, and each is documented there.
+
+**`/release-notes` is drawn twice** because it runs at two moments: an early draft from `prd.md`, before any specification or design, and a final note once the Epics are implemented. It reads nothing `/document` writes — its inputs are `prd.md`, the Epic folder an Epic address names, its own earlier notes, and `implementation.md` where diff grounding is on — so the edge between the two documentation commands is the order `/document` suggests, not a handover. The same holds for `/docs-audit`'s backlog: a person works through it, and `/document` never reads it.
 
 **One command name here collides with a Claude Code built-in of the same name: `/release-notes`.** Typing the bare form reaches Claude Code's own command instead of this one, so use the qualified `/docs-workflows:release-notes`. `/document`, `/docs-init`, `/docs-audit`, `/docs-profile`, `/docs-brand`, and `/docs-serve` are not known to collide today, so the rest work either way, and the diagram above spells out the qualified form throughout because that form always works.
 

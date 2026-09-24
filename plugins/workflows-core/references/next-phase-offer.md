@@ -134,12 +134,17 @@ array carries every option.
   only where this run's own state is one `/product-workflows:brd-package` would accept
   (`/product-workflows:brd-package` Phase 0 owns that test); otherwise → another
   `/product-workflows:brd-interview <BRD-KEY>` round (PM), or `/product-workflows:prd-ground <BRD-KEY>` (PA)
-  for a question no finding bears on yet.
+  for a question no finding bears on yet. Where nothing is left for the customer to review, the slice is
+  decided and hands over from here, with no reconciliation: → `/product-workflows:create-prd <BRD-KEY>`
+  (PM), `/product-workflows:create-ard <BRD-KEY>` (PA, optional) or `/product-workflows:specify <BRD-KEY>`
+  (PE), offered only where the slice's own ledger holds a `covered-here` row
+  (`/product-workflows:brd-interview`'s next-step phase owns that list).
 - `/product-workflows:brd-package <BRD-KEY>` → *(the customer reviews it off-platform, and the round
   holding each customer question stays open until the answer comes back)* →
   `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` (PM).
 - `/product-workflows:brd-reconcile <BRD-KEY> @<review-file>` → the route's hand-over into the PRD
-  pipeline, and its own re-entry. **Re-entry:** another `/product-workflows:brd-interview <BRD-KEY>`
+  pipeline for a slice the customer reviewed (a slice needing no review hands over from
+  `/product-workflows:brd-interview`, above), and its own re-entry. **Re-entry:** another `/product-workflows:brd-interview <BRD-KEY>`
   round where this run reopened a decision and no round stays open holding only questions held for the
   customer — a round open on a *deferred*, *untagged* or *needs grounding* question is one that run
   resumes — `/product-workflows:brd-package <BRD-KEY>` where questions

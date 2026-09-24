@@ -21,7 +21,7 @@ set -uo pipefail
 
 # ---------------------------------------------------------------- edition config
 # THE ONLY PART OF THIS FILE THAT DIFFERS BETWEEN EDITIONS. Never copy it across.
-# Everything below is byte-identical in ihudak-claude-plugins, the internal edition
+# Everything below is byte-identical in ai-workflows, the internal edition
 # and ihudak-copilot-plugins, so a fix to the gate ports by plain `cp` of the body.
 #
 # THE BODY REQUIRES EVERY NAME BELOW TO EXIST. `set -u` is on, so a ported edition whose

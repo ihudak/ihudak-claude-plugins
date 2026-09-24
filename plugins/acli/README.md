@@ -25,6 +25,6 @@ top of upstream:
 ## Install
 
 ```bash
-claude plugin marketplace add ihudak/ihudak-claude-plugins
-claude plugin install acli@ihudak-plugins
+claude plugin marketplace add ihudak/ai-workflows
+claude plugin install acli@shipwright
 ```

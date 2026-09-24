@@ -1,6 +1,6 @@
 # /create-prd
 
-Turns a refined `idea.md` — or a reconciled BRD's product-altitude seed, on the BRD route — plus a key into a high-quality, product-level Product Requirements Document, gated by an Opus review.
+Turns a refined `idea.md` — or a decided BRD slice's register and seed, on the BRD route — plus a key into a high-quality, product-level Product Requirements Document, gated by an Opus review.
 
 ## Who runs it
 
@@ -88,7 +88,7 @@ Author a Product Requirements Document for an already-created empty ticket, from
 
 The run resolves the feature folder, reads `idea.md` directly (no `idea-reader` — it is the plugin's own format, and the images its `## Signals & evidence` cites are carried as provenance, not reopened here: [`/idea`](idea.md) already read them and put what they showed to you), grounds it against the documentation, grills you relentlessly through the spine (Problem, Goal, Target audience, User Stories, Acceptance Criteria, Scope, Success Metrics) plus any adapt-in clusters the idea warrants, runs the style check and pre-lint, then `prd-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request.
 
-Author one from a reconciled BRD slice instead — no path, because the key resolves the folder:
+Author one from a decided BRD slice instead — reconciled with the customer, or needing no customer review at all — no path, because the key resolves the folder:
 
 ```
 /product-workflows:create-prd EPIC-008-01

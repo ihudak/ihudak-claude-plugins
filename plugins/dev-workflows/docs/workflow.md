@@ -5,24 +5,31 @@ This is the `dev-workflows` pipeline top to bottom — every command shown here,
 ```mermaid
 flowchart TD
     subgraph PMPRD["PM/PA/PE — product-workflows (upstream)"]
-        specify["/product-workflows:specify"]
+        specify["/product-workflows:specify"]:::prod
+        createard["/product-workflows:create-ard"]:::prod
     end
     subgraph DEV["Dev — build, verify & deliver"]
-        design["/design"] --> implement["/implement"]
-        ready["/ready"]
+        design["/design"]:::dev -->|design.md| implement["/implement"]:::dev
+        ready["/ready"]:::dev
     end
     subgraph ANY["Anytime — standalone maintenance & utilities"]
-        maint["/vuln · /dev-workflows:upgrade"]
+        maint["/vuln · /dev-workflows:upgrade"]:::dev
     end
 
     specify -->|specification.md| design
-    ready -. verifies ARD/spec/design .-> implement
-    implement -.->|documentation & release notes, in docs-workflows| docsplugin["/docs-workflows:document · /docs-workflows:release-notes"]
+    createard -.->|ard.md| design
+    design -.->|design.md + specification.md| ready
+    ready -.->|_readiness.md — advisory| implement
+    implement -.->|code + implementation.md, in docs-workflows| docsplugin["/docs-workflows:document · /docs-workflows:release-notes"]:::docs
+
+    classDef prod fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
+    classDef dev fill:#dcfce7,stroke:#15803d,color:#14532d
+    classDef docs fill:#fef3c7,stroke:#b45309,color:#78350f
 ```
 
-The diagram draws `specification.md` reaching `/design` alone, but `/implement` and `/ready` also resolve the applicable ARD and the in-scope `specification.md`/`design.md` once they exist — the edge is drawn once to keep the diagram readable, not because the others do not consult those artifacts.
+The diagram draws `specification.md` and the ARD reaching `/design`, and `/ready` reading what `/design` leaves, but `/implement` and `/ready` also resolve the applicable ARD and the in-scope `specification.md`/`design.md` once they exist — each edge is drawn once to keep the diagram readable, not because the others do not consult those artifacts. `/ready`'s verdict, `_readiness.md`, is advice `/implement` reads; it blocks nothing.
 
-One node in this diagram is not this plugin's command and is drawn for continuity only: `/product-workflows:specify`, where this plugin's spine picks up. It ships in the companion `product-workflows` plugin, alongside `/idea`, `/create-prd`, `/update-prd`, `/create-ard`, `/epics`, and the six-command BRD-to-PRD route that feeds it — that plugin's own Workflow overview page carries the full upstream diagram. The combined `/docs-workflows:document · /docs-workflows:release-notes` handoff hanging off `/implement` ships in the companion `docs-workflows` plugin and is documented there.
+Two nodes in this diagram are not this plugin's commands and are drawn for continuity only: `/product-workflows:specify`, where this plugin's spine picks up, and `/product-workflows:create-ard`, whose ARD `/design` respects. Both ship in the companion `product-workflows` plugin, alongside `/idea`, `/create-prd`, `/update-prd`, `/epics`, and the six-command BRD-to-PRD route that feeds it — that plugin's own Workflow overview page carries the full upstream diagram. The combined `/docs-workflows:document · /docs-workflows:release-notes` handoff hanging off `/implement` ships in the companion `docs-workflows` plugin and is documented there.
 
 The diagram above shows where each command sits in the pipeline; [Roles and phases](roles-and-phases.md) says what each role is accountable for and what it hands over at each seam.
 

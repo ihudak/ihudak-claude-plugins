@@ -4,9 +4,9 @@ Guidance for Claude Code when working in this repository.
 
 ## What this repo is
 
-A public, open-source Claude Code plugin marketplace hosted at `github.com/ihudak/ihudak-claude-plugins`.
-Added with `claude plugin marketplace add ihudak/ihudak-claude-plugins`, after which it appears in
-that machine's `~/.claude/plugins/known_marketplaces.json` as `ihudak-plugins`. Registration is
+A public, open-source Claude Code plugin marketplace hosted at `github.com/ihudak/ai-workflows`.
+Added with `claude plugin marketplace add ihudak/ai-workflows`, after which it appears in
+that machine's `~/.claude/plugins/known_marketplaces.json` as `shipwright`. Registration is
 per-machine — do not assume any given environment has it.
 
 ## Structure
@@ -171,15 +171,15 @@ each machine so Claude Code picks up the new command, agent, hook, and
 reference content:
 
 ```bash
-claude plugin update dev-workflows@ihudak-plugins
-claude plugin update product-workflows@ihudak-plugins
-claude plugin update docs-workflows@ihudak-plugins
-claude plugin update workflows-core@ihudak-plugins
+claude plugin update dev-workflows@shipwright
+claude plugin update product-workflows@shipwright
+claude plugin update docs-workflows@shipwright
+claude plugin update workflows-core@shipwright
 ```
 
 - **`claude plugin update` requires a restart to apply** — the CLI says so itself.
 - **There is no `claude plugin reinstall`.** The verb is `update`. Verify a command against `claude plugin --help` before writing it into `CLAUDE.md` or `.claude/rules/` — agents run what those files say, and a command that does not exist fails in a way that looks like a broken plugin. ([why](docs/maintainers/rationale.md#plugin-update-cli))
-- **Update `prose-style` with `docs-workflows` past 1.1.3** (`claude plugin update prose-style@ihudak-plugins`): beside a `prose-style` older than 0.4.0, `/release-notes` records its style check `DEGRADED`.
+- **Update `prose-style` with `docs-workflows` past 1.1.3** (`claude plugin update prose-style@shipwright`): beside a `prose-style` older than 0.4.0, `/release-notes` records its style check `DEGRADED`.
 - **Update the plugin that holds the file you edited — not the one whose workflow you were thinking about.** An update re-fetches exactly one plugin: the shared references, shared agents and family-meta commands are `workflows-core`'s, the product-definition commands and their agents and references `product-workflows`'s, the documentation commands `docs-workflows`'s. Otherwise the run picks up the old content and the change looks like it did not land.
 - **`claude plugin marketplace update <marketplace>` does NOT update installed plugins.** It refreshes the *catalogue* — what the marketplace advertises — which is what makes a newly added plugin installable. An already-installed plugin stays at the version it was installed at. Use `claude plugin update` per plugin, or the interactive `/plugins` interface inside Claude Code, which does upgrade what is installed. ([why](docs/maintainers/rationale.md#plugin-update-cli))
 - **The `/plugins` interface inside Claude Code upgrades what is already installed**, and **AutoUpdate** is settable per plugin there, after which nothing above is needed. This is a human step: an agent cannot drive that interface, so it uses the per-plugin `update` command.
@@ -196,7 +196,7 @@ marketplace-specific behaviors that are easy to forget during workflow edits.
 
 ## Git
 
-- `origin` → `git@github.com:ihudak/ihudak-claude-plugins.git`
+- `origin` → `git@github.com:ihudak/ai-workflows.git`
 - Default branch: `main`
 - **Verify the current branch immediately before every commit — `git branch --show-current`.** This checkout can be shared by more than one agent session at once, and a `git checkout` in any of them moves the working tree for all of them. The branch checked at the start of a run is not evidence about the branch you are on now. ([why](docs/maintainers/rationale.md#verify-branch-before-commit))
 - **When work must land on `main` while this tree sits on another branch, use `git worktree add` — never `git checkout` here.** Switching this tree yanks it out from under whoever else is working in it. Cherry-pick or commit in the temporary worktree, run the gates there, push from there, then `git worktree remove`. Leave another session's branch exactly as you found it: not rewritten, not deleted, not pushed. ([why](docs/maintainers/rationale.md#worktree-not-checkout))

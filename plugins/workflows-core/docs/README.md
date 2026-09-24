@@ -3,6 +3,7 @@
 | I want to… | Go to |
 |---|---|
 | install this and set it up | [Getting started](getting-started.md) |
+| see the whole plugin family on one diagram — roles, plugins, and what each command hands the next | [Family map](family-map.md) |
 | see where these commands sit | [Workflow](workflow.md) |
 | know which cost phase a run is charged to | [Roles and phases](roles-and-phases.md) |
 | tell the plugin family it got something wrong | [`/feedback`](commands/feedback.md), [`/prompt`](commands/prompt.md) |

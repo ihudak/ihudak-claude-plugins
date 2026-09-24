@@ -1,6 +1,8 @@
-# ihudak-claude-plugins
+# ai-workflows
 
-Ivan Gudak's open-source Claude Code plugin marketplace.
+Ivan Gudak's open-source Claude Code plugin marketplace, **Shipwright**: plugins that take work from an idea or a business requirements document to shipped, documented software. It is installed as the `shipwright` marketplace.
+
+**Moving from `ihudak-plugins`?** This repository used to be `ihudak/ihudak-claude-plugins`, with the marketplace named `ihudak-plugins`. See [Moving from the old marketplace name](#moving-from-the-old-marketplace-name).
 
 ## Plugins
 
@@ -14,6 +16,10 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 | [prose-style](plugins/prose-style/) | Pluggable prose style enforcement: `/prose-review-pr`, `/prose-review-docs`, `/prose-style-refresh`, plus sub-agents `product-workflows` and `docs-workflows` use. Vendor-neutral, overridable baseline. |
 | [obsidian-llm-wiki](plugins/obsidian-llm-wiki/) | Ten slash commands for compiling Obsidian vault knowledge into a persistent, cross-referenced wiki with task management; supports Claude Code and GitHub Copilot. |
 | [acli](plugins/acli/) | Atlassian CLI (`acli`) skill for Jira and Confluence — search, work items, comments, attachments, boards, sprints, pages. From [pi-skill-acli](https://github.com/ziegenberg/pi-skill-acli) (MIT). |
+
+## How the plugins fit together
+
+`product-workflows`, `dev-workflows` and `docs-workflows` form one pipeline, from an idea or a customer's requirements document to shipped, documented code, and `workflows-core` is the foundation all three depend on. The **[family map](plugins/workflows-core/docs/family-map.md)** draws every command of the four on one diagram: grouped by role, coloured by plugin, with the deliverable each command hands the next. Each plugin's own workflow page carries the detail.
 
 ## Prerequisites
 
@@ -29,20 +35,20 @@ Ivan Gudak's open-source Claude Code plugin marketplace.
 ### 1. Add this marketplace to Claude Code (once)
 
 ```bash
-claude plugin marketplace add ihudak/ihudak-claude-plugins
+claude plugin marketplace add ihudak/ai-workflows
 ```
 
 ### 2. Install plugins
 
 ```bash
-claude plugin install dev-workflows@ihudak-plugins
-claude plugin install product-workflows@ihudak-plugins
-claude plugin install prose-style@ihudak-plugins
-claude plugin install obsidian-llm-wiki@ihudak-plugins
-claude plugin install acli@ihudak-plugins
-claude plugin install guideline-reviewers@ihudak-plugins
-claude plugin install workflows-core@ihudak-plugins
-claude plugin install docs-workflows@ihudak-plugins
+claude plugin install dev-workflows@shipwright
+claude plugin install product-workflows@shipwright
+claude plugin install prose-style@shipwright
+claude plugin install obsidian-llm-wiki@shipwright
+claude plugin install acli@shipwright
+claude plugin install guideline-reviewers@shipwright
+claude plugin install workflows-core@shipwright
+claude plugin install docs-workflows@shipwright
 ```
 
 ### 3. Configure environment variables
@@ -76,15 +82,15 @@ After installing, run `/workflows-core:statusline` once. The command ships in `w
 Two steps, and the second is the one that actually changes what runs:
 
 ```bash
-claude plugin marketplace update ihudak-plugins
-claude plugin update dev-workflows@ihudak-plugins
-claude plugin update product-workflows@ihudak-plugins
-claude plugin update prose-style@ihudak-plugins
-claude plugin update obsidian-llm-wiki@ihudak-plugins
-claude plugin update acli@ihudak-plugins
-claude plugin update guideline-reviewers@ihudak-plugins
-claude plugin update workflows-core@ihudak-plugins
-claude plugin update docs-workflows@ihudak-plugins
+claude plugin marketplace update shipwright
+claude plugin update dev-workflows@shipwright
+claude plugin update product-workflows@shipwright
+claude plugin update prose-style@shipwright
+claude plugin update obsidian-llm-wiki@shipwright
+claude plugin update acli@shipwright
+claude plugin update guideline-reviewers@shipwright
+claude plugin update workflows-core@shipwright
+claude plugin update docs-workflows@shipwright
 ```
 
 **The `/plugins` interface is the easiest route, and it does update installed plugins.** Run `/plugins` inside Claude Code and update the marketplace from there: unlike the CLI's `marketplace update`, that path upgrades what you already have. You can also turn on **AutoUpdate** per plugin there, after which they keep themselves current and none of the above is needed.
@@ -92,11 +98,23 @@ claude plugin update docs-workflows@ihudak-plugins
 **If a plugin has been renamed, marketplace update will not update anything** — not that plugin and not the others. The remedy is to remove the marketplace and its plugins and install from scratch:
 
 ```bash
-claude plugin marketplace remove ihudak-plugins
-claude plugin marketplace add ihudak/ihudak-claude-plugins
+claude plugin marketplace remove shipwright
+claude plugin marketplace add ihudak/ai-workflows
 ```
 
 then reinstall the plugins you want, per step 2.
+
+### Moving from the old marketplace name
+
+Until 2026-09-24 this marketplace was named `ihudak-plugins` and lived at `ihudak/ihudak-claude-plugins`. GitHub redirects the old repository URL. The marketplace name, though, is part of every install key (`dev-workflows@ihudak-plugins`), so moving to the new name means re-registering. Removing a marketplace uninstalls the plugins installed from it, so reinstall each one you had afterwards:
+
+```bash
+claude plugin marketplace remove ihudak-plugins
+claude plugin marketplace add ihudak/ai-workflows
+claude plugin install workflows-core@shipwright
+```
+
+Then run `claude plugin install <plugin>@shipwright` for each other plugin you use (the list is in step 2), and restart Claude Code. Your environment variables and your specs, docs and code repositories are not touched.
 
 **`marketplace update` from the CLI refreshes the catalogue, not your installed plugins.** It updates what the marketplace advertises — which is what makes a newly added plugin installable — but an already-installed plugin stays at the version you installed. `claude plugin update <plugin>` is what upgrades one from the command line, and **it requires restarting Claude Code to apply.** Update only the plugins you actually have.
 

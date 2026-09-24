@@ -7,13 +7,13 @@ This page takes you from zero to your first successful run — install the plugi
 ### 1. Add this marketplace to Claude Code (once)
 
 ```bash
-claude plugin marketplace add ihudak/ihudak-claude-plugins
+claude plugin marketplace add ihudak/ai-workflows
 ```
 
 ### 2. Install plugins
 
 ```bash
-claude plugin install product-workflows@ihudak-plugins
+claude plugin install product-workflows@shipwright
 ```
 
 `product-workflows` is the plugin this documentation covers. It declares two hard dependencies, installed automatically alongside it: `workflows-core`, its shared foundation, and `prose-style`, whose `prose-style-checker` is `/epics`'s primary style checker and the unconditional Phase 3.5 pass every PRD-authoring command here runs. Neither is optional here — an absent `prose-style` would leave those commands with no absent case to degrade into, which is why the plugin declares it rather than reaching for it at runtime. The companion `dev-workflows` plugin is not a dependency in either direction: it produces `specification.md`'s downstream consumer (`/dev-workflows:design`), but `product-workflows` installs and runs without it, against a specs tree someone else's engineering work will eventually fill in.
@@ -25,11 +25,11 @@ claude plugin install product-workflows@ihudak-plugins
 ## Update
 
 ```bash
-claude plugin marketplace update ihudak-plugins
-claude plugin update product-workflows@ihudak-plugins
+claude plugin marketplace update shipwright
+claude plugin update product-workflows@shipwright
 ```
 
-**Both steps are needed, and the second is the one that changes what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update product-workflows@ihudak-plugins` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same thing with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one.
+**Both steps are needed, and the second is the one that changes what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update product-workflows@shipwright` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same thing with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one.
 
 ## What you set on your machine
 

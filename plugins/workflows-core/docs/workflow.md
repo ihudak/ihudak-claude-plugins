@@ -5,17 +5,17 @@
 ```mermaid
 flowchart TD
     subgraph CORPUS["What every sibling plugin reads"]
-        refs["references/ — addressing, git + phase handoff, escalation, triage, emission"]
-        loader["skills/reference — the loader a sibling reads the corpus through"]
-        skill["skills/model-routing"]
-        agents["agents/ — code-scanner · doc-fixer · docs-grounder · frame-describer · impl-maintenance"]
+        refs["references/ — addressing, git + phase handoff, escalation, triage, emission"]:::core
+        loader["skills/reference — the loader a sibling reads the corpus through"]:::core
+        skill["skills/model-routing"]:::core
+        agents["agents/ — code-scanner · doc-fixer · docs-grounder · frame-describer · impl-maintenance"]:::core
     end
     subgraph CROSS["Cross-cutting commands"]
-        setup["/workflows-core:statusline — install the status line"]
-        repair["/frames — (re)build a design/ frame-set index"]
-        improve["/feedback · /prompt · /prompt-brainstorm · /prompt-grill-me"]
+        setup["/workflows-core:statusline — install the status line"]:::core
+        repair["/frames — (re)build a design/ frame-set index"]:::core
+        improve["/feedback · /prompt · /prompt-brainstorm · /prompt-grill-me"]:::core
     end
-    pipeline["a sibling plugin's pipeline command"]
+    pipeline["a sibling plugin's pipeline command"]:::other
 
     refs --> loader
     loader --> pipeline
@@ -23,7 +23,10 @@ flowchart TD
     agents --> pipeline
     pipeline -->|a bad result you corrected| improve
     setup -.->|cost cross-check| pipeline
-    repair -.->|a readable frame-set index| pipeline
+    repair -.->|"a readable frame-set index — design grounding in /product-workflows:prd-ground needs one"| pipeline
+
+    classDef core fill:#ede9fe,stroke:#6d28d9,color:#4c1d95
+    classDef other fill:#f3f4f6,stroke:#6b7280,color:#1f2937
 ```
 
 The three dashed and solid edges into `a sibling plugin's pipeline command` are the whole point of this plugin: a command in `dev-workflows`, `product-workflows`, or `docs-workflows` reads a reference here, loads the routing skill here, and dispatches an agent here, so the same rules bind every plugin in the family rather than being copied into each.
@@ -39,5 +42,7 @@ These run outside any role pipeline, at any time:
 - **Specs-tree repair.** [`/frames`](commands/frames.md) (re)builds the frame-set index of any folder holding exported design frames — a BRD, PRD, or Epic folder alike — so a set somebody dropped in by hand becomes readable. It advances no phase and grounds nothing.
 
 None of the six advances a pipeline phase. What five of them share with the pipeline is the cost ledger: each is charged to the phase of the command it is correcting or the folder it is acting on, while `/statusline` emits no cost entry at all — see [Roles and phases](roles-and-phases.md).
+
+For every command of the four plugins on one diagram — by role, coloured by plugin, with the deliverable each hands the next — see the [Family map](family-map.md).
 
 See the [documentation index](README.md) for everything else.

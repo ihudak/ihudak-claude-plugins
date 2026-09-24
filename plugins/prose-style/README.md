@@ -390,7 +390,7 @@ This plugin supplies the **complementary semantic pass** that the `docs-style-ch
 
 ## Installation
 
-This plugin is part of the `ihudak-plugins` marketplace. Install it through Claude Code's
+This plugin is part of the `shipwright` marketplace. Install it through Claude Code's
 plugin system — it will be available alongside `dev-workflows`.
 
 For marketplace install and prerequisites, see the [repo-root setup guide](../../README.md).

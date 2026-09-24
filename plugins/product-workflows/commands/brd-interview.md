@@ -2204,7 +2204,29 @@ Of those changes, only the findings can be moved from here: a requirement defect
 re-cut elsewhere under the parent, a sibling's `/product-workflows:brd-reconcile` moving its row to
 `rejected` or `superseded-by`, a sibling file that could not be read becoming readable, or a
 `/product-workflows:brd-reconcile` run reopening one of this BRD's decisions. So a fresh
-grounding pass is what the list carries:
+grounding pass is what the list carries — and, beside it, the step a decided slice is ready for.
+**A slice that needs no customer review goes to the authoring ladder without a reconciliation**:
+`/product-workflows:create-prd`, `/product-workflows:create-ard` and `/product-workflows:specify`
+each gate this slice's `decisions.md` on the default branch and read no reconciliation record, and
+this command's own gate has already found no ledger row `unallocated`. **Offer the three only where
+the slice's own `coverage-ledger.md` holds at least one `covered-here` row** — `/create-prd` refuses
+a slice with none (`product-workflows:coverage-ledger-format` §5), and such a slice owns no
+requirement to author. Where it holds one, print the three in prose, per
+`workflows-core:next-phase-offer`'s overflow rule, and carry the PRD in the array:
+
+```
+Where this run can go next:
+  • Author this slice's PRD           — /product-workflows:create-prd <BRD-KEY> <merge-clause>   (PM)
+  • Author this slice's architecture  — /product-workflows:create-ard <BRD-KEY> <merge-clause>   (PA, optional)
+  • Author this slice's specification — /product-workflows:specify <BRD-KEY> <merge-clause>      (PE)
+```
+
+```
+choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Author this slice's PRD — /product-workflows:create-prd <BRD-KEY> (PM) <merge-clause>", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
+```
+
+Where the slice's ledger holds no `covered-here` row, say so, name no authoring command, and
+present the list without the PRD option:
 
 ```
 choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
@@ -2217,7 +2239,7 @@ what reopened it, and offer the round that puts it:**
 choices: ["Stop here — the reopened decision named above waits for the next round", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (puts the reopened decision's question again)", "Interview another BRD or slice"]
 ```
 
-**Four of the five lists carry no `(Recommended)` marker, and that omission is deliberate**, per
+**Five of the six lists carry no `(Recommended)` marker, and that omission is deliberate**, per
 the `When no option is safe to recommend` guidance in
 `Skill(skill: "workflows-core:reference", args: "escalation-rules")`: on `yes`, `rounds-unsettled`,
 `nothing-to-review` and its reopened-record list, which one is right depends entirely on what this round left behind.
@@ -2228,18 +2250,21 @@ of that reference's `The (Recommended) marker is unconditional` section, where t
 the prompt and the marker is therefore a plain one. What the gate above decides is only **whether
 `/brd-package` appears at all**; it never promotes an option to recommended. A BRD both content
 gates pass is ready to package; one either content gate refuses is not — which is why it is not
-shown the option rather than shown it with a caveat. The `nothing-to-review` list carries no marker
-for the same reason and one of its own: stopping there is a legitimate, finished outcome, and
-marking a grounding pass "recommended" would imply this BRD is unfinished when it is not. Its
+shown the option rather than shown it with a caveat. The `nothing-to-review` lists carry no marker
+for the same reason and one of their own: stopping there is a legitimate, finished outcome, and
+marking a grounding pass "recommended" would imply this BRD is unfinished when it is not, while
+marking the PRD "recommended" would decide for the operator which of the three authoring commands
+comes first, which the route leaves to them exactly as `/product-workflows:brd-reconcile`'s own
+advancing list does. Its
 reopened-record list carries none because stopping there is legitimate too: the record waits, named,
 until whoever owns the next round runs it.
 
-`<merge-clause>` in that list is the placeholder `workflows-core:next-phase-offer` resolves from
+`<merge-clause>` in these lists is the placeholder `workflows-core:next-phase-offer` resolves from
 this run's own `Phase handoff:` outcome line; it is never written as an unconditional "once the pull
 request above is merged", because the no-new-round path reaches the handoff with nothing to commit
-wherever the register was already on file, and then opens no pull request. **The two lists that name
-`/product-workflows:prd-ground <BRD-KEY>` — `rounds-unsettled` and `nothing-to-review` — carry no
-clause at all, and that asymmetry is deliberate:** that command gates on `coverage-ledger.md`
+wherever the register was already on file, and then opens no pull request. **The lists that name
+`/product-workflows:prd-ground <BRD-KEY>` — `rounds-unsettled`'s and both of `nothing-to-review`'s — carry no
+clause on that option, and that asymmetry is deliberate:** that command gates on `coverage-ledger.md`
 (`commands/prd-ground.md` Phase 0 step 6), which this run never writes, so no handoff of this run's
 can hold it up and there is no wait to state. **The `defects-unasked` re-open, and the reopened-record list's round, carry none
 for the same reason**: this command gates on `grounding/code-grounding.md` (*Resolve inputs and gate the

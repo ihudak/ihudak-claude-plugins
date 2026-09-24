@@ -3,15 +3,15 @@
 Add the marketplace, then install this plugin:
 
 ```bash
-claude plugin marketplace add ihudak/ihudak-claude-plugins
-claude plugin install workflows-core@ihudak-plugins
+claude plugin marketplace add ihudak/ai-workflows
+claude plugin install workflows-core@shipwright
 ```
 
 To pick up later changes:
 
 ```bash
-claude plugin marketplace update ihudak-plugins
-claude plugin update workflows-core@ihudak-plugins
+claude plugin marketplace update shipwright
+claude plugin update workflows-core@shipwright
 ```
 
 **Both steps are needed, and the second is the one that changes what runs.** `marketplace update` refreshes the catalogue — what the marketplace advertises — while an already-installed plugin stays at the version you installed. `claude plugin update` upgrades it, and **requires restarting Claude Code to apply.** The interactive `/plugins` interface does the same with a picker. This page used to say the first line alone was enough; it is not, and the symptom is quiet — `claude plugins list` keeps reporting the old version while the catalogue advertises the new one.

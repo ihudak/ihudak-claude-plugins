@@ -84,7 +84,7 @@ Author a PRD-level ARD, grounding on the two repos the PRD's themes point at:
 
 The run resolves the PRD from the merged PRD file where present, lists top-level directories under `$REPOS_PATH`, proposes a theme-to-repo mapping and asks you to confirm it, scans the confirmed repos with `code-scanner`, grills you relentlessly through Context, Grounding findings, Architecture decisions, Cross-repo approach, Stack & invariants, Edge cases & risks, and Open questions, runs the structural pre-lint, then `ard-reviewer`. On a passing verdict it offers to branch, commit, push, and open a pull request, then offers the adaptive next step — `/product-workflows:epics PRODUCT-1234` if the PRD has no Epics yet, or `/product-workflows:specify PRODUCT-1234` otherwise.
 
-Author the ARD for a reconciled BRD slice instead:
+Author the ARD for a decided BRD slice instead:
 
 ```
 /product-workflows:create-ard EPIC-008-01

@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.0.3] — 2026-09-24
+
+### Changed — the marketplace is now `shipwright`, and the repository `ihudak/ai-workflows`
+
+The marketplace was `ihudak-plugins`, at `ihudak/ihudak-claude-plugins`. GitHub redirects the old repository URL, but the marketplace name is part of every install key (`<plugin>@ihudak-plugins`), so moving to the new name means registering the marketplace again. Removing a marketplace uninstalls the plugins installed from it, so reinstall each one you had:
+
+```bash
+claude plugin marketplace remove ihudak-plugins
+claude plugin marketplace add ihudak/ai-workflows
+claude plugin install <plugin>@shipwright
+```
+
+Run the last line once per plugin you use, then restart Claude Code. Environment variables and your specs, docs and code repositories are not touched. This plugin's `homepage` and `repository` now point at the new repository.
+
 ## [1.0.2] — 2026-09-23
 
 ### Changed — a neutral example header name

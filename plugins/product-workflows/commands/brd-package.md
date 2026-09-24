@@ -1568,7 +1568,7 @@ state rather than about the plugin. This run packaged a BRD whose customer round
 `[C]` it just rendered into the prompt, and every open `[AS#n]` it carried in, is a register item
 `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3 forbids consuming downstream while
 it is open, and `/create-prd` on the BRD route reads exactly that register as its seed. The answers are
-frozen by `/product-workflows:brd-reconcile` and by nothing here, so the reconciled BRD that route needs
+frozen by `/product-workflows:brd-reconcile` and by nothing here, so the settled register that route needs
 is the state the *next* command leaves rather than this one, and `/product-workflows:brd-reconcile`'s own
 next-step phase is where the three BRD-route options are offered. The same holds for the BRD route
 on `/create-ard` and `/specify`, which read the architecture- and implementation-altitude seeds

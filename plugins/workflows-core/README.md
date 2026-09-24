@@ -2,7 +2,7 @@
 
 Shared foundation for the `dev-workflows` plugin family: the addressing grammar and specs-repo git entry points, phase handoff, model routing, escalation and finding-triage rules, cost/feedback/follow-up emission, and the grounding and grilling conventions every authoring command applies. It also carries six slash commands — the family-meta utilities and `/frames`, the design-frame-set indexer — plus the five agents any plugin in the family may dispatch.
 
-> Part of the `ihudak-plugins` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
+> Part of the `shipwright` marketplace — see the [repo-root setup guide](../../README.md) for marketplace install + prerequisites.
 
 ## What it does
 

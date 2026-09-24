@@ -5,6 +5,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Versions follow semver at the plugin level.
 A section headed `— Unreleased` has not been published yet; where more than one of them stands, they all ship together in the next release.
 
+## [1.7.7] — 2026-09-24
+
+### Changed — the marketplace is now `shipwright`, and the repository `ihudak/ai-workflows`
+
+The marketplace was `ihudak-plugins`, at `ihudak/ihudak-claude-plugins`. GitHub redirects the old repository URL, but the marketplace name is part of every install key (`<plugin>@ihudak-plugins`), so moving to the new name means registering the marketplace again. Removing a marketplace uninstalls the plugins installed from it, so reinstall each one you had:
+
+```bash
+claude plugin marketplace remove ihudak-plugins
+claude plugin marketplace add ihudak/ai-workflows
+claude plugin install <plugin>@shipwright
+```
+
+Run the last line once per plugin you use, then restart Claude Code. Environment variables and your specs, docs and code repositories are not touched. This plugin's `homepage` and `repository` now point at the new repository.
+
+**Update `product-workflows` with this release** — to 3.8.4. `next-phase-offer`'s BRD-route list now names the hand-over `/brd-interview` offers on a slice that needs no customer review, and 3.8.4 is the `product-workflows` release whose `/brd-interview` offers it.
+
+### Added
+
+- **A family map** (`docs/family-map.md`): every slash command of `product-workflows`, `dev-workflows`, `docs-workflows` and `workflows-core` on one diagram, in role lanes, coloured by plugin, with the deliverable each command hands the next on the arrows. The repository README links to it.
+
+### Changed
+
+- `next-phase-offer`'s `/brd-interview` entry names the hand-over into `/create-prd`, `/create-ard` and `/specify` on a slice with nothing left for the customer to review, and its `/brd-reconcile` entry says it is the hand-over for a slice the customer reviewed.
+- The Workflow diagram's `/frames` edge names its reader — design grounding in `/product-workflows:prd-ground` — and its nodes use the family map's colours.
+
 ## [1.7.6] — 2026-09-23
 
 **Update `dev-workflows`, `product-workflows` and `docs-workflows` with this release** — to 4.2.4, 3.8.3 and 1.3.4. Its `grounding-format`, `phase-handoff`, `escalation-rules` and `next-phase-offer` now describe stops and behaviour those releases carry, and beside an older one they are live instructions the command files contradict.

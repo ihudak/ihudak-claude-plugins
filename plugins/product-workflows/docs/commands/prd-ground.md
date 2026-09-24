@@ -21,8 +21,14 @@ exactly the folder this command must accept, so a kind-based test would refuse e
   way.
 - **A `PRD-` folder carrying `brd-link.md` → the BRD route.** Every existing step applies unchanged,
   over that slice's own `[BR#n]` inventory.
-- **A `PRD-` folder with no `brd-link.md` → the idea route.** `/create-prd`'s own unprompted output;
-  its claims come from its own `prd.md`.
+- **A `PRD-` folder with no `brd-link.md`, sitting inside a `BRD-` folder → a stop,
+  `PRD_GROUND_CARVE_INTERRUPTED`.** Only a slice sits inside a BRD, so this is one a
+  [`/brd-split`](brd-split.md) run created and stopped on before writing its `brd-link.md`; no
+  `/brd-split` run finds it again, since that command finds a child by that file. The stop names
+  removing the folder and then the parent's instructed re-run, and never `/create-prd`, which would
+  author a PRD inside a BRD.
+- **Any other `PRD-` folder with no `brd-link.md` → the idea route.** `/create-prd`'s own unprompted
+  output; its claims come from its own `prd.md`.
 - **Resolved through the legacy unprefixed fallback, with no ledger and no inventory** — split on
   `prd.md` being present and asserting `kind: prd`: present → the idea route; absent, or present
   without `kind: prd` → the BRD route's no-link branch, which stops naming what the folder carries
@@ -237,7 +243,7 @@ also runs, in Phase 11, for session lessons-learned.
   is not what it records — a carve stopped after its last walk write and before it reconciled this
   slice — the run stops with `PRD_GROUND_SLICE_UNRECONCILED` (below). Where the parent's ledger
   cannot be read, the run stops with `PRD_GROUND_SLICE_UNRECONCILED`, reporting that ledger by path
-  and naming no `/brd-split` form. Only where the parent
+  and naming no `/brd-split` form, and so does a slice whose `brd-link.md` names no `parent:`. Only where the parent
   is fully allocated and this slice agrees with it was the handoff simply declined, and the run stops
   with `PRD_GROUND_NOT_HANDED_OFF`, whose action is to commit and merge the files already on disk. It
   names the producing command only where re-running it would actually stage them, and the clause it
@@ -251,7 +257,11 @@ also runs, in Phase 11, for session lessons-learned.
   lands them as its own walk leaves them. Committing what is already on disk stays the direct route to
   landing them as they stand. `/brd-intake` is never named here: it re-runs only over a BRD
   container, and every container has already been refused as a root.
-- **This slice in step with its parent.** Once both gates pass, the run compares three sets of
+- **This slice in step with its parent.** Once both gates pass, both files must be in the working
+  tree: a gate passes a file that is on the default branch and missing from a working tree on a
+  branch this run reuses, and there the run stops with `PRD_GROUND_RESTORE_FROM_DEFAULT`, naming the
+  restore, rather than reading a missing inventory as an empty set and sending the operator to a
+  `/brd-split` run that writes nothing into a slice with a file missing. Then the run compares three sets of
   `[BR#n]` ids: the slice's `brd-link.md` `claims:`, the rows of its `brd/brd-inventory.md`, and the
   rows of the parent's `coverage-ledger.md` reading exactly `covered-by: <this slice's key>`. Every
   completed `/brd-split` run leaves the three equal, so a difference means the slice's files are not
@@ -371,8 +381,10 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
   diverges from instead, because a divergence is not an answer to a requirement premise, and a new
   prefix would sit permanently unverified in a namespace where an unverified id blocks
   [`/brd-split`](brd-split.md) (`workflows-core:grounding-format` §8).
-- **Phase 7 — `grounding-verifier` over every finding, pinned to Opus.** Every finding the run holds,
-  except any already reading `SUPERSEDED`: a retired finding keeps the outcome it had, and re-deriving
+- **Phase 7 — `grounding-verifier` over every finding, pinned to Opus.** Every finding the run holds
+  — its own, and every `[CG#n]` already on file pinned to a repository whose `HEAD` still matches its
+  recorded pin (none under `--no-code`), but never a `[DG#n]` already on file — except any already
+  reading `SUPERSEDED`: a retired finding keeps the outcome it had, and re-deriving
   it could only bring it back to life beside its successor. A finding without a
   verifier outcome is never treated as evidence. **The outcome is first reconciled against the verdict
   the verifier re-derived**, which it returns on every outcome: `agree` means *the same verdict* and
@@ -397,15 +409,20 @@ ever proceeds once `/create-prd`'s own `prd/<KEY>-<slug>` branch has merged.
   `prior_verdict`, and appends a successor with the next id carrying the verifier's verdict, so an
   existing citation keeps resolving and [`/brd-interview`](brd-interview.md) sees the change as it
   sees any re-grounding; a class-4 `[DG#n]` citing a code finding superseded this way is superseded
-  with it, naming the `--no-code` run that re-derives it. An `agree`/`extend`/`unprovable` outcome
+  with it, naming the run that re-derives it: `--no-code` where the code finding has a successor,
+  and a plain re-run where it has none, since that re-grounds a claim nothing on file answers. An `agree`/`extend`/`unprovable` outcome
   is recorded alongside the finding unchanged (`extend` also
   appends the additional evidence the verifier's own search turned up). Which anchor each finding
   is verified against depends on what it rests on: a `[CG#n]` and a class-4 `[DG#n]` are re-derived
   against the pinned repository, a class-1/2/3 `[DG#n]` against the frame set it was reconciled
   from — see `workflows-core:grounding-format` §8. A verifier that
   refuses rather than verifying (a moved `HEAD`, a repository or frame set no longer resolvable)
-  stops the run before Phase 8 writes anything, so no finding is ever written without an outcome —
-  which is what keeps `/brd-split`'s own verification gate reachable on the BRD route.
+  stops the run before Phase 8 writes anything, and so does a `contradict` on a finding this run
+  produced whose return lacks the positive control the rewritten finding would owe
+  (`PRD_GROUND_VERIFY_INCOMPLETE`), so no finding is ever written without an outcome — which is what
+  keeps `/brd-split`'s own verification gate reachable on the BRD route. The same incomplete return
+  on an on-file finding writes nothing: the finding keeps the verdict and outcome it had, and the
+  report names it as not verified by this run.
 
 ## When it is worth running (idea route)
 

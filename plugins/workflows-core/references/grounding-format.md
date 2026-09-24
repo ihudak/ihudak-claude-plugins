@@ -124,6 +124,12 @@ So, canonically:
   erase. This is the same failure §2.1 exists to prevent, met at the field set rather than at
   the bytes: a writer free to add a field produces an artifact whose readers disagree about which
   value is the finding's.
+  **A `contradict` whose return is incomplete writes no `outcome` at all**: where the finding it
+  would write owes a control (§2.2) and the return carries no `own_control`, an own-run finding
+  stops the verifying run before it writes any finding, and an on-file block keeps every field it
+  holds, its earlier `outcome` included, the run reporting that finding as not verified by it (§8).
+  Writing that `contradict` beside the verdict it contradicts would be exactly the live disagreement
+  this bullet forbids.
 - **A field that does not apply is omitted, never written empty** — `class` and `cites` on a
   `[CG#n]`, `cites` on a `[DG#n]` of class 1, 2 or 3, `commit` on a `[DG#n]` of class 1, 2 or 3,
   `prerequisite` on any finding whose `horizon` is `current`, `prior_verdict` on any finding whose
@@ -443,7 +449,8 @@ would leave the decision standing on ground it was never taken on — the same f
 finding already written, it supersedes the finding instead: the block takes `verdict: SUPERSEDED`
 with its verdict as `prior_verdict` (§2) and every other field as it stood, and a successor with the
 next id in its prefix carries the same `claim`, `commit`, `altitude`, `verdict`, `evidence` and
-`control`, the new `horizon` and `prerequisite`, and a note naming the id it supersedes — or, where
+`control` — and, on a `[DG#n]`, its `class` and any `cites` — the new `horizon` and `prerequisite`,
+`consumed_by: none`, and a note naming the id it supersedes — or, where
 the run cannot give a successor what its verifier needs, none, the note then naming the horizon it
 would have written and why no successor can be placed, so that no stale horizon is left standing.
 The run produced that successor, so it is unverified until §8's verifier re-derives it like any
@@ -802,12 +809,21 @@ decision standing on a verdict it was never taken on, with nothing reading `SUPE
 reader so. The caller supersedes it instead: the block takes `verdict: SUPERSEDED` with its on-file
 verdict as `prior_verdict` (§2), every other field of it as it stood, and a successor with the next
 id in its prefix carries the same `claim`, `commit`, `altitude`, `horizon` and `prerequisite`
-(§5: a horizon is never moved in place), the re-derived `verdict` and `evidence`,
+(§5: a horizon is never moved in place) — and, on a `[DG#n]`, its `class` and any `cites` — the
+re-derived `verdict` and `evidence`, a `control` wherever that re-derived finding owes one (§2.2),
+taken from the verifier's own and never merely because one was returned, `consumed_by: none`,
 `outcome: contradict`, and a note naming the id it supersedes. **On a `[DG#n]`, either write keeps
 every frame citation the replaced evidence carried beside the re-derived evidence**: a class-4
 finding is re-derived against the repository and may come back citing code alone, and a design
 finding that cites no frame can no longer be placed in its frame set. Citations into the old id
 still resolve, to a finding reading `SUPERSEDED`, exactly as after a re-grounding run.
+**A `contradict` whose finding owes a control and whose return carries none is incomplete, and
+it writes nothing.** The verifier's own control is the only one the re-derived finding can carry,
+so neither write above can be made honestly: on an own-run finding the caller stops before writing
+any finding, and on an on-file finding it supersedes nothing and appends no successor, and the block
+keeps every field it holds — its `verdict` and its earlier `outcome` included — with the finding
+reported as not verified by this run. Recording `outcome: contradict` on either would put a
+contradiction beside the verdict it contradicts, which §2.1 forbids.
 `product-workflows:prd-ground`'s *Verify* phase holds the full procedure, its edge cases included.
 
 **`agree` and `extend` both assert the verdict holds, so a differing re-derived verdict falsifies the

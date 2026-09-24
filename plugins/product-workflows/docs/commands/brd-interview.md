@@ -404,7 +404,8 @@ but the push and the pull request cannot run.
   [`/prd-ground --rebaseline`](prd-ground.md) pass, or any `/prd-ground` run whose verifier
   contradicts an on-file finding, or whose horizon pass moves one's horizon — has superseded any
   finding a `decided` decision the will-change rule did not hold rests on, the successor findings —
-  the same requirement's, grounded against the same repository or frame set and minted later —
+  the same requirement's — or, for a design finding tied to no requirement, one citing the same
+  frames — grounded against the same repository or frame set and minted later —
   either confirm its premise — each superseded finding with a successor, and each successor carrying
   the verdict its superseded finding carried, which that finding keeps as `prior_verdict`, and the
   horizon that finding carried — or the decision is reopened, naming the successors as the cause,

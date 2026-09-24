@@ -107,10 +107,12 @@ does not read `covered-by: <A>` here to begin with. That is what makes this the 
 (Phase 4.5) ([`coverage-ledger-format.md`](../../references/coverage-ledger-format.md) §3.2).
 
 **The receiver has not been interviewed.** An eligible receiver is a child of this same parent holding no
-`decisions.md` with a `[VD#n]` or `[CD#n]` record in it and no `interview/round-*.md` on disk — a register
-that exists and holds decisions is closed to added scope, since adding scope is neither of the two causes
-that may reopen a decision ([`decision-register-format.md`](../../references/decision-register-format.md)
-§4) — or a slice this same run carves, which has neither by construction. Being interviewed disqualifies a
+`decisions.md` with a `[VD#n]` or `[CD#n]` record in it and no `interview/round-*.md` on disk, and
+missing neither its inventory nor its ledger — or a slice this same run carves, which has none of these
+by construction. A register that exists and holds decisions is closed to added scope, since adding
+scope is neither of the two causes that may reopen a decision
+([`decision-register-format.md`](../../references/decision-register-format.md) §4); and a child missing
+a file is never reconciled, so it could never take the row. Being interviewed disqualifies a
 **receiver** and never a **donor**, so an uninterviewed donor stays eligible for every other row; what
 excludes it is a per-row clause instead — **a row's own donor is never that row's receiver**, so a standing
 child donating any row in a group cannot be that group's target.
@@ -222,7 +224,9 @@ allocated ledger satisfies the front of two of them and only one is the run the 
   its `brd/brd-inventory.md`, and the parent's rows reading `covered-by: <that child>` name the same
   `[BR#n]` ids — the same test [`/prd-ground`](prd-ground.md) applies before grounding a slice. A
   child missing its inventory or ledger is not out of step: it is reported, never reconciled, since
-  re-seeding a lost ledger would overwrite what that child's own walk settled. A
+  re-seeding a lost ledger would overwrite what that child's own walk settled — and never offered a
+  row either, by any walk or re-cut of the run, which names it beside each list it is left out of,
+  with the file it is missing; [`/prd-ground`](prd-ground.md) on that child names the repair. A
   **bare** re-run builds no candidate set at all, so on a fully allocated parent it is this path
   **where no child is standing empty or out of step** — where one is, it takes the third path below,
   which is exactly what keeps a bare run the reachable fix the stops naming it promise.

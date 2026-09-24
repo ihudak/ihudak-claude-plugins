@@ -185,8 +185,8 @@ question whichever way the operator takes the answer.
 **A settled decision a re-grounding moved is reopened.** Where a re-grounding supersedes
 any finding a decided `[VD#n]` or `[CD#n]` the will-change rule did not hold rests on,
 `/brd-interview` reopens it, naming the successor findings as the cause, unless every superseded
-finding has a successor — a later finding on the same requirement, grounded against the same
-repository or frame set — and each successor carries the verdict its superseded finding carried,
+finding has a successor — a later finding on the same requirement (or, for a design finding tied
+to no requirement, on the same frames), grounded against the same repository or frame set — and each successor carries the verdict its superseded finding carried,
 kept on that finding as `prior_verdict`, and the horizon that finding carried; a finding it rests
 on that was not superseded stands as cited. A `/prd-ground --rebaseline` pass is not the only run
 that supersedes: any `/prd-ground` run whose verifier contradicts an on-file finding — one an

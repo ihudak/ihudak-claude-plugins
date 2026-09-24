@@ -991,7 +991,15 @@ finding on file that passes all four of these tests against it —
 1. **the same prefix**, `[CG#n]` or `[DG#n]`;
 2. **a `verdict` that is not `SUPERSEDED`**;
 3. **a `claim` opening with the same requirement id** — each grounder writes the id first
-   (`agents/code-grounder.md`, `agents/design-grounder.md`);
+   (`agents/code-grounder.md`, `agents/design-grounder.md`) — **or, where the superseded finding's
+   `claim` is the literal `none — frame-only`**, a class-1 `[DG#n]` reconciling a frame against no
+   requirement (`agents/design-grounder.md`), **a `claim` reading that same literal and citing the
+   same frames**: the paths of its `evidence` that its frame set's index names are exactly the
+   superseded finding's. With no requirement id to match, the match is on the frame set — test 4
+   places both in one — and on the frames of it each cites, read off the parsed `evidence` paths
+   against that index and never off prose; a match on the set alone would let a finding on one
+   frame stand as the successor of a finding on another, confirming a divergence the frames no
+   longer show;
 4. **grounded against the same source, and minted after it** — a higher id of that prefix. The
    source is read off records already on file, never off the finding's prose, because
    `/product-workflows:prd-ground` grounds every claim once per repository and once per frame set
@@ -1006,7 +1014,8 @@ finding on file that passes all four of these tests against it —
    a finding record carries no frame-set field, and a design finding's `evidence` may cite code
    paths beside its frames, which no index names and which so take no part in the placement.
 
-Where a test cannot be decided — a `claim` opening with no requirement id, a `commit` no
+Where a test cannot be decided — a `claim` opening with no requirement id and not reading
+`none — frame-only`, a `commit` no
 `baselines.md` entry records or that more than one repository's entry records, a `[DG#n]` whose
 evidence names no path any index names, or whose named paths no single set's index holds all of —
 it is not passed. A superseded finding

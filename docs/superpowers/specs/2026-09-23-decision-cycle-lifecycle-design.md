@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found nine more (N7–N15). This spec fixes all twenty-six.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found ten more (N7–N16). This spec fixes all twenty-seven.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -53,6 +53,7 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N13 | C | On a plain `/prd-ground` re-run the design pass receives no code findings, so it writes no class-4 `[DG#n]`. The frame-set supersession rule still retires the old class-4 findings of every re-grounded frame set, and nothing regenerates them. Found by Task 2's implementer |
 | N14 | C | Phase 6 overwrites the `horizon` of an on-file finding it does not supersede, the same in-place class of defect as vii. Found by Task 2's implementer |
 | N15 | C | Design findings rewritten in place before R16 cite code only, so they can never be placed in a frame set. Found by Task 2's implementer |
+| N16 | A | After a declined handoff, `/brd-package` step 6 assumes `customer-questions.md` merged along with `decisions.md`, inferring one artifact's merged-ness from a sibling's gate (`workflows-core:phase-handoff` §4.0 forbids this). Found by Task 3's implementer. Ruling R26: step 6 executes `require-on-main` against each file it ships |
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
@@ -286,5 +287,5 @@ The research flagged "Session cost (ALWAYS runs)" as false, because an abort or 
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty-six rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all twenty-seven rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

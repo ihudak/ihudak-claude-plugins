@@ -93,13 +93,10 @@ Echo the detected mode, then proceed to that mode's phases. The two modes share 
      tested.** The preflight is prompt-free and idempotent, and the container's key set is the wrong
      one for the slice: it can have kept the run on a plugin branch named for the container, which
      the slice's key set switches away from (`workflows-core:specs-repo-git` §3.5 B4), exactly as a
-     direct run on the slice would. **The one state a second preflight cannot restore is a branch
-     the first one left**: where the first preflight's B4 switched away from a plugin branch that
-     §3.5's `branch-key` resolves to the slice's key, switch back to it first —
-     `git -C "$SPECS_PATH" switch <branch>`, a branch that already exists and that the plugin
-     created — because it is the branch a direct run's B3 would have kept, and holds whatever of
-     the slice is not merged yet; the second preflight's B3 then stays on it. Where that switch
-     fails, report it with the branch name and go on from the branch the run stands on. An answer equal
+     direct run on the slice would. A branch the first preflight's B4 left, which `branch-key`
+     now resolves to the slice's key, is switched back to first, as §3.5's *A re-run in the same
+     run switches back first* rule fixes — so the slice is read on the branch a direct run's B3
+     would have kept. An answer equal
      to none — a keyless slice's path among them — re-presents this stop, saying the answer named
      none of the enterable slices. "Cancel" ends the run. **Where the test finds no slice, there is
      nothing to enter, so no `choices:` array is shown** and the stop is a plain one: its message

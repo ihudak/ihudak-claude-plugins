@@ -85,13 +85,10 @@ This command makes **zero external API calls** and **never writes into the docs 
      tested.** The preflight is prompt-free and idempotent, and the container's key set is the wrong
      one for the slice: it can have kept the run on a plugin branch named for the container, which
      the slice's key set switches away from (`workflows-core:specs-repo-git` §3.5 B4), exactly as a
-     direct run on the slice would. **The one state a second preflight cannot restore is a branch
-     the first one left**: where the first preflight's B4 switched away from a plugin branch that
-     §3.5's `branch-key` resolves to the slice's key, switch back to it first —
-     `git -C "$SPECS_PATH" switch <branch>`, a branch that already exists and that the plugin
-     created — because it is the branch a direct run's B3 would have kept, and holds whatever of
-     the slice is not merged yet; the second preflight's B3 then stays on it. Where that switch
-     fails, report it with the branch name and go on from the branch the run stands on. An answer equal
+     direct run on the slice would. A branch the first preflight's B4 left, which `branch-key`
+     now resolves to the slice's key, is switched back to first, as §3.5's *A re-run in the same
+     run switches back first* rule fixes — so the slice is read on the branch a direct run's B3
+     would have kept. An answer equal
      to none — a keyless slice's path among them — re-presents this stop, saying the answer named
      none of the enterable slices. "Cancel" ends the run. **Where the test finds no slice, there is
      nothing to enter, so no `choices:` array is shown** and the stop is a plain one: its message
@@ -628,7 +625,7 @@ current working directory, where it is not the specs repository; no user name is
 - The run has **no worthiness gate**: every PRD is relevant for release notes, so there is no content state in which this command refuses to draft. `relevant_for_release_notes` is retired (`workflows-core:prd-format`) and a value left in an existing PRD is read by nothing. Whether a note is drafted is the decision of whoever runs the command.
 - NEVER write into a docs repo. The draft's one destination is `release-notes.md` in the resolved PRD folder, which is persistent (never `/tmp`), and it is appended to, never overwritten: no earlier section is ever rewritten or removed (Phase 8). The style gate's scratch copy is removed in every case, with `command rm -f --` (Phase 7).
 - ALWAYS use `choices` arrays; 2–4 options, and never author an "Other" option — the harness supplies the free-text escape itself (`workflows-core:escalation-rules` §0).
-- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight`, and the one switch Phase 0 step 1 makes itself, back to a branch the first preflight left when the operator enters a slice key, move `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (`workflows-core:specs-repo-git` §2.2); neither creates one), and no commit of anything in a docs/code repo or the current working directory, where it is not the specs repository. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1) — the draft, `release-notes.md` in the resolved PRD folder, among them, so it is committed in the specs repository and nowhere else.
+- Light gate only — no Opus review, no tests, no branch (still true — `specs-preflight`, its same-run re-run after a slice key is entered included (`workflows-core:specs-repo-git` §3.5), switches `$SPECS_PATH` only between branches that already exist, and only plugin-created ones (§2.2); it creates none), and no commit of anything in a docs/code repo or the current working directory, where it is not the specs repository. The terminal `commit-artifacts` step commits ONLY `$SPECS_PATH`'s bounded artifact paths (`workflows-core:specs-repo-git` §2.1) — the draft, `release-notes.md` in the resolved PRD folder, among them, so it is committed in the specs repository and nowhere else.
 - ALWAYS run `specs-preflight` at Phase 0 — again, with the slice's key set, where step 1 re-enters for a slice the operator entered at `RELEASE_NOTES_BRD_NOT_SLICED` — and `commit-artifacts` as the run's last action (per `workflows-core:specs-repo-git`) — bounded to `$SPECS_PATH`'s artifact paths (§2.1) and to plugin-created branches (§2.2), always `git -C "$SPECS_PATH"` and never a `cd` (§1 rule 1), never force-pushing, and never failing the run
 - ALWAYS end the Phase 8 report with a `### Next step` recommendation (per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")`) — guidance only, never auto-invoked; the pipeline leaf (adaptive: continue any pending PA/PE phase, else the PRD is fully processed).
 - ALWAYS end the Phase 8 report with a `### Context hygiene` block per `workflows-core:session-hygiene` — prepare-first (the `resume.md` write runs later, in the terminal cost phase, per `workflows-core:session-hygiene` §1 — this block prints the guidance only), then a leaf-aware suggestion (done → nothing; pending role → `/clear`) + `/rename <PRD-ID>-<slug>-<role>` using this run's inferred lane (`pm` or `dev`, per the Phase 6 inference); guidance only, never auto-run.

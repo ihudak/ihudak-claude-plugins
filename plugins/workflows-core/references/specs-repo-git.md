@@ -176,7 +176,12 @@ strictly (§3.3 G0, §3.7): nothing is committed at all.
 
 ## 3. `specs-preflight` — run start
 
-Runs as early as `$SPECS_PATH` is known — Phase 0 in most commands. Prompt-free.
+Runs at run start, once the run key set (§3.2) is known — Phase 0 in most commands. A command
+that takes an address resolves it first, since the key set is read from what resolution returns
+(the resolved key, and on an Epic-level folder the key its parent's carrier asserts), and runs this
+before any placement or refusal reads the resolved folder; a command that takes none, or whose key
+is its validated argument, runs it as soon as `$SPECS_PATH` is known. Where resolution comes first,
+a run that stops on its address — `invalid`, `ambiguous`, or `absent` — runs none. Prompt-free.
 Silent when the repository is already clean and on the default branch; it emits
 a block only when it acts or when a guard fires.
 
@@ -225,8 +230,9 @@ from the folder above is the command's own business, and not every one does — 
 indexes what the resolved folder holds and never looks up) — so ancestry alone carries the PRD key,
 which is enough, because what the second key is for is §3.5 recognising a branch named for either
 (§3.6). Two keys in the set, one address on the command line (D4). When no key is resolved at the
-call site the set is empty and the run is **keyless**. Both are correct behaviour — no command needs
-to defer its preflight in order to obtain a key.
+call site the set is empty and the run is **keyless**. Both are correct behaviour — a command runs
+its preflight once its key set is known (§3), and never defers it further to obtain a key some later
+phase would mint.
 
 **`/create-prd` contributes a key, and the rule does not read the route.** The
 positional token is validated by that command's own Phase 0 **step 1**, before the
@@ -350,6 +356,17 @@ has no candidate now. The rule never asks how many segments a key carries, which
 why a three-segment slice key needs no special case — `addressing.md` §1's
 "shape is not depth" holds here too — and why nothing above has to change when a
 key grammar widens again.
+
+**A re-run in the same run switches back first.** Where a command runs this entry point a second
+time in one run with a changed key set — `/docs-workflows:document` and
+`/docs-workflows:release-notes` do, when the operator enters a slice key at their BRD-container
+stop — and the earlier run's B4 switched away from a plugin branch that `branch-key` now resolves
+to a key in the new set, switch back to that branch first (`git -C "$SPECS_PATH" switch <branch>`,
+the name B4 reported; it exists and the plugin created it), then run stages 1–3 again, whose B3
+then stays on it. That is the state a single run holding the new set from the start would have kept,
+and a second preflight standing on the default branch cannot reach it by B1–B4 alone. A switch that
+fails is reported with the branch name, and the run continues from the branch it stands on. No
+other re-run switches anything outside the table above.
 
 **No auto-merge, deliberately.** No row above creates a merge commit or merges a
 branch into the default branch, and none should be added. The routing here
@@ -615,8 +632,12 @@ handoff (§4.1), append to the line:
 A command that writes anything into `$SPECS_PATH` must do all four of these.
 Omitting any one of them is a defect, not a style choice.
 
-1. **Cite and execute `specs-preflight` (§3)** as early as `$SPECS_PATH` is
-   known — Phase 0 in most commands. Carry any returned `specs_git: blocked`
+1. **Cite and execute `specs-preflight` (§3)** at run start, once the run key
+   set is known — after address resolution, where the command takes an
+   address, and before any placement or refusal reads the resolved folder;
+   where resolution comes first, a run that stops on its address runs none
+   (§3). Phase 0 in most
+   commands. Carry any returned `specs_git: blocked`
    flag for the whole run.
 2. **Cite and execute `commit-artifacts` (§4)** as the last action of the run,
    after `resume.md` (where one is written) and after the cost phase — or, where

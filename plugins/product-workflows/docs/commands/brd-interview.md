@@ -38,7 +38,10 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   evidence — for a decision the will-change rule held, every finding it rests on superseded and the
   successors no longer `will-change`; for any other, any finding it rests on superseded and that
   finding's successors not confirming it (Phase 3 and Phase 8,
-  below), or a re-decision an interrupted run left standing at that round, which the round records
+  below), a decision reopened elsewhere — by [`/brd-reconcile`](brd-reconcile.md), on a customer
+  answer that constrains it or by its propagation sweep from a BRD it depends on, or by an
+  interrupted run of this command — whose question no round still holds unanswered, which the round
+  puts again under the decision's own tag (Phase 3, below), or a re-decision an interrupted run left standing at that round, which the round records
   as a `[V]` already disposed *decided* and puts to nobody (*What it produces*, below) — and opens that round only where some question source puts a question, so a
   `--rebaseline` pass that confirms every decision it bears on, or leaves it waiting on its
   prerequisite, is reported as re-grounded with nothing moved and opens nothing — **or, on a BRD with no round record at all, generates round 1's questions and branches on
@@ -270,8 +273,9 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   question source would ask, where none is on file**: as the single header line `# Decision register: <BRD-KEY>`
   wherever no round recorded a decision, so `/brd-package` finds the register it gates on.
 - `interview/round-<N>.md` — the round's append-only record: every question in the order it was
-  written, its tag, every re-tag with the finding that caused it, every split with the parts it
-  became, and each question's state — either a **terminal disposition** (*answered from findings*,
+  written, its tag, on a question that puts a decision on file again that decision on its own
+  line labelled `- **Re-puts:**`, whatever the tag, every re-tag with the finding that caused it,
+  every split with the parts it became, and each question's state — either a **terminal disposition** (*answered from findings*,
   *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
   customer*, *deferred*, *needs grounding*, *untagged*). A re-tagged question keeps its number, so
   two states sit at that one address — *re-tagged*, and whatever the question reached under its new
@@ -304,8 +308,9 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   is asked; and, where that defect sits on a row drawn from an image, the image's path relative to
   `brd/` on the next line, labelled `- **Defect image:**`, which
   [`/brd-package`](brd-package.md) renders so the customer can find the picture; and, for a question
-  putting a `[CD#n]` again — one the will-change rule held, or one this command reopened because a
-  re-grounding moved its evidence — that record on its own line labelled `- **Re-puts:**`, from which
+  putting a `[CD#n]` again — one the will-change rule held, one this command reopened because a
+  re-grounding moved its evidence, or one reopened elsewhere — that record on its own line labelled
+  `- **Re-puts:**`, the same line the question carries in the round record, from which
   `/brd-reconcile`, once the customer answers, supersedes a held record that reads `open` or
   `decided` and re-decides a reopened one in place — reading each status as the register stood
   before its run wrote anything — and leaves a `withdrawn` or `superseded` one as it is, naming it
@@ -345,7 +350,11 @@ already on file is the exception: what it replaced cannot be restored, so it sta
 round is one no record yet holds, the next round opened at that number records it as a question
 of its own, tagged `[V]` and generated already disposed *decided* naming the record: it is never
 queued and put to nobody, and it makes that round askable by itself, so the round's record exists
-for `/brd-package` to find.
+for `/brd-package` to find. Where its round is one on file — the interrupted run was resuming it —
+the question whose `- **Re-puts:**` line names the record is recorded *decided* as the round is
+resumed, and put to nobody either. A reopen an interrupted run wrote stands as well, and the
+question it held for that decision, lost with the run, is put again by the next round opened
+(Phase 3, below).
 
 **No `[CD#n]` is ever minted by this command.** A customer decision enters the register only once
 the customer has actually answered and an operator has confirmed the answer; the customer answering
@@ -390,7 +399,19 @@ but the push and the pull request cannot run.
   still needs a human. The tag
   never moves, and no other question source raises a question on those successors, so one decision
   is never asked about twice. A decision resting on no finding, and a customer answer still waiting
-  for its reason, are never taken.
+  for its reason, are never taken, and nor is a decision whose question is already put and still
+  unanswered.
+- **Phase 3 — a decision reopened elsewhere is put again.** A decision can read `reopened` with no
+  question putting it: [`/brd-reconcile`](brd-reconcile.md) reopens one when a customer answer
+  contradicts or constrains it without replacing it, its propagation sweep reopens one in a BRD
+  that depends on the BRD it reconciled, and an interrupted run of this command can leave a reopen
+  whose question it never recorded. Every such decision whose question no round still holds
+  unanswered — no question naming it on a `- **Re-puts:**` line still *deferred* or *held for the
+  customer* — has its question put again in the round this run opens, under its own tag, against
+  the current findings, quoting each `Reopened` paragraph as context. The answer re-decides it in
+  place: here for a `[V]`, by `/brd-reconcile` from the customer's answer for a `[C]`. One reopened
+  while a round is still open waits for the next round, and the run says so. A decision moved to
+  `superseded` or `withdrawn` raises nothing.
 - **Phase 4 — the tagging gate.** Nothing is asked of anybody until every question in the round
   carries exactly one tag. A question that cannot be resolved into one of the three is left
   in the *untagged* holding state, with what is wrong with it recorded; it is never asked in that
@@ -484,8 +505,10 @@ pass as the one thing this command can offer that could make a new round askable
 defect can also become this BRD's to ask, through events outside this command — for instance a
 revised source document, an allocation or a re-cut elsewhere under the parent, a sibling's
 reconciliation moving its row to `rejected` or `superseded-by`, or a sibling file that could not be
-read becoming readable); neither the packaging step nor another round of this command is offered,
-because both would stop or report a no-op.
+read becoming readable; and a reconciliation can reopen one of its decisions); neither the packaging
+step nor another round of this command is offered, because both would stop or report a no-op —
+save where the run names a reopened decision that waited on the round it worked, when it says the
+BRD is not decided and names the bare run that puts that decision's question.
 Re-opening a closed round later, with its cause recorded:
 
 ```

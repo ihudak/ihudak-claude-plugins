@@ -320,8 +320,9 @@ command removes none of them; the next `/brd-interview` run does.
   without replacing it may reopen it instead. And an answer to a question that puts a record again,
   on an entry naming it on a `- **Re-puts:**` line, turns on that record's status, read as the
   register stood before the freeze wrote anything: a record the rule held is superseded by the new
-  `[CD#n]`; one `/brd-interview` reopened because a re-grounding moved its evidence is **re-decided
-  in place**, keeping its id, the customer's new reason appended beneath the `Reopened` paragraph;
+  `[CD#n]`; one that reads `reopened` — reopened by `/brd-interview` because a re-grounding moved its
+  evidence, or reopened by this command, by a propagation sweep or by an interrupted run before
+  [`/brd-interview`](brd-interview.md) put its question again — is **re-decided in place**, keeping its id, the customer's new reason appended beneath the `Reopened` paragraph;
   and one something else withdrew or superseded while the question travelled keeps its status, the
   answer frozen as a new `[CD#n]` and both named under what still needs a human. Where another
   answer in the same run also bears on that record, the `- **Re-puts:**` line decides it. Where

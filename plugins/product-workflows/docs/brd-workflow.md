@@ -198,6 +198,15 @@ re-decided there, and a `[C]` by
 run has meanwhile left the record `withdrawn` or `superseded`, when it does not move and the answer is
 a new record named beside it under what still needs a human.
 
+**A decision reopened elsewhere is put again too.** `/brd-reconcile` reopens a decided `[VD#n]` or
+`[CD#n]` when a customer answer contradicts or constrains it without replacing it, and its
+propagation sweep reopens one in a dependent BRD when the prerequisite decision it rests on moves.
+The next `/brd-interview` round opened on that BRD puts the decision's question again, under its own
+tag and against the current findings, with each `Reopened` paragraph quoted as context, unless a
+question already putting it is still unanswered; the answer re-decides it in place, keeping its id.
+Every question that puts a decision again names it on a `- **Re-puts:**` line, and that line is how
+each command ties the answer back to the decision.
+
 **Where the route hands over is `/brd-reconcile`**: a BRD whose customer decisions are frozen and
 whose tree holds nothing the review made false is the state the PRD pipeline is entered from.
 the BRD route **ships** on `/create-prd`, `/create-ard` and `/specify`, and `/brd-reconcile`'s

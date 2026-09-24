@@ -19,7 +19,8 @@ belongs to `workflows-core:addressing` §1.
 
 **Consumed by `commands/brd-interview.md`**, which writes `[VD#n]` and `[AS#n]` records against this
 shape, enforces §6, and — on §4's first cause — reopens a `decided` `[VD#n]` or `[CD#n]` a
-`--rebaseline` pass moved the ground under; by `commands/create-prd.md`, which writes an `[AS#n]` — and only an `[AS#n]` —
+`--rebaseline` pass moved the ground under, and which puts the question of a record reading
+`reopened` again wherever no question putting it is in flight, whichever run reopened it; by `commands/create-prd.md`, which writes an `[AS#n]` — and only an `[AS#n]` —
 for a customer-authority gap that only PRD authoring could surface (§7); by `agents/brd-package-reviewer.md`, which reads them; and by
 `commands/brd-package.md`, which surfaces every open `[AS#n]` in the customer prompt (§7) and finds
 every position resting on a prerequisite by its `conditional_on` field (§5); and by
@@ -294,7 +295,11 @@ answers was raised by, which the answer's being re-taken does not change. That i
 
 A **re-decision**, taken by the run that reopened the record or by a
 later one, writes its argumentation after the `Reopened` paragraph: why the change moves the answer,
-or why it does not. A **reversion** — `commands/brd-reconcile.md`'s propagation sweep writes
+or why it does not. A record is re-decided only by an answer to a question that puts it again, and
+whichever run reopened it, a later one reaches it: `commands/brd-interview.md` puts the question of
+every record reading `reopened` whose question no round holds in flight (its *A decision reopened
+elsewhere*), and the answer re-decides the record the question's `- **Re-puts:**` line names —
+`commands/brd-interview.md` for a `[VD#n]`, `commands/brd-reconcile.md` for a `[CD#n]`. A **reversion** — `commands/brd-reconcile.md`'s propagation sweep writes
 one, and nothing else does — returns those fields to the position that stood before the prerequisite
 moved it and appends its `Reverted <YYYYMMDD>:` paragraph. Neither replaces the `Reopened` paragraph
 or anything above it, so the record carries the original reasoning, each cause and each answer to a
@@ -564,7 +569,9 @@ means:
 
 - **A record carrying a `Reopened` paragraph** (§4). It was on file before the run that last wrote
   it, so no rule may remove it. A re-decision a stopped run wrote onto it stands and is counted:
-  what it replaced survives only in `argumentation` (§4) and cannot be restored.
+  what it replaced survives only in `argumentation` (§4) and cannot be restored. A reopen a stopped
+  run wrote stands too, and the question that run held for it, never on a counted record, is put
+  again by `commands/brd-interview.md`'s *A decision reopened elsewhere*.
 - **A `[CD#n]`.** `commands/brd-reconcile.md` mints it by its own rules, and a customer's answer is
   never removed by a rule about another command's interruption.
 - **A record carrying no `round`** (§1, §7), and an entry whose heading has not that form.

@@ -874,7 +874,7 @@ entry it answers gained a `- **Requirement defect:**` line after that record was
 (`/product-workflows:brd-interview`, *One question per row*), the record's `settles` is written from
 that line in the same step — copied, as the `settles` row below copies it, never inferred. **A
 candidate answering an entry whose `- **Re-puts:**` line names a record reading `status: reopened` —
-read as the register stood before this phase wrote anything (step 3) — mints nothing either** (`/product-workflows:brd-interview`, *A decision the re-grounding moved*): it
+read as the register stood before this phase wrote anything (step 3) — mints nothing either** (`/product-workflows:brd-interview`, *A decision the re-grounding moved* and *A decision reopened elsewhere*): it
 re-decides that record in place, under `decision-register-format.md` §4's per-field rules, as step
 3's `- **Re-puts:**` paragraph sets out. Ids are
 assigned once and never reused (§1), and one record holds one `chosen`. **Where the package was
@@ -1100,8 +1100,12 @@ Then, in the same phase and from the same confirmed set:
      the ground that moved, so the new answer is its replacement even where the customer chose the
      same option again.
    - **`reopened`** — a `decided` record `/product-workflows:brd-interview` reopened because a
-     re-grounding superseded its whole `evidence` and the successors did not confirm it, or one a
-     propagation sweep reopened since the question was put → **re-decided in place**, minting no id:
+     re-grounding superseded a finding of its `evidence` and the successors did not confirm it; one
+     reopened before any question put it — by step 3 of an earlier run of this command, by another
+     BRD's propagation sweep, or by a `/product-workflows:brd-interview` run that stopped before
+     writing its question — whose question that command's *A decision reopened elsewhere* put; or
+     one a propagation sweep reopened since the question was put → **re-decided in place**, minting
+     no id:
      `statement`, `options_considered`, `chosen`, `evidence` (the answered entry's
      `- **Findings:**` line, as the table above takes it), `defects`, `conditional_on` and `status`
      are written afresh as the table above takes each, the will-change rule tested on it like any

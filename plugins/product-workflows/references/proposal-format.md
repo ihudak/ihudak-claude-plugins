@@ -67,10 +67,13 @@ reader must go and find.
 never handed a number without being told what grade of evidence stands behind it.
 
 **A revision archives its predecessor before overwriting it**, following the canonical-plus-archived
-convention `commands/update-prd.md` Phase 5 already establishes: the prior `proposal.md` moves to
+convention `commands/update-prd.md` Phase 3 already establishes: the prior `proposal.md` moves to
 `<folder>/revisions/<KEY>_proposal_<YYYYMMDD>.md` and the prior `proposal-brief.md` to
-`<folder>/revisions/<KEY>_proposal-brief_<YYYYMMDD>.md`, a second revision on the same day taking the
-suffix `-2`, `-3`, and so on. The new canonical records `revision_of:` naming the archived snapshot.
+`<folder>/revisions/<KEY>_proposal-brief_<YYYYMMDD>.md`. **Where that name is already taken by any
+file in `revisions/`**, whoever wrote it, the archive takes the first name not taken of
+`<KEY>_proposal_<YYYYMMDD>-2.md`, `-3`, and so on (the brief likewise), the suffix going before
+`.md`. The new canonical records `revision_of:` naming the archived snapshot as actually written,
+suffix included.
 
 ## 3. Two identifier namespaces, and deliberately only two
 

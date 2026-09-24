@@ -62,7 +62,7 @@ fixed-name subdirectories whose names carry no key and that are never resolved b
 `grounding/`, `interview/`, `dev-workflows/`, `design/` (exported frame sets, one per immediate subdirectory, each
 indexed per `references/grounding-format.md` §6.1–§6.2), `attachments/` (the text and markdown sources a run copied
 into the folder — `product-workflows:idea-format`, *Vendored sources*), `revisions/` (a document's archived
-prior revisions — `/product-workflows:update-prd` for a PRD, `product-workflows:proposal-format` for a proposal),
+prior revisions — `/product-workflows:update-prd` and `/product-workflows:create-prd` for a PRD, `product-workflows:proposal-format` for a proposal),
 `bundle-<YYYYMMDD>/` (a customer package — `product-workflows:bundle-packaging`), `customer-sent-<YYYYMMDD>/`
 (the material a `--sent` run records — `/product-workflows:brd-reconcile`), and `Doc screenshots/` (images `/docs-workflows:document`
 stages for a page — that command's own Phase 5.6). None matches §3's `*-<KEY>-*` glob,

@@ -168,6 +168,15 @@ Apply the same change to BI:526–528, BI:1004–1008 and BI:1517–1518, and to
 - **R37 (N17).** A candidate that repeats the target record's `chosen` and states no reason re-affirms the record: it is skipped, as B1's skip is. A missing reason is not a different reason, and the recorded reason stands. Only a different `chosen`, or a different stated reason, supersedes.
 - **R38 (N18).** An answer's target resolves to the question's **live** record, following supersession (`Re-puts` included) to its successor, and B1 compares against that record. An answer to a question whose live record is `withdrawn` freezes nothing, and is listed under "what still needs a human".
 - **R39 (N19).** The reader's `[AS#n]` row describes the record without filtering it. A re-answer to an `[AS#n]` that is already superseded resolves to its successor, as R38 does.
+- **R42 (narrows R40).** An `[SR#n]` target resolves through the self-review file of the package the review answers, never by `[SR#n]` alone, because every package restarts that numbering. Where that file cannot be determined from the review and the package on file, no skip applies: the answer is frozen as it would be without B1.
+- **R43.** The skip compares the **confirmed** option. It runs only once Phase 5's answer→option mapping is confirmed. In free-text mode a `reason: not stated` is also confirmed. An unconfirmed mapping never skips.
+- **R44.** A review's candidate is skipped as already reconciled wherever its target's chain holds a record **this same review** froze, whatever that record's status is now. So re-running an earlier review never supersedes a later review's answer.
+- **R45.** A held entry frozen `open` for want of its reason is a live record: the chain starts at it. Against it:
+  - the same `chosen` with a stated reason completes the record;
+  - the same `chosen` with no reason is skipped (R41);
+  - a different `chosen` supersedes it (D1).
+
+  A held `Re-puts` entry whose live record is `withdrawn` closes with a terminal disposition naming the withdrawal, so its round can close.
 - **R40.** B1's skip also covers `[AS#n]` and `[SR#n]` targets, so an identical re-answer never supersedes needlessly.
 
 ## 6. Unit C: grounding supersession

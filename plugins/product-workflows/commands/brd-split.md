@@ -586,10 +586,17 @@ cap forbids, and it is the only phase that is forbidden rather than merely empty
 For every slice Phase 2 confirmed:
 
 1. **Take a key.** Propose a default of the parent's key plus the next unused two-digit segment
-   (e.g. `<PARENT-KEY>-01`, `<PARENT-KEY>-02`, …, skipping any segment an existing child from
-   Phase 0 step 9 already uses) and let the operator accept it or supply their own. Validate
-   whatever is used with `key-valid` (`workflows-core:addressing` §1); an invalid key is re-prompted,
-   never silently coerced.
+   (e.g. `<PARENT-KEY>-01`, `<PARENT-KEY>-02`, …) and let the operator accept it or supply their
+   own. Validate whatever is used with `key-valid` (`workflows-core:addressing` §1); an invalid key
+   is re-prompted, never silently coerced. **A key is used — skipped as a default, and re-prompted
+   when the operator supplies it — wherever any immediate subdirectory of `<BRD-dir>` carries it**,
+   tested per candidate key against the directory names as `workflows-core:addressing` §4.1 defines
+   a prefix — the name `PRD-<candidate>` or one beginning `PRD-<candidate>-` — and never by reading
+   a segment out of a name. **Not only the children Phase 0 step 9 enumerated**: step 9 finds a
+   child by its `brd-link.md`, so a folder an interrupted run created and never linked — empty, or
+   holding files but no `brd-link.md` — is invisible to it, and a key proposed beside it would leave
+   `resolve-address` two folders for one key. `/product-workflows:prd-ground` names the repair for
+   such a folder (`PRD_GROUND_CARVE_INTERRUPTED`, `PRD_GROUND_LINK_MISSING`).
 2. **Create the folder inside the folder this run resolved**, per `workflows-core:addressing` §6 — the folder a
    slice gets **is** the folder its PRD will be authored in, and it is never a sibling of its BRD.
    On a current tree that is

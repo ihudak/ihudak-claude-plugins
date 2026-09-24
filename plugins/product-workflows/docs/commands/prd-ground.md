@@ -21,12 +21,16 @@ exactly the folder this command must accept, so a kind-based test would refuse e
   way.
 - **A `PRD-` folder carrying `brd-link.md` → the BRD route.** Every existing step applies unchanged,
   over that slice's own `[BR#n]` inventory.
-- **A `PRD-` folder with no `brd-link.md`, sitting inside a `BRD-` folder → a stop,
-  `PRD_GROUND_CARVE_INTERRUPTED`.** Only a slice sits inside a BRD, so this is one a
-  [`/brd-split`](brd-split.md) run created and stopped on before writing its `brd-link.md`; no
-  `/brd-split` run finds it again, since that command finds a child by that file. The stop names
-  removing the folder and then the parent's instructed re-run, and never `/create-prd`, which would
-  author a PRD inside a BRD.
+- **A `PRD-` folder with no `brd-link.md`, sitting inside a BRD folder → a stop.** Only a slice
+  sits inside a BRD — the parent is recognised by its `BRD-` prefix, or, where it is a legacy
+  unprefixed folder, by the positive evidence that it is a BRD — and no [`/brd-split`](brd-split.md)
+  run finds such a folder again, since that command finds a child by its `brd-link.md`. Which stop
+  turns on what the folder holds. An **empty** folder is a carve that stopped between creating it and
+  writing its first file: `PRD_GROUND_CARVE_INTERRUPTED` names deleting it and then the parent's
+  instructed re-run. A folder holding **anything** — a ledger, grounding, decisions — is a slice
+  that lost its `brd-link.md`: `PRD_GROUND_LINK_MISSING` names the commit to restore it from where
+  any ref holds one, and otherwise what the file must say, and never names removing the folder.
+  Neither names `/create-prd`, which would author a PRD inside a BRD.
 - **Any other `PRD-` folder with no `brd-link.md` → the idea route.** `/create-prd`'s own unprompted
   output; its claims come from its own `prd.md`.
 - **Resolved through the legacy unprefixed fallback, with no ledger and no inventory** — split on
@@ -263,7 +267,9 @@ also runs, in Phase 11, for session lessons-learned.
   tree: a gate passes a file that is on the default branch and missing from a working tree on a
   branch this run reuses, and there the run stops with `PRD_GROUND_RESTORE_FROM_DEFAULT`, naming the
   restore, rather than reading a missing inventory as an empty set and sending the operator to a
-  `/brd-split` run that writes nothing into a slice with a file missing. Then the run compares three sets of
+  `/brd-split` run that writes nothing into a slice with a file missing. Both must also be readable:
+  one in the folder that the run cannot read stops with `PRD_GROUND_SLICE_FILE_UNREADABLE`, naming
+  the file and the error, rather than failing at the last write of a spent run. Then the run compares three sets of
   `[BR#n]` ids: the slice's `brd-link.md` `claims:`, the rows of its `brd/brd-inventory.md`, and the
   rows of the parent's `coverage-ledger.md` reading exactly `covered-by: <this slice's key>`. Every
   completed `/brd-split` run leaves the three equal, so a difference means the slice's files are not

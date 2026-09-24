@@ -161,23 +161,39 @@ behaviour, not the behaviour.
       alone already resolves a legacy **slice** too: §5.1's own table only ever puts `brd-link.md`
       carrying `parent:` beside a ledger file on a legacy folder that is a slice, so a legacy slice
       reaches `route: brd` here without a separate test of its own.
-    - **A `PRD-` directory with no `brd-link.md`, nested directly inside a `BRD-` folder → stop.**
-      Test the resolved directory's **parent** directory by the same prefix test the root question
-      above applies to the resolved one. `workflows-core:addressing` §2 places an idea-route PRD
-      folder directly under `specifications/` and a slice inside its BRD, so a `PRD-` folder inside a
-      `BRD-` one is a slice by where it sits — positive evidence, never the absence of a file — and
-      one with no `brd-link.md` is a slice `/product-workflows:brd-split` created and stopped on
-      before writing that file (its Phase 3 creates the folder at step 2 and writes `brd-link.md` at
-      step 3). Nothing else writes into it and no `/brd-split` run enumerates it, since that command's
-      Phase 0 step 9 finds a child by its `brd-link.md`; taking `route: idea` here would name
-      `/create-prd` and author a PRD inside a BRD. `<PARENT-KEY>` is the `key:` the parent folder's
-      `coverage-ledger.md` records; where that cannot be read, name the parent folder by path and no
-      `/brd-split` form. Stop:
-      `PRD_GROUND_CARVE_INTERRUPTED: <KEY> resolves to <path>, a PRD- folder inside the BRD folder <parent path> that carries no brd-link.md — the /product-workflows:brd-split run that created it stopped before writing that file, so it is neither a slice nor an idea-route PRD folder, and nothing was written. Remove the folder — delete it where git reports it untracked, and where it was committed by hand, remove it in a commit on every branch that carries it, the default branch included — then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Do not run /product-workflows:create-prd on it.`
+    - **A `PRD-` directory with no `brd-link.md`, nested directly inside a BRD folder → stop, on
+      one of two stops.** Test the resolved directory's **parent** directory by the root question
+      above, applied to it: a `BRD-` prefix, or — where the parent is unprefixed, a legacy folder —
+      `coverage-ledger-format.md` §5.1's positive evidence, the same test the root question takes
+      for an unprefixed folder. `workflows-core:addressing` §2 places an idea-route PRD folder
+      directly under `specifications/` and a slice inside its BRD, so a `PRD-` folder inside a BRD
+      is a slice by where it sits — positive evidence, never the absence of a file — and one with no
+      `brd-link.md` is not a slice this run can read: taking `route: idea` would name `/create-prd`
+      and author a PRD inside a BRD, and no `/brd-split` run enumerates it, since that command's
+      Phase 0 step 9 finds a child by its `brd-link.md`. `<PARENT-KEY>` is the `key:` the parent
+      folder's `coverage-ledger.md` records; where that cannot be read, name the parent folder by path
+      and no `/brd-split` form. **Which stop turns on what the folder holds, never on the missing
+      file alone**:
+      - **The folder holds nothing at all** — the one state that is positive evidence of a carve
+        interrupted between `/product-workflows:brd-split` Phase 3 step 2, which creates the folder,
+        and step 3, which writes `brd-link.md` as the first file in it. That command writes no file
+        into a slice before `brd-link.md`, so there is no third state of "only the files it writes
+        before that one". Git records no empty directory, so the folder was never
+        committed. Stop:
+        `PRD_GROUND_CARVE_INTERRUPTED: <KEY> resolves to <path>, an empty PRD- folder inside the BRD folder <parent path> — the /product-workflows:brd-split run that created it stopped before writing its brd-link.md, so it is neither a slice nor an idea-route PRD folder, and nothing was written. Delete the empty folder, then re-run '/product-workflows:brd-split <PARENT-KEY> "<how to cut it>"'. Do not run /product-workflows:create-prd on it.`
+      - **The folder holds anything** — a ledger, an inventory, `grounding/`, `decisions.md`, or any
+        other file. That is most often a slice whose `brd-link.md` was lost after it was written, and
+        whatever it holds may be grounding, decisions and rounds nothing else records, so **never
+        name its removal**. Look for `brd-link.md` on a ref:
+        `git -C "$SPECS_PATH" log --all --diff-filter=AM --format=%H -1 -- <path>/brd-link.md` names
+        the newest commit on any ref that wrote it, whose tree therefore holds it. Name what the file must say, off records rather than prose:
+        `kind: brd`, `key: <KEY>`, `parent: <PARENT-KEY>`, and as `claims:` the `[BR#n]` of every row
+        of `<PARENT-KEY>`'s ledger whose `disposition` reads exactly `covered-by: <KEY>`. Stop:
+        `PRD_GROUND_LINK_MISSING: <KEY> resolves to <path>, a slice folder inside the BRD folder <parent path> that holds <what it holds> and has no brd-link.md, so it cannot be read as a slice, and nothing was written here. <where a ref holds it:> Restore brd-link.md from commit <commit>, then re-run '/product-workflows:prd-ground <KEY>'. <where none does:> No ref holds it: report it, or re-create it by hand as kind: brd, key: <KEY>, parent: <PARENT-KEY>, claims: [<ids>] — the rows <PARENT-KEY>'s ledger delegates to this slice — then re-run. Do not delete this folder, and do not run /product-workflows:create-prd on it.`
     - **Any other `PRD-` directory with no `brd-link.md` → `route: idea`.** `/brd-split` is the only
       writer of a `brd-link.md` naming a `parent:` inside a `PRD-` folder; this command's own Phase 4
       writes `depends-on:` into one but never introduces a `parent:`. A `PRD-` folder that sits
-      outside every `BRD-` folder and carries no `brd-link.md` at all was therefore never carved from
+      outside every BRD folder and carries no `brd-link.md` at all was therefore never carved from
       a BRD — it is `/product-workflows:create-prd`'s own output, unprompted by any slice, and its claims come from its own `prd.md` (step 6i, step 8i, below).
     - **Resolved through §5's legacy unprefixed fallback, and past the root question above** — there
       is still no prefix to test, and the `brd-link.md` test just above has already resolved a
@@ -405,8 +421,17 @@ behaviour, not the behaviour.
     the stop below, whose remedy names `/brd-split`, which writes nothing into a slice with a file
     missing (`commands/brd-split.md` Phase 4 Step 3), so that remedy would loop. Where
     `brd/brd-inventory.md`, `coverage-ledger.md` or both are not in the folder, stop instead, naming
-    each missing one:
+    each missing one (a file in the folder that cannot be read is the stop after this one):
     `PRD_GROUND_RESTORE_FROM_DEFAULT: <BRD-KEY>'s <missing file(s)> <is|are> on the specs repo's default branch but missing from this working tree, on the branch this run reuses — nothing here can be tested against its parent or ground from a file that is not on disk, and nothing was written. Restore <it|them> from the default branch, then re-run '/product-workflows:prd-ground <BRD-KEY>'. No /product-workflows:brd-split run re-creates either file.`
+
+    **Then both must be readable.** A gate tests a file's presence and its bytes against a ref,
+    never whether this run can read it, so a `coverage-ledger.md` or `brd/brd-inventory.md` that is
+    in the folder and cannot be read — a permission fault, a file that is not text — passes both.
+    Read unread, the inventory would empty set (b) and send the operator to `/brd-split`, which marks
+    this slice unreconcilable and writes nothing into it; the ledger no set here reads would fail
+    only at Phase 8's `evidence` rebuild, after the whole run's spend. Stop here instead, naming each
+    such file and the read error:
+    `PRD_GROUND_SLICE_FILE_UNREADABLE: <BRD-KEY>'s <file(s)> at <path(s)> <is|are> in the folder but cannot be read (<error>), so nothing here can be tested against its parent or ground, and nothing was written. Repair the file — its permissions, or restore it from the ref that carried it — then re-run '/product-workflows:prd-ground <BRD-KEY>'. No /product-workflows:brd-split run repairs it: that command writes nothing into a slice whose inventory or ledger cannot be read.`
 
     Read three sets of
     `[BR#n]` ids, each off a structured field and never out of prose:
@@ -1817,9 +1842,9 @@ reference gap, `emit-block` (`workflows-core:feedback-emission`) fires at
 that halt before escalating. **None of Phase 0's stops qualify — every one is a user, sequencing or
 environment halt, never a plugin capability gap** — for example a missing key, an unresolved BRD,
 a resolved root BRD or Epic folder, an input not yet on main (`PRD_GROUND_NO_INVENTORY`, `PRD_GROUND_INVENTORY_NOT_HANDED_OFF`,
-`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off; `PRD_GROUND_CARVE_UNFINISHED` where the parent's carve that wrote them has not finished; `PRD_GROUND_SLICE_UNRECONCILED` where the slice does not agree with its parent's ledger, or that ledger cannot be read; `PRD_GROUND_RESTORE_FROM_DEFAULT` where they are on the default branch and missing from the worktree;
+`PRD_GROUND_NEEDS_INTAKE` or, for a slice, `PRD_GROUND_NEEDS_SPLIT`; `PRD_GROUND_NOT_HANDED_OFF` where they exist and were never handed off; `PRD_GROUND_CARVE_UNFINISHED` where the parent's carve that wrote them has not finished; `PRD_GROUND_SLICE_UNRECONCILED` where the slice does not agree with its parent's ledger, or that ledger cannot be read; `PRD_GROUND_RESTORE_FROM_DEFAULT` where they are on the default branch and missing from the worktree; `PRD_GROUND_SLICE_FILE_UNREADABLE` where one is in the folder and cannot be read;
 `PRD_GROUND_NEEDS_PRD` and `PRD_GROUND_PRD_NOT_HANDED_OFF` on the idea route), a key naming the wrong
-folder (`PRD_GROUND_CARVE_INTERRUPTED`, on a folder a carve created and never linked; the no-parent forms of `PRD_GROUND_NO_INVENTORY` and `PRD_GROUND_NEEDS_INTAKE`, on a folder
+folder (`PRD_GROUND_CARVE_INTERRUPTED`, on an empty folder a carve created and never linked, and `PRD_GROUND_LINK_MISSING`, on a slice that lost its `brd-link.md`; the no-parent forms of `PRD_GROUND_NO_INVENTORY` and `PRD_GROUND_NEEDS_INTAKE`, on a folder
 that is neither a slice nor a BRD container — an argument halt, not a missing input, save on a
 legacy folder holding an `idea.md` and no `prd.md`, whose missing input is the PRD),
 an inventory carrying no claim at all

@@ -25,7 +25,16 @@ For small one-off doc edits, use direct mode (below). For writing child Epic dra
 
 **The mode test is the presence of an address**, which is what replaces the retired shared front-end's own mode return. Mode B is unchanged in every other respect — a direct-mode run is byte-identical to before.
 
-**Specs-repo preflight.** Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
+**The run key set the specs-repo preflight below is handed** (`workflows-core:specs-repo-git` §3.2)
+is fixed first, before either mode runs, reading only carrier frontmatter (`key:`, `kind:`) as §4
+does, whatever file that is, and testing no file's presence. In Mode A it is the resolved `key`,
+and, where `workflows-core:addressing` §4.1 places the resolved folder at Epic level — an `EPIC-` prefix, or with
+no prefix a resolved `kind: epic` — also the key its parent's carrier asserts (§4), which is the
+`<PRD>` Mode A Phase 0 step 1 carries. Without it, §3.5 would resolve a `prd/<PRD-KEY>-…` branch to
+no key and switch away from it. A key that came back empty adds nothing. In Mode B there is no
+address and the set is empty: a keyless run (§3.2).
+
+**Specs-repo preflight** — with the run key set fixed in the paragraph above. Invoke `Skill(skill: "workflows-core:reference", args: "specs-repo-git specs-preflight")` and execute its `specs-preflight` entry point (§3) inline: flush any leftover session
 artifacts from an earlier run, retry an artifact commit that failed to push,
 and settle the branch. This runs against `$SPECS_PATH` only — `git -C
 "$SPECS_PATH"`, never a `cd`, so the code/docs repo this run is working
@@ -33,14 +42,6 @@ in is untouched (§1 rule 1). Prompt-free and silent when the specs repo
 is clean and on its default branch. If a guard fires, emit its §5 notice;
 if it returns `specs_git: blocked` (§3.3 G0), carry that flag for the whole
 run — the terminal `commit-artifacts` step skips on it.
-
-**The run key set it is handed** (`workflows-core:specs-repo-git` §3.2) is fixed here, before either
-mode runs, and without reading any `prd.md`. In Mode A it is the resolved `key`, and, where
-`workflows-core:addressing` §4.1 places the resolved folder at Epic level — an `EPIC-` prefix, or with
-no prefix a resolved `kind: epic` — also the key its parent's carrier asserts (§4), which is the
-`<PRD>` Mode A Phase 0 step 1 carries. Without it, §3.5 would resolve a `prd/<PRD-KEY>-…` branch to
-no key and switch away from it. A key that came back empty adds nothing. In Mode B there is no
-address and the set is empty: a keyless run (§3.2).
 
 Echo the detected mode, then proceed to that mode's phases. The two modes share the same style pass and the same fixer — `docs-workflows:docs-style-checker`, which reports and never modifies a file, and `workflows-core:doc-fixer`, which applies what it reports; the two ship from different plugins and are dispatched by their qualified `subagent_type` everywhere below; only Keyed mode also runs `doc-reviewer` (each mode emits its own final report).
 

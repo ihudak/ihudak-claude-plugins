@@ -120,6 +120,9 @@ A1 as first written did not recover from a crash between Phase 9 writes. The reg
 - **R32.** `/brd-reconcile` offers *Work another round* only where every round is closed, per its own rule against offering a run that reports nothing new. BI's matching `yes` label follows. This overrides A2's "re-read and keep BR:2119".
 - **R33.** Only one round is open at a time. `--round <highest+1>` while a lower round is open stops and names the open round, unless the implementer finds text that deliberately allows concurrent open rounds. In that case the finding goes back to the controller.
 
+- **R34 (replaces R33).** Concurrent open rounds are deliberate: Phase 11's `defects-unasked` and a `--round 1` re-open. What is ruled out is narrower. `--round <highest+1>` while a lower round holds a question with no terminal disposition stops and names that round. The no-flag path would resume the open round, so that request has no branch to mirror.
+- **R35.** From this change on, every `[V]` question in a round record carries a `- **Re-puts:**` line, reading `none` where it re-puts nothing. A `[V]` with no line is therefore exactly one written by a released version, and R31's picker fires only for those questions.
+
 ### A3. Delete the dead key event (iv)
 
 - Remove "a cancelled `[V]` queue" from BI Phase 12's key-events list (BI:1797–1799).

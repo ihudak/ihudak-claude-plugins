@@ -314,14 +314,19 @@ command removes none of them; the next `/brd-interview` run does.
 - **Phase 4 — a resumed run never re-asks what it already froze.** A candidate whose target already
   carries, from an earlier pass over the same review, a `decided` `[CD#n]` or one the will-change
   rule held `open` is skipped, because two customer answers to one question is a contradiction one
-  record cannot hold. A different review — a corrected resend — is skipped too where its answer
-  repeats the target's current `decided` record exactly, `conditional_on` or not: the same `chosen`,
-  and a reason byte-equal to the customer's words the record's `argumentation` closes on once
-  whitespace is collapsed. It is reported as *already reconciled, re-affirmed by* that review, mints
-  nothing, marks nothing answered and adds nothing to the propagation sweep; any other answer to
-  that record, once frozen — the same option with a different reason included — is a new answer
-  that supersedes it, and where another candidate of the walk has the same target neither is
-  skipped. A target carrying a `[CD#n]` that is `open` for want of its reason is
+  record cannot hold. Every target is first resolved to its question's **live record** — the
+  record its answer, its assumption or its `- **Re-puts:**` line names, followed through every
+  supersession to the successor that stands — and everything below reads that record. A different
+  review — a corrected resend — is skipped too where its answer re-affirms the live record: on a
+  `decided` one, `conditional_on` or not, the same `chosen` and a reason byte-equal to the customer's
+  words the record's `argumentation` closes on once whitespace is collapsed; on a `decided` or
+  `open` one, the same `chosen` with no reason stated at all, since a missing reason is not a
+  different one. It is reported as *already reconciled, re-affirmed by* that review, mints nothing,
+  marks nothing answered and adds nothing to the propagation sweep; any other answer to that record,
+  once frozen — the same option with a different reason included — is a new answer that supersedes
+  it, and where another candidate of the walk reaches the same live record neither is skipped. An
+  answer whose live record is `withdrawn` freezes nothing and is named under what still needs a
+  human. A target carrying a `[CD#n]` that is `open` for want of its reason is
   re-offered, and confirming it **completes that record** rather than minting a second id. A record
   the will-change rule held open is never completed: it already carries the customer's choice and
   reason, so a later review's answer against it mints a new `[CD#n]` that supersedes it — never
@@ -333,8 +338,10 @@ command removes none of them; the next `/brd-interview` run does.
   `[CD#n]`; one that reads `reopened` — reopened by `/brd-interview` because a re-grounding moved its
   evidence, or reopened by this command, by a propagation sweep or by an interrupted run before
   [`/brd-interview`](brd-interview.md) put its question again — is **re-decided in place**, keeping its id, the customer's new reason appended beneath the `Reopened` paragraph;
-  and one something else withdrew or superseded while the question travelled keeps its status, the
-  answer frozen as a new `[CD#n]` and both named under what still needs a human. Where another
+  one another answer superseded while the question travelled is followed to its live successor,
+  which the answer then acts on as though the line named it; and one withdrawn while it travelled
+  keeps its status and takes no answer — nothing is frozen, and the answer is named under what
+  still needs a human. Where another
   answer in the same run also bears on that record, the `- **Re-puts:**` line decides it. Where
   answers reach one record with none naming it on such a line — one replacing it, others only
   constraining it — the one that replaces it decides it, as it would for the status the record held:
@@ -347,13 +354,16 @@ command removes none of them; the next `/brd-interview` run does.
   shown both and picks one to freeze — or asks the customer and freezes neither; the one set aside is
   named under what still needs a human as a conflicting answer, beside the one frozen in its place (or noting that the one kept went back to the customer for its reason); a later candidate onto a question the operator sent back to the customer goes back with it.
 - **Phase 4 — a reason nobody gave.** A confirmed candidate whose reason is `not stated` takes one
-  of exactly two routes: ask the customer and freeze nothing, or freeze it `status: open`, which puts
-  the answer on the record and makes it unusable downstream until the reason arrives. Supplying the
-  reason is not on the list — a supplied reason is the delivery team's argument recorded as the
-  customer's, and it will be defended later as theirs. A question whose `[CD#n]` is `open` for want
-  of its reason **keeps** its *held for the customer* state and its round stays open, so the next
-  package asks for the missing reason; closing the round there would retire the only mechanism that
-  would ever chase it.
+  of exactly two routes: ask the customer and freeze nothing, or freeze it `status: open`, which
+  puts the answer on the record and makes it unusable downstream until the reason arrives. Supplying
+  the reason is not on the list — a supplied reason is the delivery team's argument recorded as the
+  customer's, and it will be defended later as theirs. A held question whose `[CD#n]` is `open` for
+  want of its reason **keeps** its *held for the customer* state and its round stays open, so the
+  next package asks for the missing reason; closing the round there would retire the only mechanism
+  that would ever chase it. A question an earlier review already answered is not held again: a new
+  `chosen` given there with no reason supersedes its record with an `open` one that no package
+  re-asks, so the record is named under what still needs a human. The same `chosen` with no reason
+  never reaches this picker: it re-affirms the record and is skipped.
 - **Phase 5 — a row the slice does not claim is written with the parent's key in front.** Every
   field the freeze writes names such a row `<PARENT-KEY> [BR#n]`, as
   [`/brd-interview`](brd-interview.md) wrote the question — the decision's statement and the options

@@ -151,9 +151,11 @@ finding.
 4. **Extract the decisions**, marked `parsed` in schema mode and `candidate` in free-text mode, and
    match each against **all three** shapes the package can put to a customer, from whichever of
    `package.questions`, `package.assumptions` and `package.self_review` was supplied: a `[C]`
-   question by its round and position, an open `[AS#n]`, or an `[SR#n]` the package escalated. An unmatched decision is reported as `unmatched` — a customer
-   may legitimately decide something nobody asked, and forcing it onto the nearest question loses
-   both the answer and the question.
+   question by its round and position, whatever state its entry now holds; an `[AS#n]`, whatever
+   its status — the package put it while it was open, and a corrected resend answers it again after
+   an earlier review settled it, which the caller resolves; or an `[SR#n]` the package escalated.
+   An unmatched decision is reported as `unmatched` — a customer may legitimately decide something
+   nobody asked, and forcing it onto the nearest question loses both the answer and the question.
 
 5. **Extract the rest of the review as it stands**: corrections to requirement readings, code and
    design challenges, accepted and corrected assumptions, ownership, blockers, the readiness

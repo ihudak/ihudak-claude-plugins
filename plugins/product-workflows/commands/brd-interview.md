@@ -584,8 +584,8 @@ the round record*), and where the two disagree the dispositions win.
   round-1 test below) — or a re-decision standing at round `<highest + 1>` that no record names
   (*A later round is generated from what changed*) — or a record *A decision the re-grounding moved* puts again: one the
   will-change rule held, every `evidence` finding of which now reads `SUPERSEDED` and has a
-  successor, none of them still `will-change`, or one resting on a superseded finding whose own
-  source cannot be decided, or a plain `decided` record any `evidence` finding
+  successor, none of them still `will-change`, or one resting on a superseded finding no successor
+  will come to, or a plain `decided` record any `evidence` finding
   of which reads `SUPERSEDED` and whose successors do not confirm its premise — **whenever that
   supersession happened**: a record whose findings a re-grounding superseded while an earlier round
   was still open was not put again by that round, and its supersession predating the last closure
@@ -1037,14 +1037,26 @@ that as a test that did not pass.
   prerequisite shipped is a successor no longer `will-change`**. A record with a successor still
   `will-change`, or with some of its findings superseded and some not, rests on ground still about to
   move: it **waits on its prerequisite**, and the final report names it with each such successor and
-  the prerequisite it names, raising nothing. One with a superseded finding that has no successor
-  **yet** waits too, named with that finding: no re-grounding has yet written ground its question
-  could be put against. **One with a superseded finding whose own source cannot be decided** — a
-  `commit` no `baselines.md` entry records or more than one records, or a `[DG#n]` the frame-set
-  placement in test 4 does not settle — **is put again instead**, as a plain record would be, naming
-  that finding and saying no successor can ever be placed for it: test 4 can pass nothing against a
-  finding whose source it cannot read, so waiting would wait for good. Such a finding is left as it
-  stands on file; nothing migrates it. **This round is not its only exit**: one written
+  the prerequisite it names, raising nothing. **One with a superseded finding no successor will come
+  to is put again instead**, as a plain record would be, naming that finding and which of the two
+  reasons below holds, since waiting would wait for good. **No successor will come to a superseded
+  finding that has none, in exactly two cases**, each read off the grounding files:
+  - **its own source cannot be decided** — a `commit` no `baselines.md` entry records or more than
+    one records, or a `[DG#n]` the frame-set placement in test 4 does not settle — so test 4 can
+    pass nothing against it, whatever any later run writes;
+  - **the run that retired it re-ground its source**: the finding, or a finding on file that passes
+    tests 1, 3 and 4 against it — its chain of successors, every one now `SUPERSEDED` —
+    carries the note `superseded: frame set <frame-set> re-ground`, matched exactly, with
+    `<frame-set>` the set test 4 places it in. `/product-workflows:prd-ground`'s frame-set rule
+    writes that note only on a finding whose set that run's design pass reconciled, so that
+    re-grounding looked for a successor to it and found none — a divergence the frames no longer
+    show — and no later run owes it one.
+
+  One with a superseded finding that has no successor and is in neither case waits, named with that
+  finding: its source is readable and no re-grounding of it has yet run, so a later one can write the
+  ground its question is put against — the class-4 finding a cascade retired, whose note names that
+  run, is the ordinary case. A finding either case reaches is left as it stands on file; nothing
+  migrates it. **This round is not its only exit**: one written
   `conditional_on` is also reached by `/product-workflows:brd-reconcile`'s propagation sweep the day
   its prerequisite's decision moves, which may revert it or reopen it in place
   (`decision-register-format.md` §5, §6), and that sweep's citation pass reaches a held record of
@@ -1087,7 +1099,7 @@ that as a test that did not pass.
   next round opened.
 
 Such a record — a held one ready to be put again, a held one resting on a superseded finding
-whose source cannot be decided, or a plain one its successors do not confirm — is
+no successor will come to, or a plain one its successors do not confirm — is
 a question that makes a new round askable (*Resolve the round*, the *Every round is closed*
 bullet), and **it is raised in the round this run opens**, one question per record, never in a round
 it resumes or re-opens — that round's question set is settled — and where this run works an open
@@ -2360,7 +2372,11 @@ be read there contributes `unresolved`, never `covered` (§6.2). This adds no pr
 gate: the allocation gate in *Resolve inputs and gate the grounded BRD* is decided on this BRD's own
 rows before any of this, and a non-zero `unallocated` term in the line — a row this BRD delegated to
 a child that has not walked it yet — is that resolution working, never this run having failed. A slice does **not** always reach this with
-nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
-names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of the first two of §2's routes, the only two that write `covered-by`: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
-delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
-claims.
+nothing to resolve: it can hold **orphan rows** (`coverage-ledger-format.md` §2) — ledger rows for a
+`[BR#n]` this slice no longer claims, reached by any of §2's three routes. §6.1 counts every one of
+them through the parent's current disposition for its `[BR#n]`, never as it reads, and resolves a
+`covered-by` that disposition maps to one hop — into a sibling or the parent (§3) — exactly as it
+resolves a parent's delegated rows, so on a slice this line also reads the parent's own
+`coverage-ledger.md`. So a slice's line reports zero delegated only when its parent withdrew none of
+its claims — provisional, committed, or settled here before the parent re-allocated it, the three
+routes to an orphan row (§2) — never as a property of being a slice.

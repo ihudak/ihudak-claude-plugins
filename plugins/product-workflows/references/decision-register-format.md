@@ -418,8 +418,9 @@ record's `evidence` is `SUPERSEDED`, each has a successor, and no successor is `
 `commands/brd-interview.md` counts the record's question among those that make a new round askable
 and puts it again in that round, under the tag it had, against the current findings (its *A decision
 the re-grounding moved*); until then the record waits on its prerequisite, and that run reports it
-so — except where a superseded finding's own source cannot be decided, when no successor can ever be
-placed for it and the record is put again at once, naming that finding. The answer is tested by this
+so — except where a superseded finding is one no successor will come to, because its own source
+cannot be decided or because the run that retired it re-ground its frame set and found none, when the
+record is put again at once, naming that finding. The answer is tested by this
 rule like any other, and what it does turns on the held record's `status` as the answer's writer
 reads it —
 `commands/brd-interview.md` for a `[VD#n]`, and `commands/brd-reconcile.md` for a `[CD#n]`, from

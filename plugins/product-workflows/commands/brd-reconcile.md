@@ -2606,7 +2606,11 @@ read there contributes `unresolved`, never `covered` (§6.2). Every term is a **
 the `unallocated` term does not track the allocation gate — a non-zero one here is a row this BRD
 delegated to a BRD that has not walked it yet, which is the resolution working and never this run
 having left something undone. A slice does **not** always reach this with
-nothing to resolve. `covered-by` is legal on a slice (`coverage-ledger-format.md` §3), where it
-names a sibling under the same parent or that parent and marks an **orphan row** — a ledger row for a `[BR#n]` this slice no longer claims, reached by either of the first two of §2's routes, the only two that write `covered-by`: the parent's walk withdrawing a claim that was never more than provisional, or a re-cut moving a claim the slice had committed to and then recorded it would not build (§3.2). Those rows are resolved one hop exactly like a parent's
-delegated rows, so a slice reports zero delegated only when its parent withdrew none of its
-claims.
+nothing to resolve: it can hold **orphan rows** (`coverage-ledger-format.md` §2) — ledger rows for a
+`[BR#n]` this slice no longer claims, reached by any of §2's three routes. §6.1 counts every one of
+them through the parent's current disposition for its `[BR#n]`, never as it reads, and resolves a
+`covered-by` that disposition maps to one hop — into a sibling or the parent (§3) — exactly as it
+resolves a parent's delegated rows, so on a slice this line also reads the parent's own
+`coverage-ledger.md`. So a slice's line reports zero delegated only when its parent withdrew none of
+its claims — provisional, committed, or settled here before the parent re-allocated it, the three
+routes to an orphan row (§2) — never as a property of being a slice.

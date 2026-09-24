@@ -681,7 +681,8 @@ git -C "<repo>" diff --ignore-cr-at-eol --stat
 git -C "<repo>" status --porcelain
 ```
 
-1. Record `rev-parse HEAD` as the repo's pinned commit.
+1. Record `rev-parse HEAD` as the repo's pinned commit — held by this run, and written to
+   `grounding/baselines.md` only in Phase 8 (below).
 2. `diff --ignore-cr-at-eol --stat` must be empty. Any output → **non-empty content diff, stop**:
    `PRD_GROUND_DIRTY_TREE: <repo> has content changes at <sha> — grounding it would cite an unidentifiable snapshot. Settle that repository's working tree and re-run '/product-workflows:prd-ground <KEY>': commit the changes, stash them, or check out a clean copy — the plugin will not do it for you, because these are your files in a code repository this route never writes to. If the changes are what you want grounded, commit them first and re-run with --rebaseline so the new commit becomes the recorded pin.`
 
@@ -754,9 +755,17 @@ remedy the message names changes: `--rebaseline` is unavailable under this mode,
 **without** `--no-code`. Adding design grounding on top of a code grounding that no longer describes
 the tree would pin new findings to a commit the repository has left.
 
-Append (never overwrite) one dated entry per repository to `<BRD-dir>/grounding/baselines.md` — **except under `--no-code`, which writes no baseline entry at all** (stated in full above; repeated here because this is the instruction it excepts, and a reader who arrives at an unconditional imperative does not go looking for its exception):
+**Hold one dated `grounding/baselines.md` entry per repository for Phase 8 to append** — **except under `--no-code`, which writes no baseline entry at all** (stated in full above; repeated here because this is the instruction it excepts, and a reader who arrives at an unconditional imperative does not go looking for its exception):
 the repo, the pinned commit, the verification result, and the `[CG#n]` id assigned above — the same
 three commands are what the customer's own reviewer re-runs later against their own checkout.
+**This phase writes nothing to that file.** A pin is recorded together with the findings it pins,
+in Phase 8, and never before them: every stop between here and Phase 8 — Phase 5's and Phase 7's —
+then leaves the recorded pin exactly as the previous run left it. Appended here instead, a
+`--rebaseline` run stopped in Phase 5 or 7 would leave the new pin recorded beside the old pin's
+findings, unsuperseded; the re-run would find `HEAD` matching that new pin, take this phase's
+first bullet, and never supersede them. Until Phase 8, "the recorded pin" everywhere in this run —
+this phase's bullets and Phase 5's *answers* test — means the one the file held when the run
+began.
 
 ---
 
@@ -908,8 +917,8 @@ puts none in it:
 Handle `status`: `OK` → collect `findings`, **and collect `notes`** — a claim that touched a false-friend name, a claim whose search budget was exhausted. Report them with the findings: without them a `NOT-PROVABLE` `[CG#n]` whose search ran out is indistinguishable from one the code genuinely refutes, and only the first is worth another pass. `INPUT_MISSING` / `REPO_MISSING` → should not occur
 (Phases 0/1/3 already checked); if it does, stop and name the gap. `COMMIT_MISMATCH` → the tree
 moved between Phase 3 and this dispatch — stop and re-run from Phase 3 **with `--rebaseline`**, for
-the reason Phase 7's `PRD_GROUND_VERIFY_COMMIT_MISMATCH` row states: this run already recorded a
-pin, so a plain re-run stops with `PRD_GROUND_NEEDS_REBASELINE`.
+the reason Phase 7's `PRD_GROUND_VERIFY_COMMIT_MISMATCH` row states: a pin recorded before this
+run still stands, `HEAD` has left it, and a plain re-run stops with `PRD_GROUND_NEEDS_REBASELINE`.
 
 **Renumber into one BRD-wide sequence.** Each `code-grounder` instance numbers its own output from
 `CG#1` (its own contract, per dispatch) — this is per-instance, not global. Merge every batch's
@@ -1150,10 +1159,11 @@ finding carrying no outcome is not evidence and blocks `/brd-split` for as long 
   **Under `--no-code` the same message names the re-run without the mode** — `'/product-workflows:prd-ground <KEY> --rebaseline'`, no `--no-code` — since that mode refuses the flag the remedy requires, and the finding that failed here is pinned to a repository the design pass cannot re-pin on its own.
   The same repair as Phase 5's own `COMMIT_MISMATCH`: re-run from Phase 3, which re-pins and
   re-grounds. **`--rebaseline` is part of the remedy, not an optional extra**, and the message says
-  so: Phase 3 already appended this repository's pin to `grounding/baselines.md` before dispatching
-  anything, so the re-run finds a recorded pin its `HEAD` no longer matches and stops with
-  `PRD_GROUND_NEEDS_REBASELINE` unless the flag is given. "Re-run from a clean tree" on its own
-  would send the operator straight into that second stop.
+  so: where `grounding/baselines.md` recorded a pin for this repository when the run began, this
+  run never replaced it — Phase 8 records a new pin, and this stop comes before it — and `HEAD` has
+  moved off it, so the re-run stops with `PRD_GROUND_NEEDS_REBASELINE` unless the flag is given.
+  "Re-run from a clean tree" on its own would send the operator straight into that second stop.
+  Where no pin was recorded, the flag changes nothing and costs nothing.
 - **`INPUT_MISSING`** — this orchestrator's dispatch was malformed (most often a `[DG#n]` sent
   without its `inventory`, its `class` or its `frame_set_dir` — `inventory` first, because it is the
   newest requirement and the one whose omission made a class-1 finding permanently unverifiable). Stop, quoting the field and row the agent named, and
@@ -1366,6 +1376,11 @@ a raw finding and one a downstream command may cite.
 
 ## Phase 8 — Write findings
 
+**Append Phase 3's held `grounding/baselines.md` entries** once the two finding files below are
+written, and before the ledger's `evidence` column — never under `--no-code`, which holds none (Phase
+3). The pins land in the same phase as the findings pinned to them, so no stop of this run leaves one
+without the other.
+
 Write `<BRD-dir>/grounding/code-grounding.md` (every `[CG#n]`) and
 `<BRD-dir>/grounding/design-grounding.md` (every `[DG#n]` this run produced — **or, where Phase 5
 produced no `[DG#n]`, a short note saying so and why — design grounding skipped, or run and finding
@@ -1511,7 +1526,11 @@ dispatched `design-grounder` on it and got `status: OK`, the census above record
 set that now agrees with the inventory has retired every divergence it had on file. For every such
 set, mark its prior findings `verdict: SUPERSEDED`, id retained, its `prior_verdict` written, exactly
 as a `--rebaseline` pass does for `[CG#n]` — never delete or renumber, so an existing citation still
-resolves. **A prior class-4 finding is among them only where this run re-ground its claim against
+resolves — and give each the one-line note `superseded: frame set <frame-set> re-ground`,
+`<frame-set>` being that set's directory name, written exactly so. That literal is how
+`/product-workflows:brd-interview`'s *A decision the re-grounding moved* tells a finding this
+re-grounding retired — which looked for a successor to it in this run and found none, so no later run
+owes it one — from a finding still waiting on a run that will re-derive it. **A prior class-4 finding is among them only where this run re-ground its claim against
 the repository its cited `[CG#n]` is pinned to.** That repository is the one whose
 `grounding/baselines.md` entry records a pin equal to that `[CG#n]`'s `commit`, and *re-ground* is
 Phase 5's known set, never a judgement: Phase 5 dispatched a `code-grounder` against that repository

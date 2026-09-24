@@ -354,7 +354,9 @@ git -C "<repo>" status --porcelain                  # any entry -> line-count co
 ```
 
 1. **`rev-parse HEAD`** pins the commit every `file:line` in the package will cite. Record it in
-   `baselines.md`.
+   `baselines.md` — in the same write as the findings pinned to it, never before them, so a run that
+   stops after this procedure and before its findings are written leaves the previously recorded
+   pin standing (`product-workflows:prd-ground` Phase 3).
 2. **`diff --ignore-cr-at-eol --stat`** must produce no output. `--ignore-cr-at-eol` is not
    optional: without it, a checkout can report hundreds of modified files that differ only in line
    endings, and a gate that fires on every line-ending checkout trains its own operators to ignore

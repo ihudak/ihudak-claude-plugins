@@ -166,10 +166,12 @@ also runs, in Phase 11, for session lessons-learned.
 - **A repository that stays put for the whole run.** If a resolved repository's `HEAD` moves
   *after* Phase 3 pinned it, the verifier refuses rather than verifying and the run stops with
   `PRD_GROUND_VERIFY_COMMIT_MISMATCH`, naming the finding, the pinned commit, and the `HEAD` it
-  actually found. The remedy is a re-run from a clean tree **with `--rebaseline`**: Phase 3 appended
-  that repository's pin to `grounding/baselines.md` before dispatching anything, so a plain re-run
-  would find a recorded pin its `HEAD` no longer matches and stop again, this time with
-  `PRD_GROUND_NEEDS_REBASELINE`. The same applies to a `code-grounder` dispatch that reports a
+  actually found. The remedy is a re-run from a clean tree **with `--rebaseline`**: a new pin is
+  written to `grounding/baselines.md` only in Phase 8, with the findings it pins, so the pin an
+  earlier run recorded still stands, and a plain re-run would find its `HEAD` no longer matching it
+  and stop again, this time with `PRD_GROUND_NEEDS_REBASELINE`. Because no stop before Phase 8
+  records a pin, a `--rebaseline` run that stops midway leaves the old pin recorded, and its re-run
+  supersedes the old findings as a completed run would have. The same applies to a `code-grounder` dispatch that reports a
   moved `HEAD` in Phase 5.
 
 ### On the BRD route
@@ -309,7 +311,7 @@ Under the resolved folder — the `PRD-<SLICE-KEY>-<slug>/` slice folder inside 
 `PRD-<KEY>-<slug>/` folder on the idea route:
 
 - `grounding/baselines.md` — one dated entry per repository: the pinned commit and how it was
-  verified. `--rebaseline` appends rather than overwrites.
+  verified, appended in Phase 8 with the findings it pins, never earlier. `--rebaseline` appends rather than overwrites.
 - `grounding/code-grounding.md` — every `[CG#n]` finding, plus the optional derivation matrix and,
   when documentation grounding ran, a `## Documentation divergences` section: one identifier-free
   prose entry per page that contradicts a verified `[CG#n]`, naming that finding by id.

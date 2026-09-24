@@ -535,7 +535,7 @@ written down.
 
 ## Where the route goes next
 
-This is where the BRD-to-PRD route **hands over**, not where it ends. A reconciled BRD — decisions
+This is where the BRD-to-PRD route **hands over** for a slice the customer reviewed — a slice needing no review hands over from [`/brd-interview`](brd-interview.md) — not where it ends. A reconciled BRD — decisions
 frozen, dependents swept, every artifact under the parent checked — is the state the PRD pipeline
 was waiting for, and Phase 14 offers all three of the route's entry points into the PRD pipeline against the same
 `<SLICE-KEY>` — **on a slice, on a run that left nothing to re-enter for**, and each under the

@@ -2218,11 +2218,13 @@ reading `covered-here` never counts — is still `unallocated`, and at least one
 `covered-here` (`${CLAUDE_PLUGIN_ROOT}/references/coverage-ledger-format.md` §5). This command's own
 gate has already found no row `unallocated`, so the covered-here test is the one left to read.
 
-Five routes do not fit in the prompt's four slots, so apply `workflows-core:next-phase-offer`'s
+The routes below, with `Stop here`, do not fit in the prompt's four slots in either case, so apply `workflows-core:next-phase-offer`'s
 overflow rule: print every route in prose, in the order below, then one line saying the list is
 longer than the prompt and that anything on it is reachable by typing it into the free-text option.
 Leave the PRD line out of both the prose and the array where the slice is not PRD-eligible, and say
-why:
+why. The array carries the forward routes first, as `/product-workflows:brd-reconcile`'s does, and
+keeps the lateral move — interviewing another BRD — in the prose only, because this run has just
+finished the slice it was given:
 
 ```
 Where this run can go next:
@@ -2236,13 +2238,13 @@ Where this run can go next:
 Where the slice is PRD-eligible:
 
 ```
-choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Author this slice's PRD — /product-workflows:create-prd <BRD-KEY> (PM) <merge-clause>", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
+choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Author this slice's PRD — /product-workflows:create-prd <BRD-KEY> (PM) <merge-clause>", "Author this slice's architecture — /product-workflows:create-ard <BRD-KEY> (PA, optional) <merge-clause>", "Author this slice's specification — /product-workflows:specify <BRD-KEY> (PE) <merge-clause>"]
 ```
 
 Where it is not:
 
 ```
-choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Author this slice's architecture — /product-workflows:create-ard <BRD-KEY> (PA, optional) <merge-clause>", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
+choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Author this slice's architecture — /product-workflows:create-ard <BRD-KEY> (PA, optional) <merge-clause>", "Author this slice's specification — /product-workflows:specify <BRD-KEY> (PE) <merge-clause>", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)"]
 ```
 
 **`package_offerable: nothing-to-review` with a reopened record waiting — name each record, with
@@ -2276,8 +2278,7 @@ until whoever owns the next round runs it.
 this run's own `Phase handoff:` outcome line; it is never written as an unconditional "once the pull
 request above is merged", because the no-new-round path reaches the handoff with nothing to commit
 wherever the register was already on file, and then opens no pull request. **The lists that name
-`/product-workflows:prd-ground <BRD-KEY>` — `rounds-unsettled`'s and both of `nothing-to-review`'s — carry no
-clause on that option, and that asymmetry is deliberate:** that command gates on `coverage-ledger.md`
+`/product-workflows:prd-ground <BRD-KEY>` — `rounds-unsettled`'s, and `nothing-to-review`'s prose and its not-PRD-eligible array — carry no clause on that option, and that asymmetry is deliberate:** that command gates on `coverage-ledger.md`
 (`commands/prd-ground.md` Phase 0 step 6), which this run never writes, so no handoff of this run's
 can hold it up and there is no wait to state. **The `defects-unasked` re-open, and the reopened-record list's round, carry none
 for the same reason**: this command gates on `grounding/code-grounding.md` (*Resolve inputs and gate the

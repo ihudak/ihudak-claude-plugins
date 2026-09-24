@@ -1562,8 +1562,7 @@ place that condition is printed**, and the Final report points back to it rather
 
 The BRD-to-PRD route's next command is `/brd-reconcile`, which takes the returned review and turns
 each confirmed answer into a `[CD#n]` — and it is offered, named for what it needs, because it
-cannot run until a review actually comes back. The BRD route on `/create-prd`, which carries a decided,
-reconciled BRD into a PRD, **ships** — and it is still not offered here, for a reason about this
+cannot run until a review actually comes back. The BRD route on `/create-prd`, which carries a decided BRD slice into a PRD, **ships** — and it is still not offered here, for a reason about this
 state rather than about the plugin. This run packaged a BRD whose customer round is *open*: every
 `[C]` it just rendered into the prompt, and every open `[AS#n]` it carried in, is a register item
 `${CLAUDE_PLUGIN_ROOT}/references/decision-register-format.md` §3 forbids consuming downstream while

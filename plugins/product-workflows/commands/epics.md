@@ -418,10 +418,17 @@ the PRD states: its `id` (`[US#n]` / `[AC#n]` / `[SM#n]` / `[UC#n]` / `[FR#n]`),
 `requirements_source: prd` alongside it.
 
 **Existing Epics come from the same read**, as one entry per `EPIC-` subfolder with its `key` and
-title, which is what the non-duplication dimension compares a new draft against. An empty PRD folder,
-or one whose `prd.md` states no requirements, is the `key dir not found` case: surface the rule in
-`workflows-core:escalation-rules` (`choices: ["Re-enter key", "Cancel"]`) rather
-than proceeding with an empty ground truth, which would let every Epic pass coverage vacuously.
+title, which is what the non-duplication dimension compares a new draft against.
+
+**A `prd.md` that states no requirements stops here**, rather than proceeding with an empty ground
+truth, which would let every Epic pass coverage vacuously. A PRD folder with no `prd.md` does not
+reach this phase: step 1b's gate refused it with `EPICS_NO_PRD`. The key resolved and the PRD is
+there, so this is neither the `key dir not found` rule, whose re-enter cannot help, nor
+`EPICS_NO_PRD`, whose message says no PRD is there:
+```
+EPICS_PRD_NO_REQUIREMENTS: <PRD-KEY>'s prd.md at <path> states no requirements — no [US#n], [AC#n], [SM#n], [UC#n] or [FR#n] — so there is nothing to partition. Add them with /product-workflows:update-prd <PRD-KEY>, then re-run /product-workflows:epics <KEY>.
+```
+It is a user halt, so `emit-block` does not fire.
 
 **This step used to dispatch an agent and wait for a handoff.** That agent read a tracker export and
 was deleted; the direct read replaced it, but the `requirements[]` the handoff used to return had no

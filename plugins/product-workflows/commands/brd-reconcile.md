@@ -343,8 +343,10 @@ write would re-ask a question already answered.
    never a gate; `interview/customer-questions.md` and every `interview/round-<N>.md`, where on
    file — a slice never interviewed holds neither (step 2) — so each `[C]` is addressed by the
    round and position that identify it
-   (`interview-tagging.md` §5 — a question mints no identifier of its own); the most recent
-   `self-review-<YYYYMMDD>.md`, for the `[SR#n]` ids an `escalated-to-customer` disposition put in
+   (`interview-tagging.md` §5 — a question mints no identifier of its own); every
+   `self-review-<YYYYMMDD>.md` on file — the one of the package this review answers is resolved in
+   the *Ingest the review* phase, before the reader is dispatched — for the `[SR#n]` ids an
+   `escalated-to-customer` disposition put in
    front of the customer; `customer-review-prompt-<YYYYMMDD>.md` and the manifest of
    `bundle-<YYYYMMDD>/`, so a review's document reference resolves to what was actually sent —
    **or, on a `--sent` run, the files under `customer-sent-<YYYYMMDD>/` in their place**, read here by
@@ -582,8 +584,23 @@ Dispatch `customer-review-reader` **once**, at `detection_model`:
   > package:
   >   questions:   [path to interview/customer-questions.md, when one is on file]
   >   assumptions: [path to decisions.md, when one is on file]
-  >   self_review: [path to the most recent self-review-<YYYYMMDD>.md, when one is on file]
+    >   self_review: [path to the self-review of the package this review answers, resolved below — omitted where it cannot be determined]
   > mode: auto"
+
+**Resolve the self-review of the package this review answers, before the dispatch.** An `[SR#n]` is
+scoped to one dated self-review, and every package numbers its findings from `[SR#1]` again
+(`/product-workflows:brd-package`), so the same id names a different finding in each: the reader
+may be handed only the file of the package the review answers, and never another. That package is
+the one whose date the review's own section 1 names — the prompt's or the bundle's date, among the
+documents it lists as available, read as this command reads that section for the review's date (the
+*Canonicalise the returned review* phase, step 1) — or, where it names none, the only package on
+file. **Where neither determines it** — section 1 names no package and more than one is on file —
+`self_review` is omitted, so every `[SR#n]` answer in the review comes back `unmatched`, and each is
+listed under *what still needs a human* as an answer to a finding of an undetermined package,
+never matched against another package's file; the *Confirm every candidate* phase's re-point
+refuses an `[SR#n]` on this run for the same reason. The reconciliation record names the file
+resolved, or that none could be (*Write the reconciliation record*). A `--sent` run has no
+self-review at all and supplies none (*Resolve inputs and gate the sent package*, step 8).
 
 Supply the inputs **exactly as that agent's own Inputs contract declares them**. It refuses to run
 without `review_path`, returning `status: INPUT_MISSING`, and returns `status: REVIEW_MISSING` when
@@ -769,7 +786,8 @@ verdict, not the customer's, and a candidate that does answer a question the pac
 reader missed the question's round and position, or the customer cited it loosely — would otherwise
 have only these two options, neither of which freezes what the customer decided. So a typed answer
 **naming the question the candidate answers** — a `[C]` question by its round and position, an
-`[AS#n]` or an escalated `[SR#n]`, resolved against the three sets the package put and never parsed
+`[AS#n]` or an escalated `[SR#n]` of the self-review the *Ingest the review* phase resolved, and no
+`[SR#n]` where it resolved none, resolved against the three sets the package put and never parsed
 out of the customer's prose — **re-points the candidate onto that question**: it is shown again
 with that target, on the four-option array above, and takes whichever of the four the operator then
 chooses, exactly as a candidate the reader matched would. The re-point is recorded in the
@@ -842,13 +860,21 @@ the earliest record frozen against the target:
   an assumption's;
 - **an `[SR#n]`**: **never by its id alone**, because every package numbers its self-review findings
   from `[SR#1]` again (`/product-workflows:brd-package`), so the same id names a different finding
-  in each. It resolves through the self-review file of the package this review answers — the one its
-  own section 1 names by date, or, where it names none, the only package on file — to the `[CD#n]`
-  an earlier pass's reconciliation record lists as answering that `[SR#n]` of that same file (*Write
-  the reconciliation record* names the file each pass resolved against). **Where that file cannot be
-  determined** — the review names no package and more than one is on file, or no pass that answered
-  the id names the file it resolved against — the `[SR#n]` has no live record: nothing is skipped,
-  and its answer is frozen as a new `[CD#n]` that supersedes nothing. A `--sent` run resolves no
+  in each. It resolves through the self-review file of the package this review answers, as the
+  *Ingest the
+  review* phase resolved it — an `[SR#n]` answer reaches this phase only where that file was
+  determined, and is `unmatched` otherwise — to the `[CD#n]` an earlier pass's reconciliation
+  record lists as answering that `[SR#n]` of that same file (*Write the reconciliation record* names
+  the file each pass resolved against). **Where no earlier pass answered it and its entry in that
+  file carries a `- **Re-escalates:** <earlier self-review file> [SR#k]` line**
+  (`/product-workflows:brd-package`, *The disposition gate*), the finding was put to the customer
+  before under that other id: resolve `[SR#k]` of the named file the same way — its own line
+  followed in turn — and the chain starts at what that resolves to, so the new answer is judged
+  against the earlier answer's live record. **Where nothing resolves** — no pass answered the id or
+  one it re-escalates, or the pass that did names no file it resolved against — the `[SR#n]` has no
+  live record: nothing is skipped, and its answer is frozen as a new `[CD#n]` that supersedes
+  nothing. An entry written before the line existed carries none, and is frozen fresh the same
+  way. A `--sent` run resolves no
   `[SR#n]` at all (*Resolve inputs and gate the sent package*, step 8).
 
 While that record reads `superseded`, follow its closing `Superseded <YYYYMMDD>: by [CD#m]`
@@ -2064,8 +2090,10 @@ changed, why, which ids, and what still needs a human:
   and every citing item with its disposition and reason, each id in the qualified prose form the
   propagation sweep fixes, and every dependent recorded-not-written
   with its state; per stale-reference hit, the file, what was found, and its outcome.
-- **What still needs a human** — every question the review did not answer, in **all three** of the
-  id shapes the package put to it, so an escalated `[SR#n]` the customer passed over is not lost
+- **What still needs a human** — every `[SR#n]` answer carried `unmatched` because the package the
+  review answers could not be determined (*Ingest the review*), with the customer's words; every
+  question the review did not answer, in **all three** of the id shapes the package put to it, so
+  an escalated `[SR#n]` the customer passed over is not lost
   behind the `[C]` questions that were; every candidate not frozen; every correction deferred or
   refused, a refused correction to an effort proposal with the proposal re-run the *Apply the
   required corrections* phase names as its fix; every code and design challenge, with `/prd-ground`

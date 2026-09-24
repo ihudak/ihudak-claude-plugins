@@ -174,7 +174,8 @@ findings:
     class:    unsupported-decision | mis-tagged-question | assumption-as-fact |
               overclaimed-grounding | will-not-survive-review | unrecorded-defect-claim
     target:   <the exact thing attacked — a [VD#n], an [AS#n], a [C] question, or a
-               document and the sentence or section inside it>
+               document and the sentence or section inside it. Where the position attacked is
+               one record, the target is that record's bracketed id alone, and nothing else>
     attack: |
       <what is wrong, argued — not what the target says>
     rests_on: [<the [CG#n]/[DG#n], [VD#n] or [AS#n] ids the attack turns on>]

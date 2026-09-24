@@ -50,8 +50,9 @@ review_path: <absolute path to the returned review file, already canonicalised b
 package:
   questions:   <path to the [C] question set the package put to the customer, when available>
   assumptions: <path to the register holding the open [AS#n] the package surfaced, when available>
-  self_review: <path to the dated self-review holding the [SR#n] findings the package escalated to
-                the customer, when available>
+    self_review: <path to the dated self-review of the package this review answers, holding the
+                [SR#n] findings it escalated to the customer — omitted where the caller could not
+                determine which package that is>
 mode: auto | schema | free-text   # default auto — see Process step 1
 ```
 
@@ -153,8 +154,12 @@ finding.
    `package.questions`, `package.assumptions` and `package.self_review` was supplied: a `[C]`
    question by its round and position, whatever state its entry now holds; an `[AS#n]`, whatever
    its status — the package put it while it was open, and a corrected resend answers it again after
-   an earlier review settled it, which the caller resolves; or an `[SR#n]` the package escalated.
-   An unmatched decision is reported as `unmatched` — a customer may legitimately decide something
+   an earlier review settled it, which the caller resolves; or an `[SR#n]` the package escalated,
+   matched against `package.self_review` and nothing
+   else — every package numbers its findings from `[SR#1]` again, so where no `self_review` was
+   supplied, every `[SR#n]` answer is `unmatched`, never matched against another package's file you
+   happen to see. An unmatched decision is reported as `unmatched` — a customer may legitimately
+   decide something
    nobody asked, and forcing it onto the nearest question loses both the answer and the question.
 
 5. **Extract the rest of the review as it stands**: corrections to requirement readings, code and

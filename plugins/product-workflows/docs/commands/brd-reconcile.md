@@ -228,7 +228,11 @@ was offered or what it settles.
 
 **All three question sets are handed to the reader**, and that is what makes the third shape
 matchable rather than merely asserted: `interview/customer-questions.md`, `decisions.md`, and the
-most recent `self-review-<date>.md`. A reader given only the first two returns every escalated
+`self-review-<date>.md` of the package the review answers — the one whose date the review's section
+1 names, or the only one on file. Every package numbers its escalated findings from `[SR#1]`
+again, so no other package's file is ever handed over: where the package cannot be determined, no
+self-review is passed, and every `[SR#n]` answer comes back `unmatched` and goes to a human. A
+reader given only the first two returns every escalated
 finding's answer as `unmatched` — an answer the customer gave, reported as matching nothing, which is
 indistinguishable from one they never gave. The reader also reports which sets it was given, so an
 unmatched row can be told apart from a question set nobody passed.
@@ -317,8 +321,9 @@ command removes none of them; the next `/brd-interview` run does.
   assumption itself, or the record its `- **Re-puts:**` line names — followed through every
   supersession to the successor that stands. An escalated `[SR#n]` resolves only through the
   self-review file of the package the review answers, since every package numbers those findings
-  from `[SR#1]` again; where that file cannot be determined, nothing is skipped and the answer
-  supersedes nothing. A candidate whose chain holds a record an earlier pass over **the same
+  from `[SR#1]` again, and follows a `- **Re-escalates:**` line on its entry to the earlier finding
+  the customer already answered; where nothing resolves, nothing is skipped and the answer supersedes
+  nothing. A candidate whose chain holds a record an earlier pass over **the same
   review** wrote is skipped as already reconciled, whatever that record's status is now, so
   re-running an earlier review never reverts a later one's answer. A different review — a corrected
   resend — freezes nothing where its answer re-affirms the live record, tested once the operator

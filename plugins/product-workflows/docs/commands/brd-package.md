@@ -283,8 +283,16 @@ attack.
 - **Phase 4 — a `fixed` correction re-opens the review, exactly once, whatever artifact it named.**
   The correction changes what the customer will be shown, and one made under one finding can break a
   position another left standing — so the reviewer runs again, with this run's self-review, the
-  corrections recorded in it, in `prior_reviews`. Once, not until clean: an unbounded loop trades
+    corrections recorded in it, in `prior_reviews`. Once, not until clean: an unbounded loop trades
   the customer's review for the delivery team's.
+- **Phase 4 — a finding escalated again says which earlier one it is.** Every package numbers its
+  findings from `[SR#1]` again, so on a re-package a finding taking `escalated-to-customer` that
+  matches one an earlier package escalated — the same class, and a target that is the same single
+  record id, compared as whole values and never read out of prose — gets a
+  `- **Re-escalates:** self-review-<date>.md [SR#k]` line in this run's self-review, naming the most
+  recent earlier match. [`/brd-reconcile`](brd-reconcile.md) follows that line, so the customer's new
+  answer is judged against the answer they gave before. No match on those fields, or two in one
+  file, writes no line, and the answer is frozen fresh.
 - **Phase 5 — the tier is assigned from what was shippable.** Full, Partial or Documents only, never
   promoted, never chosen by the reviewer, and never quietly Full because the repositories were
   *probably* at the right commit. A tier is not a quality grade: a documents-only review that states

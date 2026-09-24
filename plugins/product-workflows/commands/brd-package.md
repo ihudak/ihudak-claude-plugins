@@ -715,6 +715,33 @@ and the reason is recorded beside the `restates:` marker. Six attacks the custom
 a package arguing with itself in front of the person it is trying to convince. Where the operator
 disposes it differently it is not a restatement: both stand, and each governs its own finding.
 
+**A finding escalated to the customer again carries a `- **Re-escalates:**` line, and the line is
+written from a structured match or not at all.** Every package numbers its findings from `[SR#1]`
+again (above), so without it nothing ties a finding a later package escalates to the answer the
+customer already gave it under another id, and `/product-workflows:brd-reconcile` freezes the new
+answer beside the old. On a re-package, once a finding takes `escalated-to-customer`, look for it in
+a known set: every finding disposed `escalated-to-customer` in every earlier
+`self-review-<YYYYMMDD>.md` the *Resolve inputs and gate the decided BRD* phase read. It matches one
+of them only on structured fields, compared as whole values and never parsed out of prose: the same
+`class`, and a `target` whose whole value is the same single bracketed id — a `[VD#n]`, an `[AS#n]`
+or another record of this BRD, the form `agents/brd-package-reviewer.md` writes a target in where
+the position attacked is one record. Take the most recent earlier self-review holding a match; where
+it holds exactly one, write on the new finding's entry in this run's self-review, beneath its
+disposition:
+
+```
+- **Re-escalates:** self-review-<YYYYMMDD>.md [SR#k]
+```
+
+naming that file and that finding's id as it stands there. The line names one step: the earlier
+finding carries its own line where it re-escalated one before it, and
+`/product-workflows:brd-reconcile` follows each in turn (its *Confirm every candidate* phase). **No
+line is written where nothing structured matches** — a `target` naming a passage of a document or
+more than one id, a different `class`, or two matches in one file: the finding goes to the customer
+as a new one and its answer is frozen fresh, which is the safe direction, since a wrong line would
+judge the answer to one finding against the answer to another. That is also what a self-review
+written before this line existed reads as. The Final report names every line written.
+
 **The gate is keyed on every finding carrying a non-`undisposed` value, and on nothing else.** Not
 on a count, not on a severity, not on a verdict — the agent emits no severity and no verdict by
 design, and `[SR#n]` disposition is the only gate there is. Any finding still `undisposed` when this
@@ -1621,7 +1648,8 @@ repository; no user name is ever written.
 Report: the BRD folder and which level it sits at; the classification and model routing (+ any Opus
 degradation, named again here because a self-review that ran on a weaker model is a weaker gate);
 **the degradation tier**, and the sentence it obliges the customer's own review to carry; **every
-`[SR#n]` with its disposition**, grouped by disposition, with the `accepted-risk` ones listed in
+`[SR#n]` with its disposition**, and every `- **Re-escalates:**` line written, grouped by
+disposition, with the `accepted-risk` ones listed in
 full because those are the ones the customer will read; whether a second reviewer pass ran after a
 `fixed` correction and what it added; the counts the prompt carries — `[C]` questions, open
 `[AS#n]`, `escalated-to-customer` findings, and the `[CDF#n]` counts parts 6, 8 and 11 each carry,

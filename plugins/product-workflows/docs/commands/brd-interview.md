@@ -28,7 +28,9 @@ set and a fully-allocated ledger are what its Phase 0 gates on.
   folder no BRD carved, carrying no `brd-link.md` — stops with `BRD_INTERVIEW_NOT_A_SLICE`, naming
   [`/create-ard`](create-ard.md) and [`/specify`](specify.md) as the way that route goes on. An `EPIC-` folder stops with `BRD_INTERVIEW_EPIC_LEVEL`, naming the slice the Epic sits in where it sits in one.
 - **`--round N`** (optional) — target one round: resume it if it is open, or re-open it if it is
-  closed, recorded as a re-open with its cause. With no flag the run continues at the first round
+  closed, recorded as a re-open with its cause. Naming the next round opens it only where every
+  round is closed: beside an open round it stops with `BRD_INTERVIEW_ROUND_STILL_OPEN`, naming the
+  open round, since the bare command would resume that one. With no flag the run continues at the first round
   still holding a question without a terminal disposition; with every round closed it generates the
   next round's questions from what changed after the last one was generated — a finding added or
   superseded, or its verdict or verifier outcome changed, whenever that happened, read against the
@@ -274,10 +276,11 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   wherever no round recorded a decision, so `/brd-package` finds the register it gates on.
 - `interview/round-<N>.md` — the round's append-only record: every question in the order it was
   written, its tag, on a question that puts a decision on file again that decision on its own
-  line labelled `- **Re-puts:**`, whatever the tag — a deferred `[V]` an earlier version wrote
-  without that line is tied when its round is resumed: the run asks the operator which reopened or
-  held decision it puts again, from those that could be, or none, and writes the answer as the line
-  (`none` where it puts none), so it is asked once — every re-tag with the finding that caused it,
+  line labelled `- **Re-puts:**`, whatever the tag, and on every other `[V]` the same line reading
+  `none` — so a deferred `[V]` without the line is one an earlier version wrote, and it is tied
+  when its round is resumed: the run asks the operator which reopened or held decision it puts
+  again, from those that could be, or none, and writes the answer as the line, so it is asked once;
+  an ordinary `[V]` written since carries `none` and is never asked about — every re-tag with the finding that caused it,
   every split with the parts it became, and each question's state — either a **terminal disposition** (*answered from findings*,
   *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
   customer*, *deferred*, *needs grounding*, *untagged*). A re-tagged question keeps its number, so

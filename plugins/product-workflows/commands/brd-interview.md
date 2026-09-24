@@ -621,12 +621,18 @@ the round record*), and where the two disagree the dispositions win.
   `BRD_INTERVIEW_NO_SUCH_ROUND: <BRD-KEY> has no round N — rounds on file: <list, or "none">. Omit --round to continue at the first round still holding a question without a terminal disposition.`
   The one exception: `N` is exactly `<highest + 1>` (or `1` when none exists), which is a request to
   open the next round, and takes **whichever branch the no-flag path would take for that same
-  request** — the *Every round is closed* branch where rounds are on file, and the no-round-record
-  branch where none is, each generating before it decides and each including its nothing-askable
-  outcome. The two branches of *Resolve the round* differ, and a
+  request** — the *Every round is closed* branch where rounds are on file and every one is closed,
+  and the no-round-record branch where none is, each generating before it decides and each
+  including its nothing-askable outcome. The two branches of *Resolve the round* differ, and a
   flag must not reach a different answer than the bare command would. Naming a round is never a way
   to accidentally do something else, and that cuts both ways: it must also never be a way to
-  accidentally do *less*.
+  accidentally do *less*. **Where a lower round is open — some question in it carries no terminal
+  disposition — the request has no branch to mirror**: the no-flag path would resume that round and
+  open none, so opening round `<highest + 1>` beside it would be a different answer. Stop, naming
+  the lowest-numbered open round and what holds it open:
+  `BRD_INTERVIEW_ROUND_STILL_OPEN: <BRD-KEY> cannot open round N while round <open> is open — it still holds <each holding state a question in it is in>. Re-run '/product-workflows:brd-interview <BRD-KEY>' to resume round <open>; a new round opens once every round is closed.`
+  Nothing else here forbids two open rounds at once: a `--round N` re-open of a closed round while a
+  later one is open is deliberate (the round-1 test below, and *Next steps*' `defects-unasked`).
 
 **Then the round-1 test, on every run, whichever branch above resolved the round and with or
 without `--round`.** No branch skips it: one that sends the run on to the handoff phase runs this
@@ -934,7 +940,8 @@ this source's only once a later review supplies the reason and completes it. **N
 flight, does it take any record** (*A decision reopened elsewhere*, below, fixes the test): a
 question already putting that record again is still waiting for its answer, and a second question
 would put one decision twice. A held record whose re-put `[V]` the operator deferred, or whose
-re-put `[C]` is still held for the customer, is the case this bars.
+re-put `[C]` is still held for the customer, is the case this would bar, which no current path
+reaches (the in-flight test's own paragraph says why).
 
 **A superseded finding's successors are read off the grounding files and nothing else**: every
 finding on file that passes all four of these tests against it —
@@ -1121,11 +1128,16 @@ address (*Resolve the round*). A question that puts a record again reaches two o
 dispositions, and either ends the flight: *decided*, for a `[V]`, and *answered by the customer*,
 for a `[C]`. It reaches none of the other three: its tag never moves, so it is never *re-tagged* or
 *split*, and it is never a `[G]`, so it is never *answered from findings*. A *deferred* `[V]` and a
-`[C]` *held for the customer* keep the record in flight. The test reads the line and nothing else,
-so a question written before the line existed, which names its record in prose only, holds no
-record in flight until *Put each `[V]` to the operator*'s tie picker gives it the line, the first
-time a run resumes its round. Where every round is closed, no question lacks a terminal disposition and so no
-record is in flight; the test matters only where a round is still open when this source runs.
+`[C]` *held for the customer* keep the record in flight. The test reads the line and nothing else.
+`- **Re-puts:** none`, which every `[V]` that puts no record again carries (*Write the register and
+the round record*), names no record and never counts. A `[V]` written by a released version before
+the line existed names its record in prose only, so it holds no record in flight until *Put each
+`[V]` to the operator*'s tie picker gives it the line, the first time a run resumes its round. Where
+every round is closed, no question lacks a terminal disposition and so no record is in flight — and
+every path that runs this source finds every round closed, the `--round <highest + 1>` request
+included (*Resolve the round* stops it beside an open round). So no current path finds a record in
+flight: the test is a guard, kept so that a path added later that runs a source beside an open round
+cannot put one decision twice.
 
 **Such a record makes a new round askable** (*Resolve the round*, the *Every round is closed*
 bullet), and **it is raised in the round this run opens**, one question per record, round 1
@@ -1191,7 +1203,7 @@ round askable on its own: without it the register would name a round no record h
 
 **A re-decision can also stand at a round on file**, where the stopped run was working a round it
 resumed: that round's record exists and does not name it, and the `[V]` that put the record again —
-the question whose `- **Re-puts:**` line names it — still carries the *deferred* holding state its
+the question whose `- **Re-puts:**` line names it, never one reading `none` — still carries the *deferred* holding state its
 record last recorded. **That question is not put again.** Where the record its line names carries a
 `Reopened` paragraph, reads any status but `reopened`, and carries a `round` equal to that
 question's round — which only a re-decision answering that question writes (§4) — the run that
@@ -1327,18 +1339,22 @@ from generation, or, in a round this run resumes, from the resume, and a questio
 one is never asked.
 
 **First, tie each resumed `[V]` that carries no `- **Re-puts:**` line to the record it puts again,
-or to none — by asking, never by reading its prose.** A version of this command released before
-the line existed wrote a re-put `[V]` with its record named in prose alone, and every reader of a
-re-put keys on the line: this phase's re-decision rule, the held-record supersession *Write the
-register and the round record* writes, the resume rule for a standing re-decision and the in-flight
-test (*Generate the round's question set*). Nothing on file tells such a question from an ordinary
-`[V]`, so the test is the known set, never the text. For each `[V]` in a round this run resumes that
+or to none — by asking, never by reading its prose.** Every `[V]` this version writes carries the
+line, reading `none` where it puts no record again (*Write the register and the round record*), so
+a `[V]` with no line is exactly one a released version wrote before the line existed. That version
+wrote a re-put `[V]` with its record named in prose alone, and every reader of a re-put keys on the
+line: this phase's re-decision rule, the held-record supersession *Write the register and the round
+record* writes, the resume rule for a standing re-decision and the in-flight test (*Generate the
+round's question set*). Nothing on file tells such a question's re-put from an ordinary one, so the
+test is the known set, never the text, and **a `[V]` carrying the line — `none` included — is never
+put to this picker**. For each `[V]` in a round this run resumes that
 has no terminal disposition and carries no `- **Re-puts:**` line, build the **candidate set**: every
 `[VD#n]` reading `reopened`, every held `[VD#n]` *A decision the re-grounding moved* would put
 again now, and every `[VD#n]` carrying a `Reopened` paragraph whose `round` is the question's round
 — a re-decision a stopped run took in answer to it, which the resume rule then records — less every
 record another question's line holds in flight. **An empty candidate set asks
-nothing**: the question is an ordinary `[V]`. Otherwise, before the queue opens, put one tie
+nothing**: the question is an ordinary `[V]`, and *Write the register and the round record* gives it
+`- **Re-puts:** none` like any other. Otherwise, before the queue opens, put one tie
 picker per such question, quoting the question and listing every candidate in prose above the
 prompt — its id, `status` and `statement`:
 
@@ -1353,8 +1369,8 @@ exists the array is two entries. **Past three candidates, the overflow rule appl
 free-text answer is normalised to one candidate's id or to `None`, and re-asked where it names
 neither — never written through. The answer is held, and *Write the register and the round record*
 appends it to the round record under that question, before its state: `- **Re-puts:** [VD#n]`, or
-`- **Re-puts:** none`, the one form that names no record and exists only to record this answer, so
-the picker never asks about the same question twice. A question tied to a record is then a re-put
+`- **Re-puts:** none`, so the question then carries the line and the picker never asks about it
+again. A question tied to a record is then a re-put
 `[V]` like any other: the resume rule for a standing re-decision (*A later round is generated from
 what changed*) applies to it first, and this phase's re-decision rule, or the held-record
 supersession, to its answer. **This picker asks which record, never the question itself**, and the
@@ -1477,7 +1493,9 @@ propagation sweep reopened meanwhile (*A decision the re-grounding moved*, in *G
 question set*), or one *A decision reopened elsewhere* put again. **Which record a question puts
 again is read off its `- **Re-puts:**` line** — or, for a question the tie picker above tied in
 this run, off that held answer, which this run's round record writes as the line — and never off
-its context, which names the earlier answer too; its status is read off that record. **One that reads `withdrawn` or `superseded` when
+its context, which names the earlier answer too; its status is read off that record. A `[V]` whose
+line reads `none` puts no record again, and its answer is a decision first recorded here, taking the
+list above. **One that reads `withdrawn` or `superseded` when
 the answer is taken** — a reopened record left terminal by another run while its question
 waited — is neither, and
 takes the list above as a held one another run left terminal does: its answer mints a new `[VD#n]`,
@@ -1764,7 +1782,7 @@ That is a complete record of a completed walk, which is exactly what the all-del
 prohibition on an *empty* record is protecting against. Otherwise: every question in the order it
 was written, its tag, **on every question that puts an existing record again, that record on a
 line of its own labelled exactly `- **Re-puts:** [VD#n]` or `- **Re-puts:** [CD#n]`**, whatever the
-question's tag, every re-tag with the finding that caused it, every split with the parts it
+question's tag, **and on every other `[V]` the same line reading `- **Re-puts:** none`**, every re-tag with the finding that caused it, every split with the parts it
 became, and each question's state **as the record last records it** — a re-tagged question carrying
 two states at one address, the *re-tagged* disposition and whatever the question then reached, of
 which the last governs (*Questions carry no minted identifier*, in *Generate the round's question
@@ -1779,23 +1797,26 @@ the session (`interview-tagging.md` §5), and an interrupted run resumes at the 
 carrying no terminal disposition — the same test, in the same words, that *Resolve the round*
 resumes on.
 
-**The `- **Re-puts:**` line goes on every question that puts an existing record again, and on no
-other.** Those are the questions *A decision the re-grounding moved* puts for a held record or a
+**The `- **Re-puts:**` line naming a record goes on every question that puts an existing record
+again, and on no other; and every `[V]` carries the line, reading `none` where it names no
+record.** A `[C]` that puts no record again carries no line: its reader,
+`/product-workflows:brd-reconcile`, acts only on one that names a record. The re-puts are the questions *A decision the re-grounding moved* puts for a held record or a
 plain one it reopens, the questions *A decision reopened elsewhere* puts, and the standing
 re-decision *A later round is generated from what changed* records. A question that only names an
-earlier record as context carries none — a requirement defect asked anew, which names the earlier
+earlier record as context names none — a requirement defect asked anew, which names the earlier
 `[CD#n]` its row's answer froze (*One question per row*, in *Resolve the round*), among them —
 because the line is what re-decides or supersedes the record it names. Every reader that ties such
 a question to its record reads the line and parses nothing else: *Put each `[V]` to the operator*'s
 re-decision rule, *Write the register and the round record*'s supersession of a held record, the
 resume rule for a standing re-decision, the in-flight test of *A decision reopened elsewhere*, and,
-from the `[C]` entry's copy of the line, `/product-workflows:brd-reconcile`. The line is written
-when the question is first written and never moves, the record being append-only — **save one
-late write**: a `[V]` written before the line existed gets it, appended under the question, from
-*Put each `[V]` to the operator*'s tie picker, naming the record the operator chose, or reading
-`- **Re-puts:** none` where they chose none. `none` names no record, so it puts nothing in flight
-and ties the question to nothing; it records only that the question was asked about, and it is
-written by that picker and by nothing else.
+from the `[C]` entry's copy of the line, `/product-workflows:brd-reconcile`. **`none` names no
+record**, so every one of those readers reads a `[V]` carrying it as an ordinary question: it puts
+nothing in flight, is re-decided and supersedes nothing, and takes no standing re-decision. The
+line is written when the question is first written and never moves, the record being append-only —
+**save one late write**: a `[V]` a released version wrote before the line existed carries none, and
+gets it, appended under the question, from *Put each `[V]` to the operator*'s tie picker, or reading
+`none` where that picker asks nothing (*Put each `[V]` to the operator*). A `[V]` with no line is
+therefore exactly such a question, and the picker's only subject.
 
 **Every write of a round record ends with one `Status:` line, which records the round's state; the
 dispositions decide it** — save the baseline append (above), which records no state and names
@@ -2151,7 +2172,8 @@ recording no finding (`BRD_INTERVIEW_NO_FINDINGS`), a slice's inventory carrying
 (`BRD_INTERVIEW_EMPTY_INVENTORY`'s slice form — a fact about what the parent allocated to this slice,
 never about this plugin), a slice's inventory absent (`BRD_INTERVIEW_NO_INVENTORY` — never written,
 by an interrupted `/brd-split` on the parent, or written and since lost), unverified findings, an unallocated ledger, and an unset `$SPECS_PATH`.
-`BRD_INTERVIEW_NO_SUCH_ROUND` is an argument naming a round that does not exist, and
+`BRD_INTERVIEW_NO_SUCH_ROUND` is an argument naming a round that does not exist,
+`BRD_INTERVIEW_ROUND_STILL_OPEN` an argument naming a round that cannot open yet, and
 `BRD_INTERVIEW_ALL_DELEGATED` — a BRD that kept no requirement of its own — is an allocation outcome
 this command reports correctly, not a capability it lacks.
 

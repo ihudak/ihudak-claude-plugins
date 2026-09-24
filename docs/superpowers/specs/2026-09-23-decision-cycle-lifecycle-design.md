@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found twenty-two more (N7–N28). This spec fixes all thirty-nine.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found twenty-three more (N7–N29). This spec fixes all forty.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -68,6 +68,7 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N26 | E | `/epics`' `EPICS_PRD_NO_REQUIREMENTS` fires only after Phase 1's questions, Phase 2's consent-bearing grounding and the Phase 2.5/2.6 gates, although step 1b already opens `prd.md`. Found by Task 8's re-review. Fixed with R55's placement: the test runs at step 1b |
 | N27 | E | `/epics` step 1b's `EPICS_NO_PRD` gate reads `prd.md` before the specs-repo preflight settles the checkout's branch, so a stale plugin branch gives a false refusal (B1's shape). Found by Task 8's implementer |
 | N28 | E | `/document`'s preflight key set lacks `<PRD>` on an Epic run, so the preflight switches away from a `prd/<PRD-KEY>` branch the run should keep. Found by Task 8's implementer |
+| N29 | E | `/epics` step 1a's `EPICS_BRD_NOT_SLICED` lists slices by reading their `brd-link.md` before the specs-repo preflight, so a stale branch can hide a slice. Found by Task 8's re-review |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
 
 Out of scope: any change to what an abort or Cancel does, and any structural "carve in progress" marker in `/brd-split` (Unit D's gate closes N5 without one).
@@ -355,5 +356,5 @@ Revised during execution, after Units A–E grew and Unit F was dropped. The CHA
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all thirty-nine rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all forty rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

@@ -6,7 +6,7 @@
 
 ## 1. Purpose
 
-Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found fifteen more (N7–N21). This spec fixes all thirty-two.
+Round 3 of the exclusivity probe deferred eleven decision-cycle defects to a design pass of their own. They are listed in `docs/superpowers/verification/2026-09-23-exclusivity-probe-wider-vocabulary.md`, Round 3, under "Deferred by user decision". Tracing them turned up six more defects of the same kind (N1–N6 in §3), and implementation found sixteen more (N7–N22). This spec fixes all thirty-three.
 
 It covers:
 - `/brd-interview`, `/brd-reconcile`, `/prd-ground`, `/brd-split`, `/create-prd`, `/document` and `/release-notes`;
@@ -61,6 +61,7 @@ Abbreviations: `BI` = `plugins/product-workflows/commands/brd-interview.md`, `BR
 | N21 | B | A self-review finding re-escalated under a new `[SR#n]` in a later package is frozen beside its earlier answer. Nothing ties the two ids together. Found by Task 6's implementer |
 | v | E | CP step 6 does not say whether a `prd.md` with no `kind: prd` counts as found |
 | N6 | E | CP Phase 5 writes `prd.md` with no existence guard. Under the strict reading of v, a keyless `prd.md` is overwritten with no archive |
+| N22 | E | `/create-prd`'s three Overwrite choice labels promise "(archives the current one)", but no step performs, locates, names or stages that archive, so every Overwrite loses the prior PRD. Found by Task 7's implementer |
 | vi | E | `/document` and `/release-notes` stop on a found-but-unplaced folder, a BRD container, or a folder holding no PRD, using the "key dir not found" rule and `["Re-enter key", "Cancel"]`. That happens at two sites in each command |
 
 Out of scope: any change to what an abort or Cancel does, and any structural "carve in progress" marker in `/brd-split` (Unit D's gate closes N5 without one).
@@ -284,6 +285,14 @@ The revised design:
 - **Phase 5 guard** (≈708). Immediately before writing `prd.md`, test whether the file exists. Where it does and the run did not reach Phase 1's archive-and-overwrite, archive it first, as Phase 1 step 2's overwrite does (`revisions/`, same naming), and report the archive path. Nothing is ever overwritten unarchived.
 - **Sweep.** `docs/commands/create-prd.md` gets one sentence on the keyless case. Re-read `addressing.md:337–341` and keep it. It names only the three kind-gating commands, and that list stays true.
 
+### E1a. Ruling R50 (N6 and N22, revises E1's guard)
+
+E1's guard rested on a false premise: Phase 1 step 2 archives nothing. Instead, the Phase 5 guard archives **on every route, with no exemption**, whenever `<feature-folder>/prd.md` exists at write time.
+- The archive goes to `revisions/<KEY>_<slug>_<YYYYMMDD>.md`, following `/update-prd` Phase 5 step 1's naming. Where that name is taken, the guard uses the first free `-2`, `-3`, and so on.
+- A failed copy stops the run before anything is written.
+- The archive path joins Phase 5's `deliverable_paths`.
+- This makes the Overwrite labels true. The docs page's "checked by a frontmatter glob" sentence is rewritten, and the Phase 3 "(Phase 0)" pointer is corrected to Phase 1.
+
 ### E2. Named stops for found-but-unplaced folders (vi)
 
 In `plugins/docs-workflows/commands/document.md` (Phase 0 step 1, ≈64–66, and Phase 3, ≈364) and `release-notes.md` (≈61–66 and ≈237), replace the reuse of the "key dir not found" rule with named stops. They follow `/ready`'s `READY_BRD_NOT_SLICED` and `/specify`'s split (`specify.md:467–476`):
@@ -326,5 +335,5 @@ The research flagged "Session cost (ALWAYS runs)" as false, because an abort or 
 - For every rewritten claim, a refinement-7 literal-string count across the sweep scope, taken before and after the edit and recorded with its command.
 - The per-item trace: each failure scenario in §3 is walked step by step against the new text, and the step where it now resolves is cited by file and phrase.
 - An exclusivity probe over the diff, covering new "only", "never" and "every" claims introduced by this pass.
-- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all thirty-two rows read FIXED is the known-bug count 0.
+- The verification record `docs/superpowers/verification/2026-09-23-decision-cycle-lifecycle.md` is written last, after the final fix wave. It closes each §3 row as FIXED with the commit that fixed it. Only once all thirty-three rows read FIXED is the known-bug count 0.
 - Every row of the round-3 "Deferred by user decision" list gets a one-line pointer to this record.

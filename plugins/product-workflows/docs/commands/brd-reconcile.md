@@ -538,7 +538,9 @@ An option whose condition this run did not meet is **dropped** from the array ra
 so every option an operator sees is one that applies.
 
 The same phase also offers the route's **re-entries** — another [`/brd-interview`](brd-interview.md)
-round where this run reopened a decision, [`/brd-package`](brd-package.md) where questions remain for
+round where this run reopened a decision and left every round closed — while a round stays open, the
+reopened decision is named as waiting behind the re-package, since `/brd-interview` puts its question
+only in a round it opens — [`/brd-package`](brd-package.md) where questions remain for
 the customer, [`/prd-ground --rebaseline`](prd-ground.md) where the review challenged a code claim,
 and a second `/brd-reconcile` pass on this same review once a dependent recorded-not-written has its
 own register on the default branch.
@@ -602,7 +604,9 @@ Had this ledger left a row `unallocated`, or left none `covered-here`, the first
 dropped from the offer and the stop would say which test failed; the other two would still be
 offered. Had the run instead reopened a decision or left a question held for the customer,
 `advance_ready` would be `no`, and Phase 14 would offer the re-entry the trigger names — another
-`/brd-interview` round, a re-package, or a `/prd-ground --rebaseline` pass — never the three above.
+`/brd-interview` round where every round is closed, a re-package, or a `/prd-ground --rebaseline`
+pass — never the three above. Whatever else it offers, a record its propagation sweep reopened in a
+dependent BRD is named beside the list with `/brd-interview` on that dependent's key.
 
 ## See also
 

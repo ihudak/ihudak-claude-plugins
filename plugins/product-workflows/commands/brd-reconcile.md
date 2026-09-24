@@ -2132,6 +2132,17 @@ Where this run can go next:
 choices: ["Stop here — this run's changes are recorded; the route resumes when the items named above are settled", "Work another round — /product-workflows:brd-interview <BRD-KEY>, for the decision this run reopened or the question it left askable", "Package again — /product-workflows:brd-package <BRD-KEY> <merge-clause>, for the questions still held for the customer", "Re-ground a moved claim — /product-workflows:prd-ground <BRD-KEY> --rebaseline <merge-clause>"]
 ```
 
+***Work another round* fires on a reopened decision only where every round of this BRD is closed
+once this run's writes land** — read off the round records by the dispositions, as
+`/product-workflows:brd-interview` reads them. That command puts a reopened record's question only in
+a round it opens, and opens one only once every round is closed (its *A decision reopened
+elsewhere*), so where a round stays open — a `[C]` this review left unanswered, say — the bare run
+would resume that round and report the record waiting: the no-op offer this phase refuses to make
+(below). There, name the reopened record beside the list as waiting behind *Package again*, in the
+order the route settles it: the package carries the held questions, this command records their
+answers and closes the round, and the next `/brd-interview` run puts the reopened decision's
+question. Its other trigger, a question this run left askable, is unchanged.
+
 **The trigger filter runs first and the four-option cap applies to what survives it**
 (`workflows-core:next-phase-offer`'s overflow rule). Typically two or three
 triggers fire and every one of them fits. Where all four fire, the prose above still names all four
@@ -2187,9 +2198,20 @@ waits on is the *dependent's* register reaching the default branch, while the pl
 `Phase handoff:` outcome line — a different merge, which is why the condition is written in the
 option's own text like every other one in the list.
 
+**Beside either list, name `/product-workflows:brd-interview <DEPENDENT-KEY>` for every record
+this run's propagation sweep wrote `reopened` in a dependent BRD**, one line per dependent, with
+each record by id qualified as that sweep names it. That dependent's own next `/brd-interview` run
+puts the record's question again (its *A decision reopened elsewhere*), and no command on the
+dependent's side offers that run, so this is the one place it is named. It is prose and never an
+array option — it names work on a different key — and it carries no `<merge-clause>`: that command
+gates on the dependent's `grounding/code-grounding.md`, which this run never writes. A dependent
+recorded-not-written has no such line, since nothing was reopened there yet.
+
 Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,
 never behaviour a command of its own owns: a `[C]` the review did not answer keeps its round open and
-travels in the next package; a decision this run reopened is settled by another interview round; a
+travels in the next package; a decision this run reopened is settled by another interview round,
+once every round is closed; a record the sweep reopened in a dependent, by that dependent's own
+interview round; a
 challenged code claim is settled by a grounding pass and by nothing here, and a decision any
 finding of which that pass supersedes is reopened or put again by the next
 `/product-workflows:brd-interview` round where that command's *A decision the re-grounding moved*

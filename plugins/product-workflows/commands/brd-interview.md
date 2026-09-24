@@ -99,9 +99,11 @@ them is.
    the question set.** They are: the `SPECS_PATH` escalation in *Resolve inputs and gate the grounded
    BRD*; the round re-open cause prompt in *Resolve the round*; the `[V]` queue and the argumentation
    prompt that follows each of its answers; the code-defect offer that follows it; the will-change
-   resolution picker; the handoff choice; and the next-step offer. Only the third carries a question
-   from the set — and the argumentation prompt inside it asks why the answer just given was given,
-   never a question of its own.
+   resolution picker; the handoff choice; the next-step offer; and, in *Put each `[V]` to the
+   operator*, the re-put tie picker for a resumed `[V]` that carries no `- **Re-puts:**` line. Only
+   the third carries a question from the set — and the argumentation prompt inside it asks why the
+   answer just given was given, never a question of its own. The tie picker names a question of the
+   set but asks only which record it puts again, never for its answer.
 
    **Two further prompts can appear, raised inside shared entry points this command executes rather
    than by the command itself, and neither can carry a question from the set** — because neither
@@ -1021,8 +1023,8 @@ that as a test that did not pass.
   (`decision-register-format.md` §4). The two go together, and this source never leaves a record
   reopened without its question. A run that stops between the register and the round record does
   leave one: the reopen stands (§8), and its question is lost with the round record. This source
-  takes only `decided` records, so it does not take that record again. *A decision reopened
-  elsewhere* (below) does: no question in flight puts it, and that source puts its question in the
+  takes only `open` and `decided` records, so it does not take a `reopened` one again. *A decision
+  reopened elsewhere* (below) does: no question in flight puts it, and that source puts its question in the
   next round opened.
 
 Such a record — a held one ready to be put again, a held one resting on a superseded finding
@@ -1121,7 +1123,8 @@ for a `[C]`. It reaches none of the other three: its tag never moves, so it is n
 *split*, and it is never a `[G]`, so it is never *answered from findings*. A *deferred* `[V]` and a
 `[C]` *held for the customer* keep the record in flight. The test reads the line and nothing else,
 so a question written before the line existed, which names its record in prose only, holds no
-record in flight. Where every round is closed, no question lacks a terminal disposition and so no
+record in flight until *Put each `[V]` to the operator*'s tie picker gives it the line, the first
+time a run resumes its round. Where every round is closed, no question lacks a terminal disposition and so no
 record is in flight; the test matters only where a round is still open when this source runs.
 
 **Such a record makes a new round askable** (*Resolve the round*, the *Every round is closed*
@@ -1323,6 +1326,40 @@ re-decision *A later round is generated from what changed* records carries its t
 from generation, or, in a round this run resumes, from the resume, and a question that already has
 one is never asked.
 
+**First, tie each resumed `[V]` that carries no `- **Re-puts:**` line to the record it puts again,
+or to none — by asking, never by reading its prose.** A version of this command released before
+the line existed wrote a re-put `[V]` with its record named in prose alone, and every reader of a
+re-put keys on the line: this phase's re-decision rule, the held-record supersession *Write the
+register and the round record* writes, the resume rule for a standing re-decision and the in-flight
+test (*Generate the round's question set*). Nothing on file tells such a question from an ordinary
+`[V]`, so the test is the known set, never the text. For each `[V]` in a round this run resumes that
+has no terminal disposition and carries no `- **Re-puts:**` line, build the **candidate set**: every
+`[VD#n]` reading `reopened`, every held `[VD#n]` *A decision the re-grounding moved* would put
+again now, and every `[VD#n]` carrying a `Reopened` paragraph whose `round` is the question's round
+— a re-decision a stopped run took in answer to it, which the resume rule then records — less every
+record another question's line holds in flight. **An empty candidate set asks
+nothing**: the question is an ordinary `[V]`. Otherwise, before the queue opens, put one tie
+picker per such question, quoting the question and listing every candidate in prose above the
+prompt — its id, `status` and `statement`:
+
+```
+choices: ["It puts again <candidate id> — <its statement>", "It puts again <next candidate id> — <its statement>", "None — it is an ordinary question and puts no record again"]
+```
+
+One entry per candidate, **up to three**, and the `None` entry last, always; where one candidate
+exists the array is two entries. **Past three candidates, the overflow rule applies**
+(`workflows-core:next-phase-offer`): the prose lists every one, the array carries the three whose
+`statement` is closest to the question's, and the harness's free-text option reaches the rest. A
+free-text answer is normalised to one candidate's id or to `None`, and re-asked where it names
+neither — never written through. The answer is held, and *Write the register and the round record*
+appends it to the round record under that question, before its state: `- **Re-puts:** [VD#n]`, or
+`- **Re-puts:** none`, the one form that names no record and exists only to record this answer, so
+the picker never asks about the same question twice. A question tied to a record is then a re-put
+`[V]` like any other: the resume rule for a standing re-decision (*A later round is generated from
+what changed*) applies to it first, and this phase's re-decision rule, or the held-record
+supersession, to its answer. **This picker asks which record, never the question itself**, and the
+queue below is unchanged by it.
+
 Present each question **exactly one at a time, never batched**, via `AskUserQuestion`, quoting the
 question, the findings that bear on it with their verdicts and horizons, and — when it got here by a
 re-tag — the `NOT-PROVABLE` finding that caused the re-tag, so the operator can see that the
@@ -1438,8 +1475,9 @@ when the answer is taken, or that this run reopens in the same register write, i
 and takes the paragraph above — a plain record this run or an earlier one reopened, a held one a
 propagation sweep reopened meanwhile (*A decision the re-grounding moved*, in *Generate the round's
 question set*), or one *A decision reopened elsewhere* put again. **Which record a question puts
-again is read off its `- **Re-puts:**` line** and never off its context, which names the earlier
-answer too; its status is read off that record. **One that reads `withdrawn` or `superseded` when
+again is read off its `- **Re-puts:**` line** — or, for a question the tie picker above tied in
+this run, off that held answer, which this run's round record writes as the line — and never off
+its context, which names the earlier answer too; its status is read off that record. **One that reads `withdrawn` or `superseded` when
 the answer is taken** — a reopened record left terminal by another run while its question
 waited — is neither, and
 takes the list above as a held one another run left terminal does: its answer mints a new `[VD#n]`,
@@ -1684,7 +1722,8 @@ and that paragraph are all this command writes, the customer's `chosen` and quot
 untouched until `/product-workflows:brd-reconcile` re-decides it from the customer's answer. **The
 third is the held record's, and it mints a new id for a question already answered**: a `[V]`
 putting again a `[VD#n]` the will-change rule held is answered by a new `[VD#n]`, and the held
-record — the one the question's `- **Re-puts:**` line names — where it reads `open` or `decided`,
+record — the one the question's `- **Re-puts:**` line names, or the tie picker's held answer
+names where this write gives the question its line — where it reads `open` or `decided`,
 has its `status` moved to `superseded` and its
 `argumentation` given the closing `Superseded <YYYYMMDD>: by [VD#m]` paragraph
 `decision-register-format.md` §4 fixes, naming the new id — nothing else on it moves. That record
@@ -1751,7 +1790,12 @@ a question to its record reads the line and parses nothing else: *Put each `[V]`
 re-decision rule, *Write the register and the round record*'s supersession of a held record, the
 resume rule for a standing re-decision, the in-flight test of *A decision reopened elsewhere*, and,
 from the `[C]` entry's copy of the line, `/product-workflows:brd-reconcile`. The line is written
-when the question is first written and never moves, the record being append-only.
+when the question is first written and never moves, the record being append-only — **save one
+late write**: a `[V]` written before the line existed gets it, appended under the question, from
+*Put each `[V]` to the operator*'s tie picker, naming the record the operator chose, or reading
+`- **Re-puts:** none` where they chose none. `none` names no record, so it puts nothing in flight
+and ties the question to nothing; it records only that the question was asked about, and it is
+written by that picker and by nothing else.
 
 **Every write of a round record ends with one `Status:` line, which records the round's state; the
 dispositions decide it** — save the baseline append (above), which records no state and names
@@ -1977,7 +2021,7 @@ may not be consumed downstream while it reads `reopened` (`decision-register-for
 **`package_offerable: yes`:**
 
 ```
-choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /product-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (only if findings have changed, a requirement defect became this BRD's to ask, a re-grounding moved a decision's evidence, or another run reopened a decision)", "Interview another BRD or slice"]
+choices: ["Stop here — this round's decisions are recorded", "Package this BRD for customer review — /product-workflows:brd-package <BRD-KEY> <merge-clause>", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (only if findings have changed, a requirement defect became this BRD's to ask, a re-grounding moved a decision's evidence, or another run reopened a decision — that last once every round is closed)", "Interview another BRD or slice"]
 ```
 
 **`package_offerable: rounds-unsettled` — `/brd-package` is left out rather than offered and
@@ -2008,11 +2052,12 @@ question source puts a question on what changed after the last round was generat
 a requirement defect becoming this BRD's to ask, or a decision reopened; a record moved to
 `reopened` raises its question through *A decision reopened elsewhere*, and one moved to
 `superseded` raises nothing (*Resolve the round*) — and nothing here has changed. **The one
-exception is a reopened record named waiting beside the list (above)**. Where one is, do not call
-this BRD decided — a `reopened` record is not — and say that it holds a reopened decision instead.
-Every round is closed in this state, so the bare run named with the record opens the round that
-puts its question; that run is the one `/product-workflows:brd-interview` offer this state makes,
-in that prose rather than in the array.
+exception is a reopened record named waiting beside the list (above)**, and it takes its own list
+below rather than this one. Such a record can only be a `[CD#n]` — a reopened `[VD#n]` is a
+`[VD#n]` in the register, which step 8 counts — and a `[CD#n]` is re-decided by the customer, so
+this BRD is neither decided nor free of customer review. Say that it holds a reopened decision, and
+never present the array that says otherwise. Every round is closed in this state, so the bare run
+opens the round that puts its question.
 Of those changes, only the findings can be moved from here: a requirement defect becomes this BRD's to ask, and a decision is reopened, through events outside this command — for instance
 `/product-workflows:brd-intake` re-run over a revised source the customer sends, an allocation or a
 re-cut elsewhere under the parent, a sibling's `/product-workflows:brd-reconcile` moving its row to
@@ -2024,10 +2069,17 @@ grounding pass is what the list carries:
 choices: ["Stop here — every question was settled from the findings and this BRD needs no customer review", "Re-ground every claim against current commits — /product-workflows:prd-ground <BRD-KEY> --rebaseline (a changed finding is what can make a new round askable)", "Interview another BRD or slice"]
 ```
 
-**Three of the four lists carry no `(Recommended)` marker, and that omission is deliberate**, per
+**`package_offerable: nothing-to-review` with a reopened record waiting — name each record, with
+what reopened it, and offer the round that puts it:**
+
+```
+choices: ["Stop here — the reopened decision named above waits for the next round", "Work another round now — /product-workflows:brd-interview <BRD-KEY> (puts the reopened decision's question again)", "Interview another BRD or slice"]
+```
+
+**Four of the five lists carry no `(Recommended)` marker, and that omission is deliberate**, per
 the `When no option is safe to recommend` guidance in
-`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: on `yes`, `rounds-unsettled`
-and `nothing-to-review`, which one is right depends entirely on what this round left behind.
+`Skill(skill: "workflows-core:reference", args: "escalation-rules")`: on `yes`, `rounds-unsettled`,
+`nothing-to-review` and its reopened-record list, which one is right depends entirely on what this round left behind.
 **`defects-unasked` is the exception and is well-formed rather than an inconsistency**: its list is
 shown only in its own state, and in it the marked step is the single one every path out goes through
 — the re-open that asks questions only the customer can answer — which is precisely the first bullet
@@ -2037,7 +2089,9 @@ the prompt and the marker is therefore a plain one. What the gate above decides 
 gates pass is ready to package; one either content gate refuses is not — which is why it is not
 shown the option rather than shown it with a caveat. The `nothing-to-review` list carries no marker
 for the same reason and one of its own: stopping there is a legitimate, finished outcome, and
-marking a grounding pass "recommended" would imply this BRD is unfinished when it is not.
+marking a grounding pass "recommended" would imply this BRD is unfinished when it is not. Its
+reopened-record list carries none because stopping there is legitimate too: the record waits, named,
+until whoever owns the next round runs it.
 
 `<merge-clause>` in that list is the placeholder `workflows-core:next-phase-offer` resolves from
 this run's own `Phase handoff:` outcome line; it is never written as an unconditional "once the pull
@@ -2046,8 +2100,8 @@ wherever the register was already on file, and then opens no pull request. **The
 `/product-workflows:prd-ground <BRD-KEY>` — `rounds-unsettled` and `nothing-to-review` — carry no
 clause at all, and that asymmetry is deliberate:** that command gates on `coverage-ledger.md`
 (`commands/prd-ground.md` Phase 0 step 6), which this run never writes, so no handoff of this run's
-can hold it up and there is no wait to state. **The `defects-unasked` re-open carries none for the
-same reason**: this command gates on `grounding/code-grounding.md` (*Resolve inputs and gate the
+can hold it up and there is no wait to state. **The `defects-unasked` re-open, and the reopened-record list's round, carry none
+for the same reason**: this command gates on `grounding/code-grounding.md` (*Resolve inputs and gate the
 grounded BRD*, step 6), which this run never writes either.
 
 Say plainly what remains, per `Skill(skill: "workflows-core:reference", args: "next-phase-offer")` — names only,

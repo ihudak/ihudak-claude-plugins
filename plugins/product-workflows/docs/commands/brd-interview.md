@@ -274,7 +274,10 @@ BRD, and the `PRD-<SLICE-KEY>-<slug>/` slice folder inside it for a slice
   wherever no round recorded a decision, so `/brd-package` finds the register it gates on.
 - `interview/round-<N>.md` — the round's append-only record: every question in the order it was
   written, its tag, on a question that puts a decision on file again that decision on its own
-  line labelled `- **Re-puts:**`, whatever the tag, every re-tag with the finding that caused it,
+  line labelled `- **Re-puts:**`, whatever the tag — a deferred `[V]` an earlier version wrote
+  without that line is tied when its round is resumed: the run asks the operator which reopened or
+  held decision it puts again, from those that could be, or none, and writes the answer as the line
+  (`none` where it puts none), so it is asked once — every re-tag with the finding that caused it,
   every split with the parts it became, and each question's state — either a **terminal disposition** (*answered from findings*,
   *decided*, *answered by the customer*, *re-tagged*, *split*) or a **holding state** (*held for the
   customer*, *deferred*, *needs grounding*, *untagged*). A re-tagged question keeps its number, so
@@ -508,7 +511,7 @@ reconciliation moving its row to `rejected` or `superseded-by`, or a sibling fil
 read becoming readable; and a reconciliation can reopen one of its decisions); neither the packaging
 step nor another round of this command is offered, because both would stop or report a no-op —
 save where the run names a reopened decision that waited on the round it worked, when it says the
-BRD is not decided and names the bare run that puts that decision's question.
+BRD is not decided and offers, in a list of its own, the round that puts that decision's question.
 Re-opening a closed round later, with its cause recorded:
 
 ```
